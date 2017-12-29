@@ -1,0 +1,78 @@
+options {
+    IGNORE_CASE = true;
+}
+
+PARSER_BEGIN(RunParser)
+package org.jchien.shuffle.parser;
+
+public class RunParser {
+    public static void main(String[] args) throws ParseException, TokenMgrError {
+        RunParser parser = new RunParser(System.in);
+        parser.start();
+    }
+}
+PARSER_END(RunParser)
+
+SKIP: {
+    " "
+    | "\t"
+    | "\n"
+    | "\r"
+}
+
+TOKEN: {
+    < LPAREN: "(" >
+    | < RPAREN: ")" >
+    | < COMMA: "," >
+    | < SLASH: "/" >
+    | < CARET: "^" >
+    | < #DIGIT: (["0"-"9"]) >
+    | < #LETTER: (["A"-"Z"]) >
+    | < WORD: <LETTER> (<DIGIT> | <LETTER> | "+" | "-" | "?" | "!")* >
+    | < NUM: (<DIGIT>)+ >
+    | < SCORE_VALUE: (<DIGIT> | <COMMA>)+ ("." (<DIGIT>){1, 3} "K")? >
+}
+
+TOKEN: {
+    < RUN_HEADER: ("!RUN" | "!EB" <NUM>) >
+    | < TEAM_HEADER: "TEAM:" >
+    | < SCORE_HEADER: "SCORE:" >
+    | < ITEMS_HEADER: "ITEMS:" >
+    | < MOVES_LEFT_HEADER: "MOVES LEFT:" >
+    | < END_HEADER: "!END" >
+}
+
+// goal is to have simplest grammar, validate after parsing
+
+// top level production
+void start(): {} {
+    run() <EOF>
+}
+
+void run(): {} {
+    <RUN_HEADER> (section())* <END_HEADER>
+}
+
+void section(): {} {
+    team() | score() | items() | movesLeft()
+}
+
+void team(): {} {
+    <TEAM_HEADER> support() (<COMMA> support())*
+}
+
+void support(): {} {
+    <WORD> (<LPAREN> <NUM> <RPAREN> (<CARET> <NUM> <SLASH> <NUM>)?)? (<WORD> (<WORD>)*)?
+}
+
+void score(): {} {
+    <SCORE_HEADER> <SCORE_VALUE>
+}
+
+void items(): {} {
+    <ITEMS_HEADER> <WORD> (<COMMA> <WORD>)*
+}
+
+void movesLeft(): {} {
+    <MOVES_LEFT_HEADER> <NUM>
+}

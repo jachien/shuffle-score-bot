@@ -1,0 +1,13 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    // https://mvnrepository.com/artifact/net.java.dev.javacc/javacc
+    compile group: 'net.java.dev.javacc', name: 'javacc', version: '7.0.3'
+}
+
