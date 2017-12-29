@@ -1,14 +1,45 @@
 options {
+    static = false;
     IGNORE_CASE = true;
 }
 
 PARSER_BEGIN(RunParser)
 package org.jchien.shuffle.parser;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RunParser {
-    public static void main(String[] args) throws ParseException, TokenMgrError {
+    private List<RawPokemon> team = new ArrayList<RawPokemon>();
+    private boolean teamSet = false;
+
+    private List<String> items = new ArrayList<String>();
+    private boolean itemsSet = false;
+
+    private String score = null;
+
+    private String stage = null;
+
+    private String movesLeft = null;
+
+    public RunParser() {
+    }
+
+    public RawRunDetails getDetails() {
+        return new RawRunDetails(team, items, score, stage, movesLeft);
+    }
+
+    public static void main(String[] args) throws ParseException, TokenMgrError, DupeSectionException {
         RunParser parser = new RunParser(System.in);
         parser.start();
+        System.out.println(parser.getDetails());
+    }
+
+    private String value(Token t) {
+        if (t == null) {
+            return null;
+        }
+        return t.image;
     }
 }
 PARSER_END(RunParser)
@@ -21,16 +52,11 @@ SKIP: {
 }
 
 TOKEN: {
-    < LPAREN: "(" >
-    | < RPAREN: ")" >
-    | < COMMA: "," >
-    | < SLASH: "/" >
-    | < CARET: "^" >
-    | < #DIGIT: (["0"-"9"]) >
+    < #DIGIT: (["0"-"9"]) >
     | < #LETTER: (["A"-"Z"]) >
     | < WORD: <LETTER> (<DIGIT> | <LETTER> | "+" | "-" | "?" | "!")* >
     | < NUM: (<DIGIT>)+ >
-    | < SCORE_VALUE: (<DIGIT> | <COMMA>)+ ("." (<DIGIT>){1, 3} "K")? >
+    | < SCORE_VALUE: <DIGIT> (<DIGIT> | ",")* ("." (<DIGIT>){1, 3} "K")? >
 }
 
 TOKEN: {
@@ -45,34 +71,84 @@ TOKEN: {
 // goal is to have simplest grammar, validate after parsing
 
 // top level production
-void start(): {} {
+void start() throws DupeSectionException: {} {
     run() <EOF>
 }
 
-void run(): {} {
-    <RUN_HEADER> (section())* <END_HEADER>
+void run() throws DupeSectionException: {
+    Token t;
+} {
+    t=<RUN_HEADER> (section())* <END_HEADER>
+    // todo split RUN_HEADER up so that we only store stage if it's an EB
+    { stage = t.image; }
 }
 
-void section(): {} {
+void section() throws DupeSectionException: {} {
     team() | score() | items() | movesLeft()
 }
 
-void team(): {} {
-    <TEAM_HEADER> support() (<COMMA> support())*
+void team() throws DupeSectionException: {
+    RawPokemon pkmn;
+} {
+    {
+        if (teamSet) {
+            throw new DupeSectionException(Section.TEAM);
+        }
+        teamSet = true;
+    }
+    <TEAM_HEADER> pkmn=support() { team.add(pkmn); } ("," pkmn=support() { team.add(pkmn); })*
 }
 
-void support(): {} {
-    <WORD> (<LPAREN> <NUM> <RPAREN> (<CARET> <NUM> <SLASH> <NUM>)?)? (<WORD> (<WORD>)*)?
+RawPokemon support(): {
+    Token tName = null;
+    Token tLevel = null;
+    Token tSkillLevel = null;
+    Token tSkillName = null;
+    Token tMsus = null;
+} {
+    tName=<WORD> ("^" tMsus=<NUM>)? ("(" tLevel=<NUM> ")")? (tSkillLevel=<WORD> (tSkillName=<WORD>)*)?
+    {
+        return new RawPokemon(
+            tName.image,
+            value(tLevel),
+            value(tSkillLevel),
+            value(tSkillName),
+            value(tMsus));
+    }
 }
 
-void score(): {} {
-    <SCORE_HEADER> <SCORE_VALUE>
+void score() throws DupeSectionException: {
+    Token t;
+} {
+    {
+        if (score != null) {
+            throw new DupeSectionException(Section.SCORE);
+        }
+    }
+    <SCORE_HEADER> t=<SCORE_VALUE>
+    { score = t.image; }
 }
 
-void items(): {} {
-    <ITEMS_HEADER> <WORD> (<COMMA> <WORD>)*
+void items() throws DupeSectionException: {
+    Token t;
+} {
+    {
+        if (itemsSet) {
+            throw new DupeSectionException(Section.ITEMS);
+        }
+        itemsSet = true;
+    }
+    <ITEMS_HEADER> t=<WORD> { items.add(t.image); } ("," t=<WORD> { items.add(t.image); })*
 }
 
-void movesLeft(): {} {
-    <MOVES_LEFT_HEADER> <NUM>
+void movesLeft() throws DupeSectionException: {
+    Token t;
+} {
+    {
+        if (movesLeft != null) {
+            throw new DupeSectionException(Section.MOVES);
+        }
+    }
+    <MOVES_LEFT_HEADER> t=<NUM>
+    { movesLeft = t.image; }
 }
