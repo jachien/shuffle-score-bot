@@ -11,33 +11,29 @@ public interface RunParserConstants {
   /** End of File. */
   int EOF = 0;
   /** RegularExpression Id. */
-  int PERFECT = 5;
+  int RUN_HEADER = 5;
   /** RegularExpression Id. */
-  int DIGIT = 6;
+  int EB_HEADER = 6;
   /** RegularExpression Id. */
-  int LETTER = 7;
+  int TEAM_HEADER = 7;
   /** RegularExpression Id. */
-  int LEVEL = 8;
+  int SCORE_HEADER = 8;
   /** RegularExpression Id. */
-  int WORD = 9;
+  int ITEMS_HEADER = 9;
   /** RegularExpression Id. */
-  int NUM = 10;
+  int MOVES_LEFT_HEADER = 10;
   /** RegularExpression Id. */
-  int SLASH = 11;
+  int END_HEADER = 11;
   /** RegularExpression Id. */
-  int RUN_HEADER = 12;
+  int PERFECT = 12;
   /** RegularExpression Id. */
-  int EB_HEADER = 13;
+  int DIGIT = 13;
   /** RegularExpression Id. */
-  int TEAM_HEADER = 14;
+  int LETTER = 14;
   /** RegularExpression Id. */
-  int SCORE_HEADER = 15;
+  int WORD = 15;
   /** RegularExpression Id. */
-  int ITEMS_HEADER = 16;
-  /** RegularExpression Id. */
-  int MOVES_LEFT_HEADER = 17;
-  /** RegularExpression Id. */
-  int END_HEADER = 18;
+  int SLASH = 16;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -49,13 +45,6 @@ public interface RunParserConstants {
     "\"\\t\"",
     "\"\\n\"",
     "\"\\r\"",
-    "\"PERFECT\"",
-    "<DIGIT>",
-    "<LETTER>",
-    "<LEVEL>",
-    "<WORD>",
-    "<NUM>",
-    "\"/\"",
     "\"!RUN\"",
     "\"!EB\"",
     "\"TEAM:\"",
@@ -63,6 +52,11 @@ public interface RunParserConstants {
     "\"ITEMS:\"",
     "\"MOVES LEFT:\"",
     "\"!END\"",
+    "\"PERFECT\"",
+    "<DIGIT>",
+    "<LETTER>",
+    "<WORD>",
+    "\"/\"",
     "\",\"",
     "\"(\"",
     "\")\"",

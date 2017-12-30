@@ -53,6 +53,48 @@ public class RunParser {
     private void storePokemon() {
         team.add(pkmnBuilder.build());
     }
+
+    private boolean isLevel(StringBuilder sb) {
+        return isDigits(sb, 0)
+            || isLevel(sb, "lv")
+            || isLevel(sb, "lv ");
+    }
+
+    private boolean isLevel(StringBuilder sb, String prefix) {
+        return startsWithIgnoreCase(sb, prefix) && isDigits(sb, prefix.length());
+    }
+
+    private boolean startsWithIgnoreCase(StringBuilder sb, String prefix) {
+        if (prefix.length() > sb.length()) {
+            return false;
+        }
+
+        for (int i=0; i < prefix.length(); i++) {
+            char expected = Character.toLowerCase(prefix.charAt(i));
+            char actual = Character.toLowerCase(sb.charAt(i));
+            if (expected != actual) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // return true if remaining characters are all digits
+    private boolean isDigits(StringBuilder sb, int start) {
+        // there must be at least one digit
+        if (start >= sb.length()) {
+            return false;
+        }
+
+        for (int i=start; i < sb.length(); i++) {
+            char ch = sb.charAt(i);
+            if (ch < '0' || '9' < ch) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
 PARSER_END(RunParser)
 
@@ -64,19 +106,6 @@ SKIP: {
 }
 
 TOKEN: {
-    < PERFECT: "PERFECT" >
-}
-
-TOKEN: {
-    < #DIGIT: (["0"-"9"]) >
-    | < #LETTER: (["A"-"Z"]) >
-    | < LEVEL: "LV" (<DIGIT>)+ >
-    | < WORD: <LETTER> (<DIGIT> | <LETTER> | "+" | "-" | "?" | "!")* >
-    | < NUM: (<DIGIT>)+ >
-    | < SLASH: "/" >
-}
-
-TOKEN: {
     < RUN_HEADER: "!RUN" >
     | < EB_HEADER: "!EB" >
     | < TEAM_HEADER: "TEAM:" >
@@ -84,6 +113,14 @@ TOKEN: {
     | < ITEMS_HEADER: "ITEMS:" >
     | < MOVES_LEFT_HEADER: "MOVES LEFT:" >
     | < END_HEADER: "!END" >
+    | < PERFECT: "PERFECT" >
+}
+
+TOKEN: {
+    < #DIGIT: (["0"-"9"]) >
+    | < #LETTER: (["A"-"Z"]) >
+    | < WORD: (<DIGIT> | <LETTER> | "+" | "-" | "?" | "!")+ >
+    | < SLASH: "/" >
 }
 
 // goal is to have simplest grammar, validate after parsing
@@ -96,7 +133,7 @@ void start() throws DupeSectionException: {} {
 void run() throws DupeSectionException: {
     Token t;
 } {
-    (<RUN_HEADER> | (<EB_HEADER> t=<NUM> { stage = t.image; }))
+    (<RUN_HEADER> | (<EB_HEADER> t=<WORD> { stage = t.image; }))
     (section())+
     <END_HEADER>
 }
@@ -133,30 +170,32 @@ void support(): {
 void supportSection(): {
 } {
     // todo dupe section exceptions
-    // order seems to matter here due to potential ambiguity even with lookahead
-    level() | msus() | skill()
+    msus() | levelOrSkill()
 }
 
-void level(): {
-    Token t;
-} {
-    t=<LEVEL> { pkmnBuilder.setLevel(t.image); }
-}
-
-void skill(): {
+// try to avoid ambiguous grammar that lookahead didn't seem to be helping with
+void levelOrSkill(): {
     Token t;
     StringBuilder sb = new StringBuilder();
 } {
-    ( t=<WORD> | t=<NUM> ) { sb.append(t.image); }
-    (( t=<WORD> | t=<NUM> ) { sb.append(' ').append(t.image); } )*
-    { pkmnBuilder.setSkill(sb.toString()); }
+    t=<WORD> { sb.append(t.image); }
+    (t=<WORD> { sb.append(' ').append(t.image); } )*
+    {
+        if (isLevel(sb)) {
+            pkmnBuilder.setLevel(sb.toString());
+        } else {
+            // assume it's a skill name, possibly without stating the skill level
+            // will have to validate it later
+            pkmnBuilder.setSkill(sb.toString());
+        }
+    }
 }
 
 void msus(): {
     Token tMsuCount;
     Token tMaxMsus;
 } {
-    tMsuCount=<NUM> <SLASH> tMaxMsus=<NUM>
+    tMsuCount=<WORD> <SLASH> tMaxMsus=<WORD>
     { pkmnBuilder.setMsus(tMsuCount.image + "/" + tMaxMsus.image); }
 }
 
@@ -169,9 +208,9 @@ void score() throws DupeSectionException: {
             throw new DupeSectionException(Section.SCORE);
         }
     }
-    <SCORE_HEADER> t=<NUM>
+    <SCORE_HEADER> t=<WORD>
     { sb.append(t.image); }
-    ( ("," | ".") t=<NUM> { sb.append(t.image); } )*
+    ( ("," | ".") t=<WORD> { sb.append(t.image); } )*
     { score = sb.toString(); }
 }
 
@@ -195,6 +234,6 @@ void movesLeft() throws DupeSectionException: {
             throw new DupeSectionException(Section.MOVES);
         }
     }
-    <MOVES_LEFT_HEADER> t=<NUM>
+    <MOVES_LEFT_HEADER> t=<WORD>
     { movesLeft = t.image; }
 }
