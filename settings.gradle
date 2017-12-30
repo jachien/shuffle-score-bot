@@ -15,4 +15,4 @@ include 'api'
 include 'services:webservice'
 */
 
-rootProject.name = 'shuffle-score-parser'
+rootProject.name = 'shuffle-score-bot'
