@@ -1,5 +1,7 @@
 package org.jchien.shuffle.parser;
 
+import java.util.Objects;
+
 /**
  * @author jchien
  */
@@ -47,5 +49,23 @@ public class RawPokemon {
                 ", msus='" + msus + '\'' +
                 ", perfect=" + perfect +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RawPokemon that = (RawPokemon) o;
+        return perfect == that.perfect &&
+                Objects.equals(name, that.name) &&
+                Objects.equals(level, that.level) &&
+                Objects.equals(skill, that.skill) &&
+                Objects.equals(msus, that.msus);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(name, level, skill, msus, perfect);
     }
 }

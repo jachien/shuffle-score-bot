@@ -70,6 +70,7 @@ TOKEN: {
 TOKEN: {
     < #DIGIT: (["0"-"9"]) >
     | < #LETTER: (["A"-"Z"]) >
+    | < LEVEL: "LV" (<DIGIT>)+ >
     | < WORD: <LETTER> (<DIGIT> | <LETTER> | "+" | "-" | "?" | "!")* >
     | < NUM: (<DIGIT>)+ >
     | < SLASH: "/" >
@@ -133,21 +134,21 @@ void supportSection(): {
 } {
     // todo dupe section exceptions
     // order seems to matter here due to potential ambiguity even with lookahead
-    msus() | skill() | level()
+    level() | msus() | skill()
 }
 
 void level(): {
     Token t;
 } {
-    t=<NUM> { pkmnBuilder.setLevel(t.image); }
+    t=<LEVEL> { pkmnBuilder.setLevel(t.image); }
 }
 
 void skill(): {
     Token t;
     StringBuilder sb = new StringBuilder();
 } {
-    ( t=<WORD> | t=<NUM>) { sb.append(t.image); }
-    ( t=<WORD> | t=<NUM> { sb.append(' ').append(t.image); } )*
+    ( t=<WORD> | t=<NUM> ) { sb.append(t.image); }
+    (( t=<WORD> | t=<NUM> ) { sb.append(' ').append(t.image); } )*
     { pkmnBuilder.setSkill(sb.toString()); }
 }
 
