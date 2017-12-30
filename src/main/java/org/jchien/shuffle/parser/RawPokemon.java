@@ -4,18 +4,18 @@ package org.jchien.shuffle.parser;
  * @author jchien
  */
 public class RawPokemon {
-    private String name;
-    private String level;
-    private String skillLevel;
-    private String skillName;
-    private String msus;
+    private String name = null;
+    private String level = null;
+    private String skill = null;
+    private String msus = null;
+    private boolean perfect = false;
 
-    public RawPokemon(String name, String level, String skillLevel, String skillName, String msus) {
+    public RawPokemon(String name, String level, String skill, String msus, boolean perfect) {
         this.name = name;
         this.level = level;
-        this.skillLevel = skillLevel;
-        this.skillName = skillName;
+        this.skill = skill;
         this.msus = msus;
+        this.perfect = perfect;
     }
 
     public String getName() {
@@ -26,16 +26,16 @@ public class RawPokemon {
         return level;
     }
 
-    public String getSkillLevel() {
-        return skillLevel;
-    }
-
-    public String getSkillName() {
-        return skillName;
+    public String getSkill() {
+        return skill;
     }
 
     public String getMsus() {
         return msus;
+    }
+
+    public boolean isPerfect() {
+        return perfect;
     }
 
     @Override
@@ -43,9 +43,9 @@ public class RawPokemon {
         return "RawPokemon{" +
                 "name='" + name + '\'' +
                 ", level='" + level + '\'' +
-                ", skillLevel='" + skillLevel + '\'' +
-                ", skillName='" + skillName + '\'' +
+                ", skill='" + skill + '\'' +
                 ", msus='" + msus + '\'' +
+                ", perfect=" + perfect +
                 '}';
     }
 }
