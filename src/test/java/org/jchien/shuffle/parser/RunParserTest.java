@@ -21,10 +21,6 @@ public class RunParserTest {
                 "moves left: 5\n" +
                 "!end\n";
 
-        RunParser p = new RunParser(new StringReader(input));
-        p.start();
-        RawRunDetails d = p.getDetails();
-
         List<RawPokemon> team = Arrays.asList(
                 new RawPokemon("mmy", "Lv10", "sl5 power of 4", "14/14", false),
                 new RawPokemon("unown!", null, "sl1", null, false),
@@ -45,7 +41,7 @@ public class RunParserTest {
                 "5"
         );
 
-        assertEquals(expected, d);
+        testParse(input, expected);
     }
 
     @Test
@@ -53,10 +49,6 @@ public class RunParserTest {
         String input = "!run\n" +
                 "team: mmy (Lv1 Lv2)\n" +
                 "!end\n";
-
-        RunParser p = new RunParser(new StringReader(input));
-        p.start();
-        RawRunDetails d = p.getDetails();
 
         List<RawPokemon> team = Arrays.asList(
                 new RawPokemon("mmy", null, "Lv1 Lv2", null, false)
@@ -73,6 +65,80 @@ public class RunParserTest {
                 null
         );
 
+        testParse(input, expected);
+    }
+
+    @Test
+    public void testPokemonName() throws ParseException, DupeSectionException {
+        String input = "!run team: diancie !end";
+
+        List<RawPokemon> team = Arrays.asList(
+                new RawPokemon("diancie", null, null, null, false)
+        );
+
+        List<String> items = Arrays.asList(
+        );
+
+        RawRunDetails expected = new RawRunDetails(
+                team,
+                items,
+                null,
+                null,
+                null
+        );
+
+        testParse(input, expected);
+    }
+
+    @Test
+    public void testPokemonMultiToken() throws ParseException, DupeSectionException {
+        String input = "!run team: shiny mega charizard x !end";
+
+        List<RawPokemon> team = Arrays.asList(
+                new RawPokemon("shiny mega charizard x", null, null, null, false)
+        );
+
+        List<String> items = Arrays.asList(
+        );
+
+        RawRunDetails expected = new RawRunDetails(
+                team,
+                items,
+                null,
+                null,
+                null
+        );
+
+        testParse(input, expected);
+    }
+
+    @Test
+    public void testMultiplePokemon() throws ParseException, DupeSectionException {
+        String input = "!run team: shiny diancie, azumarill !end";
+
+        List<RawPokemon> team = Arrays.asList(
+                new RawPokemon("shiny diancie", null, null, null, false),
+                new RawPokemon("azumarill", null, null, null, false)
+        );
+
+        List<String> items = Arrays.asList(
+        );
+
+        RawRunDetails expected = new RawRunDetails(
+                team,
+                items,
+                null,
+                null,
+                null
+        );
+
+        testParse(input, expected);
+    }
+
+    private void testParse(String input, RawRunDetails expected) throws ParseException, DupeSectionException {
+        RunParser p = new RunParser(new StringReader(input));
+        p.start();
+        RawRunDetails d = p.getDetails();
         assertEquals(expected, d);
     }
 
