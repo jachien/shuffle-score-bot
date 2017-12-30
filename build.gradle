@@ -1,6 +1,3 @@
-apply plugin: 'java'
-apply plugin: 'idea'
-
 buildscript {
     repositories {
         mavenCentral()
@@ -10,6 +7,13 @@ buildscript {
     }
 }
 
+// https://github.com/johnmartel/javaccPlugin
+plugins {
+    id "ca.coglinc.javacc" version "2.4.0"
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
 apply plugin: 'org.junit.platform.gradle.plugin'
 
 repositories {
@@ -34,6 +38,12 @@ dependencies {
     compile('org.apiguardian:apiguardian-api:1.0.0')
 }
 
+compileJavacc {
+    inputDirectory = file('src/main/javacc')
+    outputDirectory = file(project.buildDir.absolutePath + '/generated/javacc')
+    arguments = [grammar_encoding: 'UTF-8']
+}
+
 junitPlatform {
     // platformVersion '1.0.2'
     filters {
@@ -51,3 +61,12 @@ junitPlatform {
     // reportsDir file('build/test-results/junit-platform') // this is the default
     logManager 'org.apache.logging.log4j.jul.LogManager'
 }
+
+sourceSets.main.java.srcDir new File(buildDir, 'generated/javacc')
+idea {
+    module {
+        // Marks the already(!) added srcDir as "generated"
+        generatedSourceDirs += file('build/generated/javacc')
+    }
+}
+
