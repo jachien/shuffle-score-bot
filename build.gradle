@@ -1,13 +1,53 @@
 apply plugin: 'java'
 apply plugin: 'idea'
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.2'
+    }
+}
+
+apply plugin: 'org.junit.platform.gradle.plugin'
+
 repositories {
     mavenCentral()
     mavenLocal()
 }
 
+def log4j2Version = '2.10.0'
+
 dependencies {
     // https://mvnrepository.com/artifact/net.java.dev.javacc/javacc
     compile group: 'net.java.dev.javacc', name: 'javacc', version: '7.0.3'
+
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: "${log4j2Version}"
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: "${log4j2Version}"
+    compile group: 'org.apache.logging.log4j', name: 'log4j-jul', version: "${log4j2Version}"
+
+    testCompile("org.junit.jupiter:junit-jupiter-api:5.0.2")
+    testRuntime("org.junit.jupiter:junit-jupiter-engine:5.0.2")
+
+    // To avoid compiler warnings about @API annotations in JUnit code.
+    compile('org.apiguardian:apiguardian-api:1.0.0')
 }
 
+junitPlatform {
+    // platformVersion '1.0.2'
+    filters {
+        engines {
+            // include 'junit-jupiter', 'junit-vintage'
+            // exclude 'custom-engine'
+        }
+        tags {
+            // include 'fast'
+            exclude 'slow'
+        }
+        // includeClassNamePattern '.*Test'
+    }
+    // enableStandardTestTask true
+    // reportsDir file('build/test-results/junit-platform') // this is the default
+    logManager 'org.apache.logging.log4j.jul.LogManager'
+}
