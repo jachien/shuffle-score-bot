@@ -201,27 +201,31 @@ sb.append(t.image);
 sb.append(' ').append(t.image);
       }
 pkmnBuilder.setName(sb.toString());
-      jj_consume_token(18);
-      if (jj_2_11(2)) {
-        jj_consume_token(PERFECT);
+      if (jj_2_13(2)) {
+        jj_consume_token(18);
+        if (jj_2_11(2)) {
+          jj_consume_token(PERFECT);
 pkmnBuilder.setPerfect(true);
-      } else if (jj_2_12(2)) {
-        supportSection();
-        label_4:
-        while (true) {
-          if (jj_2_10(2)) {
-            ;
-          } else {
-            break label_4;
-          }
-          jj_consume_token(17);
+        } else if (jj_2_12(2)) {
           supportSection();
+          label_4:
+          while (true) {
+            if (jj_2_10(2)) {
+              ;
+            } else {
+              break label_4;
+            }
+            jj_consume_token(17);
+            supportSection();
+          }
+        } else {
+          jj_consume_token(-1);
+          throw new ParseException();
         }
+        jj_consume_token(19);
       } else {
-        jj_consume_token(-1);
-        throw new ParseException();
+        ;
       }
-      jj_consume_token(19);
     } finally {
       trace_return("support");
     }
@@ -231,9 +235,9 @@ pkmnBuilder.setPerfect(true);
     trace_call("supportSection");
     try {
 
-      if (jj_2_13(2)) {
+      if (jj_2_14(2)) {
         msus();
-      } else if (jj_2_14(2)) {
+      } else if (jj_2_15(2)) {
         levelOrSkill();
       } else {
         jj_consume_token(-1);
@@ -254,7 +258,7 @@ Token t;
 sb.append(t.image);
       label_5:
       while (true) {
-        if (jj_2_15(2)) {
+        if (jj_2_16(2)) {
           ;
         } else {
           break label_5;
@@ -301,14 +305,14 @@ if (score != null) {
 sb.append(t.image);
       label_6:
       while (true) {
-        if (jj_2_16(2)) {
+        if (jj_2_17(2)) {
           ;
         } else {
           break label_6;
         }
-        if (jj_2_17(2)) {
+        if (jj_2_18(2)) {
           jj_consume_token(17);
-        } else if (jj_2_18(2)) {
+        } else if (jj_2_19(2)) {
           jj_consume_token(20);
         } else {
           jj_consume_token(-1);
@@ -336,7 +340,7 @@ if (itemsSet) {
 items.add(t.image);
       label_7:
       while (true) {
-        if (jj_2_19(2)) {
+        if (jj_2_20(2)) {
           ;
         } else {
           break label_7;
@@ -517,7 +521,15 @@ movesLeft = t.image;
     finally { jj_save(18, xla); }
   }
 
-  private boolean jj_3_14()
+  private boolean jj_2_20(int xla)
+ {
+    jj_la = xla; jj_lastpos = jj_scanpos = token;
+    try { return (!jj_3_20()); }
+    catch(LookaheadSuccess ls) { return true; }
+    finally { jj_save(19, xla); }
+  }
+
+  private boolean jj_3_15()
  {
     if (jj_3R_16()) return true;
     return false;
@@ -530,12 +542,12 @@ movesLeft = t.image;
     Token xsp;
     while (true) {
       xsp = jj_scanpos;
-      if (jj_3_15()) { jj_scanpos = xsp; break; }
+      if (jj_3_16()) { jj_scanpos = xsp; break; }
     }
     { if (!jj_rescan) trace_return("levelOrSkill(LOOKAHEAD SUCCEEDED)"); return false; }
   }
 
-  private boolean jj_3_19()
+  private boolean jj_3_20()
  {
     if (jj_scan_token(17)) return true;
     if (jj_scan_token(WORD)) return true;
@@ -549,9 +561,15 @@ movesLeft = t.image;
     return false;
   }
 
-  private boolean jj_3_18()
+  private boolean jj_3_19()
  {
     if (jj_scan_token(20)) return true;
+    return false;
+  }
+
+  private boolean jj_3_11()
+ {
+    if (jj_scan_token(PERFECT)) return true;
     return false;
   }
 
@@ -560,9 +578,9 @@ movesLeft = t.image;
     if (!jj_rescan) trace_call("supportSection(LOOKING AHEAD...)");
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3_13()) {
+    if (jj_3_14()) {
     jj_scanpos = xsp;
-    if (jj_3_14()) { if (!jj_rescan) trace_return("supportSection(LOOKAHEAD FAILED)"); return true; }
+    if (jj_3_15()) { if (!jj_rescan) trace_return("supportSection(LOOKAHEAD FAILED)"); return true; }
     }
     { if (!jj_rescan) trace_return("supportSection(LOOKAHEAD SUCCEEDED)"); return false; }
   }
@@ -575,21 +593,9 @@ movesLeft = t.image;
     { if (!jj_rescan) trace_return("items(LOOKAHEAD SUCCEEDED)"); return false; }
   }
 
-  private boolean jj_3_13()
+  private boolean jj_3_14()
  {
     if (jj_3R_15()) return true;
-    return false;
-  }
-
-  private boolean jj_3_11()
- {
-    if (jj_scan_token(PERFECT)) return true;
-    return false;
-  }
-
-  private boolean jj_3_7()
- {
-    if (jj_3R_12()) return true;
     return false;
   }
 
@@ -604,19 +610,37 @@ movesLeft = t.image;
     return false;
   }
 
-  private boolean jj_3_17()
+  private boolean jj_3_7()
+ {
+    if (jj_3R_12()) return true;
+    return false;
+  }
+
+  private boolean jj_3_18()
  {
     if (jj_scan_token(17)) return true;
     return false;
   }
 
-  private boolean jj_3_16()
+  private boolean jj_3_13()
+ {
+    if (jj_scan_token(18)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_11()) {
+    jj_scanpos = xsp;
+    if (jj_3_12()) return true;
+    }
+    return false;
+  }
+
+  private boolean jj_3_17()
  {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3_17()) {
+    if (jj_3_18()) {
     jj_scanpos = xsp;
-    if (jj_3_18()) return true;
+    if (jj_3_19()) return true;
     }
     if (jj_scan_token(WORD)) return true;
     return false;
@@ -729,7 +753,7 @@ movesLeft = t.image;
     return false;
   }
 
-  private boolean jj_3_15()
+  private boolean jj_3_16()
  {
     if (jj_scan_token(WORD)) return true;
     return false;
@@ -754,7 +778,7 @@ movesLeft = t.image;
 	private static void jj_la1_init_0() {
 	   jj_la1_0 = new int[] {};
 	}
-  final private JJCalls[] jj_2_rtns = new JJCalls[19];
+  final private JJCalls[] jj_2_rtns = new JJCalls[20];
   private boolean jj_rescan = false;
   private int jj_gc = 0;
 
@@ -1051,7 +1075,7 @@ movesLeft = t.image;
 
   private void jj_rescan_token() {
 	 jj_rescan = true;
-	 for (int i = 0; i < 19; i++) {
+	 for (int i = 0; i < 20; i++) {
 	   try {
 		 JJCalls p = jj_2_rtns[i];
 
@@ -1078,6 +1102,7 @@ movesLeft = t.image;
 			   case 16: jj_3_17(); break;
 			   case 17: jj_3_18(); break;
 			   case 18: jj_3_19(); break;
+			   case 19: jj_3_20(); break;
 			 }
 		   }
 		   p = p.next;

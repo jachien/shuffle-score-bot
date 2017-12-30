@@ -164,7 +164,7 @@ void support(): {
     { sb.append(t.image); }
     (t=<WORD> { sb.append(' ').append(t.image); })*
     { pkmnBuilder.setName(sb.toString()); }
-    "(" (<PERFECT> { pkmnBuilder.setPerfect(true); } | (supportSection() ("," supportSection())*)) ")"
+    [ "(" (<PERFECT> { pkmnBuilder.setPerfect(true); } | (supportSection() ("," supportSection())*)) ")" ]
 }
 
 void supportSection(): {
