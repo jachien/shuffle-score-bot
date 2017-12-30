@@ -48,7 +48,7 @@ public class RunParser implements RunParserConstants {
         team.add(pkmnBuilder.build());
     }
 
-    private boolean isLevel(StringBuilder sb) {
+    boolean isLevel(StringBuilder sb) {
         return isDigits(sb, 0)
             || isLevel(sb, "lv")
             || isLevel(sb, "lv ");
