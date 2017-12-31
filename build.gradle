@@ -40,7 +40,8 @@ dependencies {
 
 compileJavacc {
     inputDirectory = file('src/main/javacc')
-    outputDirectory = file(project.buildDir.absolutePath + '/generated/javacc')
+    // todo figure out how to use base directory of build/generated/javacc with subdir based on package
+    outputDirectory = file(project.buildDir.absolutePath + '/generated/javacc/org/jchien/shuffle/parser')
     arguments = [grammar_encoding: 'UTF-8']
 }
 
