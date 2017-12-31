@@ -208,6 +208,43 @@ public class RunParserTest {
         }
     }
 
+    @Test
+    public void testSkill() throws ParseException, DupeSectionException {
+        String inputPrefix = "!run team: ms-diancie (";
+        String inputSuffix = ") !end";
+        String[] inputs = {
+                "sl5",
+                "sl5 rock shot",
+                "sl4",
+                "sl 3",
+                "rock shot",
+                "4 up",
+                " 4 up\n ",
+                "demolish",
+        };
+
+        for (String inputMiddle : inputs) {
+            String input = inputPrefix + inputMiddle + inputSuffix;
+
+            String expectedSkill = inputMiddle.replaceAll("\\s+", " ")
+                    .trim();
+
+            List<RawPokemon> team = Arrays.asList(
+                    new RawPokemon("ms-diancie", null, expectedSkill, null, false)
+            );
+
+            RawRunDetails expected = new RawRunDetails(
+                    team,
+                    EMPTY_ITEMS,
+                    null,
+                    null,
+                    null
+            );
+
+            testParse(input, expected);
+        }
+    }
+
     private void testParse(String input, RawRunDetails expected) throws ParseException, DupeSectionException {
         RunParser p = new RunParser(new StringReader(input));
         p.start();
