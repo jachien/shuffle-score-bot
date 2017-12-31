@@ -2,7 +2,7 @@ options {
     STATIC = false;
     IGNORE_CASE = true;
     LOOKAHEAD = 2;
-    FORCE_LA_CHECK = true;
+    UNICODE_INPUT = true;
 }
 
 PARSER_BEGIN(RunParser)
