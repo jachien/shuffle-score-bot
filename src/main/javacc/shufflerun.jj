@@ -155,7 +155,6 @@ void team() throws DupeSectionException: {
     { storePokemon(); }
 }
 
-// <pokemon> ( <perfect> | "(" (<level>, <skill level> <skill name>, <msu_count>/<max_msus> ")"
 void support(): {
     Token t = null;
     StringBuilder sb = new StringBuilder();
