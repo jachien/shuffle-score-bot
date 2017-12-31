@@ -170,11 +170,49 @@ public class RunParserTest {
         }
     }
 
+    @Test
+    public void testMsus() throws ParseException, DupeSectionException {
+        String inputPrefix = "!run team: ms-diancie (";
+        String inputSuffix = ") !end";
+        String[] inputs = {
+                "1/1",
+                "1 / 1",
+                "1 /1",
+                "1/ 1",
+                " 1/1 ",
+                "10/15",
+                "15/1",
+                "\t15/1\n",
+        };
+
+        for (String inputMiddle : inputs) {
+            String input = inputPrefix + inputMiddle + inputSuffix;
+
+            String expectedMsus = inputMiddle.replaceAll("\\s+", " ")
+                    .replaceAll("\\s?/\\s?", "/")
+                    .trim();
+
+            List<RawPokemon> team = Arrays.asList(
+                    new RawPokemon("ms-diancie", null, null, expectedMsus, false)
+            );
+
+            RawRunDetails expected = new RawRunDetails(
+                    team,
+                    EMPTY_ITEMS,
+                    null,
+                    null,
+                    null
+            );
+
+            testParse(input, expected);
+        }
+    }
+
     private void testParse(String input, RawRunDetails expected) throws ParseException, DupeSectionException {
         RunParser p = new RunParser(new StringReader(input));
         p.start();
         RawRunDetails d = p.getDetails();
-        assertEquals(expected, d);
+        assertEquals("input: " + input, expected, d);
     }
 
     @Test
