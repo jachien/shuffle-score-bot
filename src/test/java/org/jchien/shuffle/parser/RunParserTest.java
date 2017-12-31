@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static junit.framework.TestCase.*;
@@ -13,6 +14,9 @@ import static junit.framework.TestCase.*;
  */
 
 public class RunParserTest {
+    private final List<RawPokemon> EMPTY_TEAM = Collections.EMPTY_LIST;
+    private final List<String> EMPTY_ITEMS = Collections.EMPTY_LIST;
+
     @Test
     public void testBasic() throws ParseException, DupeSectionException {
         String input = "!eb 100\n" +
@@ -54,12 +58,9 @@ public class RunParserTest {
                 new RawPokemon("mmy", null, "Lv1 Lv2", null, false)
         );
 
-        List<String> items = Arrays.asList(
-        );
-
         RawRunDetails expected = new RawRunDetails(
                 team,
-                items,
+                EMPTY_ITEMS,
                 null,
                 null,
                 null
@@ -76,12 +77,9 @@ public class RunParserTest {
                 new RawPokemon("diancie", null, null, null, false)
         );
 
-        List<String> items = Arrays.asList(
-        );
-
         RawRunDetails expected = new RawRunDetails(
                 team,
-                items,
+                EMPTY_ITEMS,
                 null,
                 null,
                 null
@@ -98,12 +96,9 @@ public class RunParserTest {
                 new RawPokemon("shiny mega charizard x", null, null, null, false)
         );
 
-        List<String> items = Arrays.asList(
-        );
-
         RawRunDetails expected = new RawRunDetails(
                 team,
-                items,
+                EMPTY_ITEMS,
                 null,
                 null,
                 null
@@ -121,18 +116,58 @@ public class RunParserTest {
                 new RawPokemon("azumarill", null, null, null, false)
         );
 
-        List<String> items = Arrays.asList(
-        );
-
         RawRunDetails expected = new RawRunDetails(
                 team,
-                items,
+                EMPTY_ITEMS,
                 null,
                 null,
                 null
         );
 
         testParse(input, expected);
+    }
+
+    @Test
+    public void testLevel() throws ParseException, DupeSectionException {
+        String inputPrefix = "!run team: ms-diancie (";
+        String inputSuffix = ") !end";
+        String[] inputs = {
+                "15",
+                "15",
+                "  15\n  ",
+                " 15",
+                "15 ",
+                "lv15",
+                " lv15 ",
+                "lv 15",
+                " Lv 15 ",
+                "lv  15",
+                "lv\t15",
+                "Lv15",
+                "LV 15",
+                "LV  15",
+                "lV\t15",
+        };
+
+        for (String inputMiddle : inputs) {
+            String input = inputPrefix + inputMiddle + inputSuffix;
+
+            String expectedLevel = inputMiddle.replaceAll("\\s+", " ").trim();
+
+            List<RawPokemon> team = Arrays.asList(
+                    new RawPokemon("ms-diancie", expectedLevel, null, null, false)
+            );
+
+            RawRunDetails expected = new RawRunDetails(
+                    team,
+                    EMPTY_ITEMS,
+                    null,
+                    null,
+                    null
+            );
+
+            testParse(input, expected);
+        }
     }
 
     private void testParse(String input, RawRunDetails expected) throws ParseException, DupeSectionException {
