@@ -224,11 +224,27 @@ public class Canonicalizer {
         }
     }
 
-    private Integer getStage(String raw) {
-        return null;
+    private Integer getStage(String raw) throws DetailException {
+        if (raw == null) {
+            return null;
+        }
+
+        try {
+            return Integer.parseInt(raw, 10);
+        } catch (NumberFormatException e) {
+            throw new DetailException("Unable to parse stage: \"" + raw + "\"");
+        }
     }
 
-    private Integer getMovesLeft(String raw) {
-        return null;
+    private Integer getMovesLeft(String raw) throws DetailException {
+        if (raw == null) {
+            return null;
+        }
+
+        try {
+            return Integer.parseInt(raw, 10);
+        } catch (NumberFormatException e) {
+            throw new DetailException("Unable to parse moves left: \"" + raw + "\"");
+        }
     }
 }
