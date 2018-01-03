@@ -21,12 +21,10 @@ import java.util.regex.Pattern;
 public class CommentHandler {
     private static final Logger LOG = LoggerFactory.getLogger(CommentHandler.class);
 
-    private RunParser p = new RunParser();
-
     private Canonicalizer canonicalizer = new Canonicalizer();
 
     // word boundary matcher doesn't seem to trigger in front of an exclamation mark
-    private static final Pattern PATTERN = Pattern.compile("(?:!run|!eb)\\b.*!end\\b",
+    private static final Pattern PATTERN = Pattern.compile("(?:!run|!eb)\\b.*?!end\\b",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     public List<RunDetails> getRunDetails(String comment) {
@@ -35,14 +33,14 @@ public class CommentHandler {
         Matcher m = PATTERN.matcher(comment);
 
         while (m.find()) {
-            int start = m.regionStart();
-            int end = m.regionEnd();
+            int start = m.start();
+            int end = m.end();
             LOG.info("found match at (" + start + ", " + end + ")");
 
             String region = comment.substring(start, end);
 
             try {
-                p.ReInit(new StringReader(region));
+                RunParser p = new RunParser(new StringReader(region));
                 p.start();
                 RawRunDetails rawDetails = p.getDetails();
                 LOG.debug(rawDetails.toString());
