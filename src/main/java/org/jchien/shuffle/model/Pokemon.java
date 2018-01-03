@@ -1,4 +1,4 @@
-package org.jchien.shuffle;
+package org.jchien.shuffle.model;
 
 /**
  * @author jchien
@@ -6,39 +6,58 @@ package org.jchien.shuffle;
 public class Pokemon {
     private String name;
 
-    private int msus;
+    private Integer level;
 
-    private int level;
+    private Integer skillLevel;
 
-    private int skillLevel;
+    private String skillName;
 
-    private String skill;
+    private Integer msus;
 
-    public Pokemon(String name, int msus, int level, int skillLevel, String skill) {
+    private Integer maxMsus;
+
+    public Pokemon(String name, Integer level, Integer skillLevel, String skillName, Integer msus, Integer maxMsus) {
         this.name = name;
-        this.msus = msus;
         this.level = level;
         this.skillLevel = skillLevel;
-        this.skill = skill;
+        this.skillName = skillName;
+        this.msus = msus;
+        this.maxMsus = maxMsus;
     }
 
     public String getName() {
         return name;
     }
 
-    public int getMsus() {
-        return msus;
-    }
-
-    public int getLevel() {
+    public Integer getLevel() {
         return level;
     }
 
-    public int getSkillLevel() {
+    public Integer getSkillLevel() {
         return skillLevel;
     }
 
-    public String getSkill() {
-        return skill;
+    public String getSkillName() {
+        return skillName;
+    }
+
+    public Integer getMsus() {
+        return msus;
+    }
+
+    public Integer getMaxMsus() {
+        return maxMsus;
+    }
+
+    @Override
+    public String toString() {
+        return "Pokemon{" +
+                "name='" + name + '\'' +
+                ", level=" + level +
+                ", skillLevel=" + skillLevel +
+                ", skillName='" + skillName + '\'' +
+                ", msus=" + msus +
+                ", maxMsus=" + maxMsus +
+                '}';
     }
 }

@@ -4,6 +4,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.2'
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.5.7.RELEASE'
     }
 }
 
@@ -14,22 +15,49 @@ plugins {
 
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
 apply plugin: 'org.junit.platform.gradle.plugin'
+
+group="org.jchien.shuffle"
+version="1.0"
+sourceCompatibility="1.8"
 
 repositories {
     jcenter()
     mavenLocal()
 }
 
-def log4j2Version = '2.10.0'
+def log4j2Version = '2.8.2'
+def springVersion = '1.5.7.RELEASE'
 
 dependencies {
     // https://mvnrepository.com/artifact/net.java.dev.javacc/javacc
     compile group: 'net.java.dev.javacc', name: 'javacc', version: '7.0.3'
 
+    // https://bintray.com/thatjavanerd/maven/JRAW
+    compile 'net.dean.jraw:JRAW:0.9.0'
+
+    // The production code uses the SLF4J logging API at compile time
+    compile 'org.slf4j:slf4j-api:1.7.24'
+
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: "${log4j2Version}"
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: "${log4j2Version}"
+    compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: "${log4j2Version}"
     compile group: 'org.apache.logging.log4j', name: 'log4j-jul', version: "${log4j2Version}"
+
+    // spring boot using log4j2 instead of logback
+    // https://stackoverflow.com/a/28526317/7166633
+    [
+        [group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: "${springVersion}"],
+        [group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: "${springVersion}"],
+        [group: 'org.springframework.boot', name: 'spring-boot-starter-jetty', version: "${springVersion}"],
+    ].each { dep ->
+        compile(dep) {
+            exclude module: "spring-boot-starter-logging"
+            exclude module: "logback-classic"
+        }
+    }
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-log4j2', version: "${springVersion}"
 
     testCompile("org.junit.jupiter:junit-jupiter-api:5.0.2")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:5.0.2")

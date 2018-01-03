@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <!-- %d{ISO8601} causes appender to silently fail for some reason -->
+            <PatternLayout pattern="%d{yyyy-MM-dd'T'HH:mm:ss,SSSZ} %-5p [%c{1}] %m%n"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="org.jchien" level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <Root level="warn">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>
