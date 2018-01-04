@@ -57,4 +57,19 @@ public class CommentHandler {
 
         return runs;
     }
+
+    private static final Pattern STAGE_PATTERN = Pattern.compile("^" + Formatter.EB_HEADER_PREFIX + " (\\d+)");
+    private Integer getAggregateStage(String comment) {
+        // assumes the we've already checked that the configured bot user is the commenter
+        Matcher m = STAGE_PATTERN.matcher(comment);
+        if (m.find()) {
+            return Integer.parseInt(m.group(1));
+        }
+        return null;
+    }
+
+    private boolean isAggregateRuns(String comment) {
+        // assumes the we've already checked that the configured bot user is the commenter
+        return comment.startsWith(Formatter.COMP_HEADER_PREFIX);
+    }
 }

@@ -5,15 +5,11 @@ import net.dean.jraw.http.UserAgent;
 import net.dean.jraw.http.oauth.Credentials;
 import net.dean.jraw.http.oauth.OAuthData;
 import net.dean.jraw.http.oauth.OAuthException;
-import net.dean.jraw.models.Comment;
-import net.dean.jraw.models.CommentNode;
 import net.dean.jraw.models.Listing;
 import net.dean.jraw.models.Submission;
-import net.dean.jraw.models.TraversalMethod;
 import net.dean.jraw.paginators.Paginator;
 import net.dean.jraw.paginators.Sorting;
 import net.dean.jraw.paginators.SubredditPaginator;
-import org.jchien.shuffle.model.RunDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +18,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
 
 /**
  * @author jchien
@@ -71,12 +66,17 @@ public class ScoreBot {
         long start = System.currentTimeMillis();
         boolean done = false;
         while (!done && paginator.hasNext()) {
-            Listing<Submission> posts = paginator.next();
+            Listing<Submission> submissions = paginator.next();
+
+            // todo
+            // cache commentId -> lastEditTime, List<UserRunDetails>
+            // cache threadId -> lastProcessedTime
+            // cache (threadId, stage) -> commentId
 
             // todo parallelize this
-            for (Submission post : posts) {
+            for (Submission submission : submissions) {
                 LocalDateTime postTime = LocalDateTime.ofInstant(
-                        post.getCreated().toInstant(),
+                        submission.getCreated().toInstant(),
                         ZoneId.systemDefault());
 
                 if (postTime.isBefore(pollEndTime)) {
@@ -84,34 +84,11 @@ public class ScoreBot {
                     break;
                 }
 
-                if (post.getCommentCount() > 0) {
-                    CommentNode root = redditClient.getSubmission(post.getId()).getComments();
-                    int cnt = 0;
-                    root.loadFully(redditClient);
-                    Iterable<CommentNode> nodes = root.walkTree(TraversalMethod.PRE_ORDER);
-                    for (CommentNode node : nodes) {
-                        Comment comment = node.getComment();
-                        LOG.info(comment.getAuthor() + " | " + post.getTitle() + " | c: " +  comment.getCreated() + " | e: " + comment.getEditDate());
-                        LOG.info(comment.getBody());
+                SubmissionHandler submissionHandler = new SubmissionHandler();
+                submissionHandler.handleSubmission(redditClient, submission);
 
-                        CommentHandler handler = new CommentHandler();
-                        List<RunDetails> runs = handler.getRunDetails(comment.getBody());
-                        for (RunDetails run : runs) {
-                            if (run.getException() != null) {
-                                LOG.warn("failed to parse run from comment " + comment.getId(), run.getException());
-                            } else {
-                                LOG.info(run.toString());
-                            }
-                        }
-
-                        cnt++;
-                    }
-                    LOG.info(cnt + " comments, " + post.getCommentCount() + " comments according to submission");
-                    // it's possible comments were written between submission pagination and comment retrieval, I just want to see that these numbers are close
-
-                    totalThreads++;
-                    totalComments += cnt;
-                }
+                totalThreads++;
+                totalComments += submission.getCommentCount();
             }
         }
 

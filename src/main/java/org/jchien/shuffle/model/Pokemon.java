@@ -16,13 +16,16 @@ public class Pokemon {
 
     private Integer maxMsus;
 
-    public Pokemon(String name, Integer level, Integer skillLevel, String skillName, Integer msus, Integer maxMsus) {
+    private boolean perfect;
+
+    public Pokemon(String name, Integer level, Integer skillLevel, String skillName, Integer msus, Integer maxMsus, boolean perfect) {
         this.name = name;
         this.level = level;
         this.skillLevel = skillLevel;
         this.skillName = skillName;
         this.msus = msus;
         this.maxMsus = maxMsus;
+        this.perfect = perfect;
     }
 
     public String getName() {
@@ -49,6 +52,10 @@ public class Pokemon {
         return maxMsus;
     }
 
+    public boolean isPerfect() {
+        return perfect;
+    }
+
     @Override
     public String toString() {
         return "Pokemon{" +
@@ -58,6 +65,7 @@ public class Pokemon {
                 ", skillName='" + skillName + '\'' +
                 ", msus=" + msus +
                 ", maxMsus=" + maxMsus +
+                ", perfect=" + perfect +
                 '}';
     }
 }

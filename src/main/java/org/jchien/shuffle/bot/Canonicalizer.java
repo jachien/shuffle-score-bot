@@ -8,10 +8,11 @@ import org.jchien.shuffle.parser.RawPokemon;
 import org.jchien.shuffle.parser.RawRunDetails;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,7 +25,7 @@ public class Canonicalizer {
             // this should logically be a set, but I don't want to deal with validating that
             List<Pokemon> team = getTeam(raw.getTeam());
 
-            Set<Item> items = getItems(raw.getItems());
+            List<Item> items = getItems(raw.getItems());
 
             Integer score = getScore(raw.getScore());
 
@@ -60,8 +61,8 @@ public class Canonicalizer {
                 getSkillLevel(raw.getSkill()),
                 getSkillName(raw.getSkill()),
                 getMsuCount(raw.getMsus()),
-                getMaxMsus(raw.getMsus())
-        );
+                getMaxMsus(raw.getMsus()),
+                raw.isPerfect());
     }
 
     private String getName(String raw) {
@@ -177,7 +178,7 @@ public class Canonicalizer {
         return Integer.parseInt(m.group(2));
     }
 
-    public Set<Item> getItems(List<String> raw) throws DetailException {
+    public List<Item> getItems(List<String> raw) throws DetailException {
         if (raw == null) {
             return null;
         }
@@ -188,17 +189,19 @@ public class Canonicalizer {
             if ("none".equalsIgnoreCase(rawItem)
                     || "itemless".equalsIgnoreCase(rawItem)
                     || "no items".equalsIgnoreCase(rawItem)) {
-                return EnumSet.noneOf(Item.class);
+                return new ArrayList<>(EnumSet.noneOf(Item.class));
             }
 
             if ("all".equalsIgnoreCase(rawItem)
                     || "full".equalsIgnoreCase(rawItem)
-                    || "full items".equalsIgnoreCase(rawItem)) {
-                return EnumSet.allOf(Item.class);
+                    || "full items".equalsIgnoreCase(rawItem)
+                    || "full item run".equalsIgnoreCase(rawItem)) {
+                // people don't generally include a jewel when they say full item run
+                return new ArrayList<>(EnumSet.complementOf(EnumSet.of(Item.JEWEL)));
             }
         }
 
-        EnumSet<Item> ret = EnumSet.noneOf(Item.class);
+        List<Item> ret = new ArrayList<>();
         for (String rawItem : raw) {
             try {
                 ret.add(Item.get(rawItem));
@@ -207,6 +210,8 @@ public class Canonicalizer {
                 throw new DetailException("No such item: \"" + rawItem + "\"");
             }
         }
+
+        Collections.sort(ret, Comparator.comparing(Item::ordinal));
 
         return ret;
     }
