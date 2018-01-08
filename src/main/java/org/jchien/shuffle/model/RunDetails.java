@@ -2,50 +2,83 @@ package org.jchien.shuffle.model;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * @author jchien
  */
 public class RunDetails {
-    private List<Pokemon> team;
-    private Set<Item> items;
-    private Integer score;
-    private Integer stage;
-    private Integer movesLeft;
+    private final List<Pokemon> team;
+    private final List<Item> items;
+    private final String stage;
+    private final Integer score;
+    private final Integer movesLeft;
+    private final StageType stageType;
+    private final MoveType moveType;
 
-    private Exception exception;
+    private final Exception exception;
 
-    public RunDetails(List<Pokemon> team, Set<Item> items, Integer score, Integer stage, Integer movesLeft) {
+    public RunDetails(List<Pokemon> team, List<Item> items, String stage, Integer score, Integer movesLeft, StageType stageType, MoveType moveType, Exception exception) {
         this.team = team;
         this.items = items;
-        this.score = score;
         this.stage = stage;
+        this.score = score;
         this.movesLeft = movesLeft;
+        this.stageType = stageType;
+        this.moveType = moveType;
+        this.exception = exception;
+    }
+
+    public RunDetails(List<Pokemon> team, List<Item> items, String stage, Integer score, Integer movesLeft, StageType stageType, MoveType moveType) {
+        this(team, items, stage, score, movesLeft, stageType, moveType, null);
     }
 
     public RunDetails(Exception exception) {
-        this.exception = exception;
+        this(null, null, null, null, null, null, null, exception);
     }
+
 
     public List<Pokemon> getTeam() {
         return team;
     }
 
-    public Set<Item> getItems() {
+    public List<Item> getItems() {
         return items;
+    }
+
+    public Integer getItemsCost() {
+        // could cache this but it should be fast to compute so whatever
+
+        if (items == null) {
+            // don't know what items were used
+            return null;
+        }
+
+        int cost = 0;
+        for (Item i : items) {
+            cost += i.getCost();
+        }
+
+        return cost;
+    }
+
+    public String getStage() {
+        return stage;
     }
 
     public Integer getScore() {
         return score;
     }
 
-    public Integer getStage() {
-        return stage;
-    }
-
     public Integer getMovesLeft() {
         return movesLeft;
+    }
+
+    public StageType getStageType() {
+        return stageType;
+    }
+
+    public MoveType getMoveType() {
+        return moveType;
     }
 
     public Exception getException() {
@@ -61,10 +94,12 @@ public class RunDetails {
         return "RunDetails{" +
                 "team=" + team +
                 ", items=" + items +
-                ", score='" + score + '\'' +
                 ", stage='" + stage + '\'' +
-                ", movesLeft='" + movesLeft + '\'' +
-                ", exception='" + exception + '\'' +
+                ", score=" + score +
+                ", movesLeft=" + movesLeft +
+                ", stageType=" + stageType +
+                ", moveType=" + moveType +
+                ", exception=" + exception +
                 '}';
     }
 
@@ -75,15 +110,17 @@ public class RunDetails {
         RunDetails that = (RunDetails) o;
         return Objects.equals(team, that.team) &&
                 Objects.equals(items, that.items) &&
-                Objects.equals(score, that.score) &&
                 Objects.equals(stage, that.stage) &&
+                Objects.equals(score, that.score) &&
                 Objects.equals(movesLeft, that.movesLeft) &&
+                stageType == that.stageType &&
+                moveType == that.moveType &&
                 Objects.equals(exception, that.exception);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(team, items, score, stage, movesLeft, exception);
+        return Objects.hash(team, items, stage, score, movesLeft, stageType, moveType, exception);
     }
 }

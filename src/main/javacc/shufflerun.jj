@@ -8,6 +8,10 @@ options {
 PARSER_BEGIN(RunParser)
 package org.jchien.shuffle.parser;
 
+import org.jchien.shuffle.model.FormatException;
+import org.jchien.shuffle.model.MoveType;
+import org.jchien.shuffle.model.StageType;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,16 +28,22 @@ public class RunParser {
 
     private String movesLeft = null;
 
+    private String timeLeft = null;
+
+    private StageType stageType = null;
+
+    private MoveType moveType = null;
+
     private RawPokemonBuilder pkmnBuilder = null;
 
     public RunParser() {
     }
 
     public RawRunDetails getDetails() {
-        return new RawRunDetails(team, items, score, stage, movesLeft);
+        return new RawRunDetails(team, items, score, stage, movesLeft, timeLeft, stageType, moveType);
     }
 
-    public static void main(String[] args) throws ParseException, TokenMgrError, DupeSectionException {
+    public static void main(String[] args) throws ParseException, TokenMgrError, FormatException {
         RunParser parser = new RunParser(System.in);
         parser.start();
         System.out.println(parser.getDetails());
@@ -106,12 +116,14 @@ SKIP: {
 }
 
 TOKEN: {
-    < RUN_HEADER: "!RUN" >
+    < COMP_HEADER: "!COMP" >
+    | < RUN_HEADER: "!RUN" >
     | < EB_HEADER: "!EB" >
     | < TEAM_HEADER: "TEAM:" >
     | < SCORE_HEADER: "SCORE:" >
     | < ITEMS_HEADER: "ITEMS:" >
     | < MOVES_LEFT_HEADER: "MOVES LEFT:" >
+    | < TIME_LEFT_HEADER: "TIME LEFT:" >
     | < END_HEADER: "!END" >
     | < PERFECT: "PERFECT" >
 }
@@ -126,20 +138,55 @@ TOKEN: {
 // goal is to have simplest grammar, validate after parsing
 
 // top level production
-void start() throws DupeSectionException: {} {
+void start() throws FormatException: {} {
     run() <EOF>
 }
 
-void run() throws DupeSectionException: {
+void run() throws FormatException: {
     Token t;
 } {
-    (<RUN_HEADER> | (<EB_HEADER> t=<WORD> { stage = t.image; }))
+    (runHeader() | ebHeader() | compHeader())
     (section())+
     <END_HEADER>
 }
 
-void section() throws DupeSectionException: {} {
-    team() | score() | items() | movesLeft()
+void runHeader(): {
+    Token t;
+    StringBuilder sb = new StringBuilder();
+} {
+    <RUN_HEADER> t=<WORD> { sb.append(t.image); }
+    (t=<WORD> { sb.append(' ').append(t.image); })*
+    {
+        stage = sb.toString();
+        stageType = StageType.NORMAL;
+    }
+}
+
+void ebHeader(): {
+    Token t;
+    StringBuilder sb = new StringBuilder();
+} {
+    <EB_HEADER> t=<WORD> { sb.append(t.image); }
+    (t=<WORD> { sb.append(' ').append(t.image); })*
+    {
+        stage = sb.toString();
+        stageType = StageType.ESCALATION_BATTLE;
+    }
+}
+
+void compHeader(): {
+} {
+    <COMP_HEADER>
+    {
+        stage = null;
+        stageType = StageType.COMPETITION;
+        // we're going to assume timed competitions are not returning
+        moveType = MoveType.MOVES;
+    }
+}
+
+void section() throws FormatException: {} {
+    team() | score() | items() | movesLeft() | timeLeft()
 }
 
 void team() throws DupeSectionException: {
@@ -225,14 +272,40 @@ void items() throws DupeSectionException: {
     <ITEMS_HEADER> t=<WORD> { items.add(t.image); } ("," t=<WORD> { items.add(t.image); })*
 }
 
-void movesLeft() throws DupeSectionException: {
+void movesLeft() throws FormatException: {
     Token t;
 } {
     {
         if (movesLeft != null) {
             throw new DupeSectionException(Section.MOVES);
         }
+        if (timeLeft != null) {
+            throw new FormatException("Cannot have both moves left and time left.");
+        }
     }
     <MOVES_LEFT_HEADER> t=<WORD>
-    { movesLeft = t.image; }
+    {
+        movesLeft = t.image;
+        moveType = MoveType.MOVES;
+    }
+}
+
+
+void timeLeft() throws FormatException: {
+    Token t;
+} {
+    {
+        if (timeLeft != null) {
+            throw new DupeSectionException(Section.TIME);
+        }
+        if (movesLeft != null) {
+            throw new FormatException("Cannot have both moves left and time left.");
+        }
+    }
+    // todo support units like "time left: 5 secs" or "time left: 5s"
+    <TIME_LEFT_HEADER> t=<WORD>
+    {
+        timeLeft = t.image;
+        moveType = MoveType.TIME;
+    }
 }

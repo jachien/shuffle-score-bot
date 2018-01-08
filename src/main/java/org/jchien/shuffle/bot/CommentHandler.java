@@ -1,8 +1,7 @@
 package org.jchien.shuffle.bot;
 
-import org.jchien.shuffle.model.DetailException;
+import org.jchien.shuffle.model.FormatException;
 import org.jchien.shuffle.model.RunDetails;
-import org.jchien.shuffle.parser.DupeSectionException;
 import org.jchien.shuffle.parser.ParseException;
 import org.jchien.shuffle.parser.RawRunDetails;
 import org.jchien.shuffle.parser.RunParser;
@@ -24,7 +23,7 @@ public class CommentHandler {
     private Canonicalizer canonicalizer = new Canonicalizer();
 
     // word boundary matcher doesn't seem to trigger in front of an exclamation mark
-    private static final Pattern PATTERN = Pattern.compile("(?:!run|!eb)\\b.*?!end\\b",
+    private static final Pattern PATTERN = Pattern.compile("(?:!comp|!eb|!run)\\b.*?!end\\b",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     public List<RunDetails> getRunDetails(String comment) {
@@ -47,11 +46,11 @@ public class CommentHandler {
                 RunDetails details = canonicalizer.canonicalize(rawDetails);
                 runs.add(details);
             } catch (ParseException e) {
-                runs.add(new RunDetails(new DetailException("Unable to parse run details.", e)));
+                runs.add(new RunDetails(new FormatException("Unable to parse run details.", e)));
                 LOG.warn("failed to parse:\n" + region, e);
-            } catch (DupeSectionException e) {
-                runs.add(new RunDetails(new DetailException("Duplicate section found: " + e.getDupeSection().toString().toLowerCase(), e)));
-                LOG.warn("dupe section:\n" + region, e);
+            } catch (FormatException e) {
+                runs.add(new RunDetails(e));
+                LOG.warn("format exception", e);
             }
         }
 

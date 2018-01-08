@@ -1,9 +1,11 @@
 package org.jchien.shuffle.bot;
 
-import org.jchien.shuffle.model.DetailException;
+import org.jchien.shuffle.model.FormatException;
 import org.jchien.shuffle.model.Item;
+import org.jchien.shuffle.model.MoveType;
 import org.jchien.shuffle.model.Pokemon;
 import org.jchien.shuffle.model.RunDetails;
+import org.jchien.shuffle.model.StageType;
 import org.jchien.shuffle.parser.RawPokemon;
 import org.jchien.shuffle.parser.RawRunDetails;
 
@@ -17,6 +19,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * Further parses and validates output coming from RunParser, but I didn't want to call it a parser to avoid confusion.
+ *
  * @author jchien
  */
 public class Canonicalizer {
@@ -27,25 +31,31 @@ public class Canonicalizer {
 
             List<Item> items = getItems(raw.getItems());
 
+            String stage = getStage(raw.getStage());
+
             Integer score = getScore(raw.getScore());
 
-            Integer stage = getStage(raw.getStage());
-
             Integer movesLeft = getMovesLeft(raw.getMovesLeft());
+
+            StageType stageType = raw.getStageType();
+
+            MoveType moveType = raw.getMoveType();
 
             return new RunDetails(
                     team,
                     items,
-                    score,
                     stage,
-                    movesLeft
+                    score,
+                    movesLeft,
+                    stageType,
+                    moveType
             );
-        } catch (DetailException e) {
+        } catch (FormatException e) {
             return new RunDetails(e);
         }
     }
 
-    private List<Pokemon> getTeam(List<RawPokemon> raw) throws DetailException {
+    private List<Pokemon> getTeam(List<RawPokemon> raw) throws FormatException {
         List<Pokemon> team = new ArrayList<>();
         for (RawPokemon rawPokemon : raw) {
             team.add(getPokemon(rawPokemon));
@@ -54,7 +64,7 @@ public class Canonicalizer {
     }
 
 
-    private Pokemon getPokemon(RawPokemon raw) throws DetailException {
+    private Pokemon getPokemon(RawPokemon raw) throws FormatException {
         return new Pokemon(
                 getName(raw.getName()),
                 getLevel(raw.getLevel()),
@@ -72,7 +82,7 @@ public class Canonicalizer {
 
 
     private static final Pattern LEVEL_PATTERN = Pattern.compile("(?:lv\\s*)?([0-9]+)", Pattern.CASE_INSENSITIVE);
-    private Integer getLevel(String raw) throws DetailException {
+    private Integer getLevel(String raw) throws FormatException {
         if (raw == null) {
             // no level specified, that's okay
             return null;
@@ -82,7 +92,7 @@ public class Canonicalizer {
 
         // whole string must match
         if (!m.matches()) {
-            throw new DetailException("Unable to parse level: \"" + raw + "\".");
+            throw new FormatException("Unable to parse level: \"" + raw + "\".");
         }
 
         // todo validate level, this is harder because it's on a per pokemon basis
@@ -90,7 +100,7 @@ public class Canonicalizer {
     }
 
     private static final Pattern SKILL_LEVEL_PATTERN = Pattern.compile("\\bsl\\s*([0-5]+)\\b", Pattern.CASE_INSENSITIVE);
-    private Integer getSkillLevel(String raw) throws DetailException {
+    private Integer getSkillLevel(String raw) throws FormatException {
         if (raw == null) {
             return null;
         }
@@ -106,12 +116,12 @@ public class Canonicalizer {
         int end = m.end();
 
         if (m.find(end)) {
-            throw new DetailException("Multiple skill levels defined: \"" + raw + "\".");
+            throw new FormatException("Multiple skill levels defined: \"" + raw + "\".");
         }
 
         int skillLevel = Integer.parseInt(levelStr, 10);
         if (skillLevel < 1 || skillLevel > 5) {
-            throw new DetailException("Invalid skill level " + skillLevel + ": \n" + raw + "\"");
+            throw new FormatException("Invalid skill level " + skillLevel + ": \n" + raw + "\"");
         }
         return skillLevel;
     }
@@ -148,7 +158,7 @@ public class Canonicalizer {
     }
 
     private static final Pattern MSU_PATTERN = Pattern.compile("([0-9]+)\\s*/\\s*([0-9]+)");
-    private Integer getMsuCount(String raw) throws DetailException {
+    private Integer getMsuCount(String raw) throws FormatException {
         if (raw == null) {
             return null;
         }
@@ -156,14 +166,14 @@ public class Canonicalizer {
         Matcher m = MSU_PATTERN.matcher(raw);
 
         if (!m.matches()) {
-            throw new DetailException("Unable to parse msu count: \n" + raw +"\n");
+            throw new FormatException("Unable to parse msu count: \n" + raw +"\n");
         }
 
         // todo validate
         return Integer.parseInt(m.group(1));
     }
 
-    private Integer getMaxMsus(String raw) throws DetailException {
+    private Integer getMaxMsus(String raw) throws FormatException {
         if (raw == null) {
             return null;
         }
@@ -171,14 +181,14 @@ public class Canonicalizer {
         Matcher m = MSU_PATTERN.matcher(raw);
 
         if (!m.matches()) {
-            throw new DetailException("Unable to parse msu count: \n" + raw +"\n");
+            throw new FormatException("Unable to parse msu count: \n" + raw +"\n");
         }
 
         // todo validate
         return Integer.parseInt(m.group(2));
     }
 
-    public List<Item> getItems(List<String> raw) throws DetailException {
+    public List<Item> getItems(List<String> raw) throws FormatException {
         if (raw == null) {
             return null;
         }
@@ -207,7 +217,7 @@ public class Canonicalizer {
                 ret.add(Item.get(rawItem));
             } catch (NoSuchElementException e) {
                 // not going to worry about a nicer error message for silliness like "items: none, all"
-                throw new DetailException("No such item: \"" + rawItem + "\"");
+                throw new FormatException("No such item: \"" + rawItem + "\"");
             }
         }
 
@@ -216,7 +226,7 @@ public class Canonicalizer {
         return ret;
     }
 
-    private Integer getScore(String raw) throws DetailException {
+    private Integer getScore(String raw) throws FormatException {
         if (raw == null) {
             return null;
         }
@@ -225,11 +235,16 @@ public class Canonicalizer {
         try {
             return Integer.parseInt(raw, 10);
         } catch (NumberFormatException e) {
-            throw new DetailException("Unable to parse score: \"" + raw + "\"");
+            throw new FormatException("Unable to parse score: \"" + raw + "\"");
         }
     }
 
-    private Integer getStage(String raw) throws DetailException {
+    private String getStage(String raw) {
+        // todo validate that this is an EB stage or pokemon name
+        return raw;
+    }
+
+    private Integer getMovesLeft(String raw) throws FormatException {
         if (raw == null) {
             return null;
         }
@@ -237,19 +252,7 @@ public class Canonicalizer {
         try {
             return Integer.parseInt(raw, 10);
         } catch (NumberFormatException e) {
-            throw new DetailException("Unable to parse stage: \"" + raw + "\"");
-        }
-    }
-
-    private Integer getMovesLeft(String raw) throws DetailException {
-        if (raw == null) {
-            return null;
-        }
-
-        try {
-            return Integer.parseInt(raw, 10);
-        } catch (NumberFormatException e) {
-            throw new DetailException("Unable to parse moves left: \"" + raw + "\"");
+            throw new FormatException("Unable to parse moves left: \"" + raw + "\"");
         }
     }
 }

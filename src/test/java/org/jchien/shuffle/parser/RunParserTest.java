@@ -1,5 +1,8 @@
 package org.jchien.shuffle.parser;
 
+import org.jchien.shuffle.model.FormatException;
+import org.jchien.shuffle.model.MoveType;
+import org.jchien.shuffle.model.StageType;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
@@ -18,7 +21,7 @@ public class RunParserTest {
     private final List<String> EMPTY_ITEMS = Collections.EMPTY_LIST;
 
     @Test
-    public void testBasic() throws ParseException, DupeSectionException {
+    public void testBasic() throws ParseException, FormatException {
         String input = "!eb 100\n" +
                 "team: mmy (Lv10, sl5 power of 4, 14/14), unown! (sl1), necrozma (Lv1), silvally (perfect)\n" +
                 "items: m+5, dd\n" +
@@ -42,15 +45,18 @@ public class RunParserTest {
                 items,
                 null,
                 "100",
-                "5"
+                "5",
+                null,
+                StageType.ESCALATION_BATTLE,
+                MoveType.MOVES
         );
 
         testParse(input, expected);
     }
 
     @Test
-    public void testSkillAmbiguity() throws ParseException, DupeSectionException {
-        String input = "!run\n" +
+    public void testSkillAmbiguity() throws ParseException, FormatException {
+        String input = "!comp\n" +
                 "team: mmy (Lv1 Lv2)\n" +
                 "!end\n";
 
@@ -63,15 +69,18 @@ public class RunParserTest {
                 EMPTY_ITEMS,
                 null,
                 null,
-                null
+                null,
+                null,
+                StageType.COMPETITION,
+                MoveType.MOVES
         );
 
         testParse(input, expected);
     }
 
     @Test
-    public void testPokemonName() throws ParseException, DupeSectionException {
-        String input = "!run team: diancie !end";
+    public void testPokemonName() throws ParseException, FormatException {
+        String input = "!comp team: diancie !end";
 
         List<RawPokemon> team = Arrays.asList(
                 new RawPokemon("diancie", null, null, null, false)
@@ -82,15 +91,18 @@ public class RunParserTest {
                 EMPTY_ITEMS,
                 null,
                 null,
-                null
+                null,
+                null,
+                StageType.COMPETITION,
+                MoveType.MOVES
         );
 
         testParse(input, expected);
     }
 
     @Test
-    public void testPokemonMultiToken() throws ParseException, DupeSectionException {
-        String input = "!run team: shiny mega charizard x !end";
+    public void testPokemonMultiToken() throws ParseException, FormatException {
+        String input = "!comp team: shiny mega charizard x !end";
 
         List<RawPokemon> team = Arrays.asList(
                 new RawPokemon("shiny mega charizard x", null, null, null, false)
@@ -101,15 +113,18 @@ public class RunParserTest {
                 EMPTY_ITEMS,
                 null,
                 null,
-                null
+                null,
+                null,
+                StageType.COMPETITION,
+                MoveType.MOVES
         );
 
         testParse(input, expected);
     }
 
     @Test
-    public void testMultiplePokemon() throws ParseException, DupeSectionException {
-        String input = "!run team: shiny diancie, azumarill !end";
+    public void testMultiplePokemon() throws ParseException, FormatException {
+        String input = "!comp team: shiny diancie, azumarill !end";
 
         List<RawPokemon> team = Arrays.asList(
                 new RawPokemon("shiny diancie", null, null, null, false),
@@ -121,15 +136,18 @@ public class RunParserTest {
                 EMPTY_ITEMS,
                 null,
                 null,
-                null
+                null,
+                null,
+                StageType.COMPETITION,
+                MoveType.MOVES
         );
 
         testParse(input, expected);
     }
 
     @Test
-    public void testLevel() throws ParseException, DupeSectionException {
-        String inputPrefix = "!run team: ms-diancie (";
+    public void testLevel() throws ParseException, FormatException {
+        String inputPrefix = "!comp team: ms-diancie (";
         String inputSuffix = ") !end";
         String[] inputs = {
                 "15",
@@ -163,7 +181,10 @@ public class RunParserTest {
                     EMPTY_ITEMS,
                     null,
                     null,
-                    null
+                    null,
+                    null,
+                    StageType.COMPETITION,
+                    MoveType.MOVES
             );
 
             testParse(input, expected);
@@ -171,8 +192,8 @@ public class RunParserTest {
     }
 
     @Test
-    public void testMsus() throws ParseException, DupeSectionException {
-        String inputPrefix = "!run team: ms-diancie (";
+    public void testMsus() throws ParseException, FormatException {
+        String inputPrefix = "!comp team: ms-diancie (";
         String inputSuffix = ") !end";
         String[] inputs = {
                 "1/1",
@@ -201,7 +222,10 @@ public class RunParserTest {
                     EMPTY_ITEMS,
                     null,
                     null,
-                    null
+                    null,
+                    null,
+                    StageType.COMPETITION,
+                    MoveType.MOVES
             );
 
             testParse(input, expected);
@@ -209,8 +233,8 @@ public class RunParserTest {
     }
 
     @Test
-    public void testSkill() throws ParseException, DupeSectionException {
-        String inputPrefix = "!run team: ms-diancie (";
+    public void testSkill() throws ParseException, FormatException {
+        String inputPrefix = "!comp team: ms-diancie (";
         String inputSuffix = ") !end";
         String[] inputs = {
                 "sl5",
@@ -238,14 +262,17 @@ public class RunParserTest {
                     EMPTY_ITEMS,
                     null,
                     null,
-                    null
+                    null,
+                    null,
+                    StageType.COMPETITION,
+                    MoveType.MOVES
             );
 
             testParse(input, expected);
         }
     }
 
-    private void testParse(String input, RawRunDetails expected) throws ParseException, DupeSectionException {
+    private void testParse(String input, RawRunDetails expected) throws ParseException, FormatException {
         RunParser p = new RunParser(new StringReader(input));
         p.start();
         RawRunDetails d = p.getDetails();

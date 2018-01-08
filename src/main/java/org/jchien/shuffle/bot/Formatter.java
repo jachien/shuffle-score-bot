@@ -51,7 +51,7 @@ public class Formatter {
 
     public final static String EB_HEADER_PREFIX = "###Stage ";
     private static final String EB_TABLE_HEADER = "\n" +
-            "Username| Team | Items | Moves Left\n" +
+            "Username| Team | Items | Result\n" +
             "|:----------: | :----------: | :-----------: | :-----------:\n";
     public String formatEscalationBattle(List<UserRunDetails> runs, int stage, String submissionUrl) {
         // inlining these lambdas into Comparator.comparing() makes intellij 2017.3.1 think it's a syntax error
@@ -161,7 +161,7 @@ public class Formatter {
             sb.append(df.format(score));
         }
         sb.append("](");
-        appendCommentUrl(sb, submissionUrl, commentId);
+        sb.append(RedditUtils.getCommentPermalink(submissionUrl, commentId));
         sb.append(')');
     }
 
@@ -173,11 +173,7 @@ public class Formatter {
             sb.append(movesLeft).append(movesLeft).append(" moves left");
         }
         sb.append("](");
-        appendCommentUrl(sb, submissionUrl, commentId);
+        sb.append(RedditUtils.getCommentPermalink(submissionUrl, commentId));
         sb.append(')');
-    }
-
-    private void appendCommentUrl(StringBuilder sb, String submissionUrl, String commentId) {
-        sb.append("https://www.reddit.com").append(submissionUrl).append("/").append(commentId);
     }
 }

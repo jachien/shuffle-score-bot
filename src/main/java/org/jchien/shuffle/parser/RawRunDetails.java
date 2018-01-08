@@ -1,5 +1,8 @@
 package org.jchien.shuffle.parser;
 
+import org.jchien.shuffle.model.MoveType;
+import org.jchien.shuffle.model.StageType;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -12,13 +15,19 @@ public class RawRunDetails {
     private String score;
     private String stage;
     private String movesLeft;
+    private String timeLeft;
+    private StageType stageType;
+    private MoveType moveType;
 
-    public RawRunDetails(List<RawPokemon> team, List<String> items, String score, String stage, String movesLeft) {
+    public RawRunDetails(List<RawPokemon> team, List<String> items, String score, String stage, String movesLeft, String timeLeft, StageType stageType, MoveType moveType) {
         this.team = team;
         this.items = items;
         this.score = score;
         this.stage = stage;
         this.movesLeft = movesLeft;
+        this.timeLeft = timeLeft;
+        this.stageType = stageType;
+        this.moveType = moveType;
     }
 
     public List<RawPokemon> getTeam() {
@@ -41,6 +50,18 @@ public class RawRunDetails {
         return movesLeft;
     }
 
+    public String getTimeLeft() {
+        return timeLeft;
+    }
+
+    public StageType getStageType() {
+        return stageType;
+    }
+
+    public MoveType getMoveType() {
+        return moveType;
+    }
+
     @Override
     public String toString() {
         return "RawRunDetails{" +
@@ -49,6 +70,9 @@ public class RawRunDetails {
                 ", score='" + score + '\'' +
                 ", stage='" + stage + '\'' +
                 ", movesLeft='" + movesLeft + '\'' +
+                ", timeLeft='" + timeLeft + '\'' +
+                ", stageType=" + stageType +
+                ", moveType=" + moveType +
                 '}';
     }
 
@@ -61,12 +85,15 @@ public class RawRunDetails {
                 Objects.equals(items, that.items) &&
                 Objects.equals(score, that.score) &&
                 Objects.equals(stage, that.stage) &&
-                Objects.equals(movesLeft, that.movesLeft);
+                Objects.equals(movesLeft, that.movesLeft) &&
+                Objects.equals(timeLeft, that.timeLeft) &&
+                stageType == that.stageType &&
+                moveType == that.moveType;
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(team, items, score, stage, movesLeft);
+        return Objects.hash(team, items, score, stage, movesLeft, timeLeft, stageType, moveType);
     }
 }

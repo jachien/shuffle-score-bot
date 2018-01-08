@@ -1,17 +1,15 @@
 package org.jchien.shuffle.parser;
 
+import org.jchien.shuffle.model.FormatException;
+
 /**
  * @author jchien
  */
-public class DupeSectionException extends Exception {
+public class DupeSectionException extends FormatException {
     private final Section dupeSection;
 
     public DupeSectionException(Section dupeSection) {
-        this.dupeSection = dupeSection;
-    }
-
-    public DupeSectionException(Section dupeSection, String message) {
-        super(message);
+        super("Duplicate section found: " + dupeSection.toString().toLowerCase());
         this.dupeSection = dupeSection;
     }
 

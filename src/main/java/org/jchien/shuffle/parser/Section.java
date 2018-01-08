@@ -9,4 +9,5 @@ public enum Section {
     SCORE,
     STAGE,
     MOVES,
+    TIME
 }
