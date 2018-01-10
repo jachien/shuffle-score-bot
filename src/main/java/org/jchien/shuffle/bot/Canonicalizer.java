@@ -1,5 +1,6 @@
 package org.jchien.shuffle.bot;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.jchien.shuffle.model.FormatException;
 import org.jchien.shuffle.model.Item;
 import org.jchien.shuffle.model.MoveType;
@@ -66,7 +67,6 @@ public class Canonicalizer {
         return team;
     }
 
-
     private Pokemon getPokemon(RawPokemon raw) throws FormatException {
         return new Pokemon(
                 getName(raw.getName()),
@@ -85,7 +85,9 @@ public class Canonicalizer {
 
 
     private static final Pattern LEVEL_PATTERN = Pattern.compile("(?:lv\\s*)?([0-9]+)", Pattern.CASE_INSENSITIVE);
-    private Integer getLevel(String raw) throws FormatException {
+
+    @VisibleForTesting
+    Integer getLevel(String raw) throws FormatException {
         if (raw == null) {
             // no level specified, that's okay
             return null;
