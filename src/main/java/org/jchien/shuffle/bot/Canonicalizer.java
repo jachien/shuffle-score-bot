@@ -37,6 +37,8 @@ public class Canonicalizer {
 
             Integer movesLeft = getMovesLeft(raw.getMovesLeft());
 
+            Integer timeLeft = getTimeLeft(raw.getTimeLeft());
+
             StageType stageType = raw.getStageType();
 
             MoveType moveType = raw.getMoveType();
@@ -47,6 +49,7 @@ public class Canonicalizer {
                     stage,
                     score,
                     movesLeft,
+                    timeLeft,
                     stageType,
                     moveType
             );
@@ -250,9 +253,25 @@ public class Canonicalizer {
         }
 
         try {
+            // todo should this verify there is exactly one number and ignore everything else?
+            // then we can handle strings like "3 moves" or "3 moves left"
             return Integer.parseInt(raw, 10);
         } catch (NumberFormatException e) {
             throw new FormatException("Unable to parse moves left: \"" + raw + "\"");
+        }
+    }
+
+    private Integer getTimeLeft(String raw) throws FormatException {
+        if (raw == null) {
+            return null;
+        }
+
+        try {
+            // todo should this verify there is exactly one number and ignore everything else?
+            // then we can handle strings like "3s" or "3 secs"
+            return Integer.parseInt(raw, 10);
+        } catch (NumberFormatException e) {
+            throw new FormatException("Unable to parse time left: \"" + raw + "\"");
         }
     }
 }

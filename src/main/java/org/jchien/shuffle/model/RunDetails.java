@@ -12,28 +12,53 @@ public class RunDetails {
     private final String stage;
     private final Integer score;
     private final Integer movesLeft;
+    private final Integer timeLeft;
     private final StageType stageType;
     private final MoveType moveType;
 
     private final Exception exception;
 
-    public RunDetails(List<Pokemon> team, List<Item> items, String stage, Integer score, Integer movesLeft, StageType stageType, MoveType moveType, Exception exception) {
+    private RunDetails(List<Pokemon> team, List<Item> items, String stage, Integer score, Integer movesLeft, Integer timeLeft, StageType stageType, MoveType moveType, Exception exception) {
         this.team = team;
         this.items = items;
         this.stage = stage;
         this.score = score;
         this.movesLeft = movesLeft;
+        this.timeLeft = timeLeft;
         this.stageType = stageType;
         this.moveType = moveType;
         this.exception = exception;
     }
 
-    public RunDetails(List<Pokemon> team, List<Item> items, String stage, Integer score, Integer movesLeft, StageType stageType, MoveType moveType) {
-        this(team, items, stage, score, movesLeft, stageType, moveType, null);
+    public RunDetails(List<Pokemon> team,
+                      List<Item> items,
+                      String stage,
+                      Integer score,
+                      Integer movesLeft,
+                      Integer timeLeft,
+                      StageType stageType,
+                      MoveType moveType) {
+        this(team,
+                items,
+                stage,
+                score,
+                movesLeft,
+                timeLeft,
+                stageType,
+                moveType,
+                null);
     }
 
     public RunDetails(Exception exception) {
-        this(null, null, null, null, null, null, null, exception);
+        this(null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                exception);
     }
 
 
@@ -73,6 +98,10 @@ public class RunDetails {
         return movesLeft;
     }
 
+    public Integer getTimeLeft() {
+        return timeLeft;
+    }
+
     public StageType getStageType() {
         return stageType;
     }
@@ -97,6 +126,7 @@ public class RunDetails {
                 ", stage='" + stage + '\'' +
                 ", score=" + score +
                 ", movesLeft=" + movesLeft +
+                ", timeLeft=" + timeLeft +
                 ", stageType=" + stageType +
                 ", moveType=" + moveType +
                 ", exception=" + exception +
@@ -113,6 +143,7 @@ public class RunDetails {
                 Objects.equals(stage, that.stage) &&
                 Objects.equals(score, that.score) &&
                 Objects.equals(movesLeft, that.movesLeft) &&
+                Objects.equals(timeLeft, that.timeLeft) &&
                 stageType == that.stageType &&
                 moveType == that.moveType &&
                 Objects.equals(exception, that.exception);
@@ -121,6 +152,6 @@ public class RunDetails {
     @Override
     public int hashCode() {
 
-        return Objects.hash(team, items, stage, score, movesLeft, stageType, moveType, exception);
+        return Objects.hash(team, items, stage, score, movesLeft, timeLeft, stageType, moveType, exception);
     }
 }
