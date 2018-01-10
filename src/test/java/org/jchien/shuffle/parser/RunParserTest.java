@@ -21,19 +21,43 @@ public class RunParserTest {
     private final List<RawPokemon> EMPTY_TEAM = new ArrayList<>();
     private final List<String> EMPTY_ITEMS = new ArrayList<>();
 
+    private class ExpectedResult<T> {
+        String message;
+        T expected;
+        Function<RawRunDetails, T> getter;
+
+        public ExpectedResult(String message, T expected, Function<RawRunDetails, T> getter) {
+            this.message = message;
+            this.expected = expected;
+            this.getter = getter;
+        }
+
+        public ExpectedResult(T expected, Function<RawRunDetails, T> getter) {
+            this(null, expected, getter);
+        }
+    }
+
     private void testParse(String input, RawRunDetails expected) throws ParseException, FormatException {
-        RunParser p = new RunParser(new StringReader(input));
-        p.start();
-        RawRunDetails d = p.getDetails();
-        assertEquals("input: " + input, expected, d);
+        testParse(input, Arrays.asList(new ExpectedResult<>("input: " + input, expected, Function.identity())));
     }
 
     private <T> void testParse(String input, T expected, Function<RawRunDetails, T> getter) throws ParseException, FormatException {
+        testParse(input, Arrays.asList(new ExpectedResult<>("input: " + input, expected, getter)));
+    }
+
+    private void testParse(String input, List<ExpectedResult<? extends Object>> expectedResults) throws ParseException, FormatException {
         RunParser p = new RunParser(new StringReader(input));
         p.start();
         RawRunDetails d = p.getDetails();
-        T result = getter.apply(d);
-        assertEquals("input: " + input, expected, result);
+
+        for (ExpectedResult<? extends Object> er : expectedResults) {
+            Object result = er.getter.apply(d);
+            if (er.message != null) {
+                assertEquals(er.message, er.expected, result);
+            } else {
+                assertEquals(er.expected, result);
+            }
+        }
     }
 
     @Test
@@ -246,7 +270,36 @@ public class RunParserTest {
     @Test
     public void testEBStage() throws ParseException, FormatException {
         String input = "!eb 150 team: a !end";
-        String expected = "150";
-        testParse(input, expected, RawRunDetails::getStage);
+        testParse(input, Arrays.asList(
+                new ExpectedResult<>("150", RawRunDetails::getStage),
+                new ExpectedResult<>(StageType.ESCALATION_BATTLE, RawRunDetails::getStageType)
+        ));
+    }
+
+    @Test
+    public void testNormalStage() throws ParseException, FormatException {
+        String input = "!run kommo-o team: a !end";
+        testParse(input, Arrays.asList(
+                new ExpectedResult<>("kommo-o", RawRunDetails::getStage),
+                new ExpectedResult<>(StageType.NORMAL, RawRunDetails::getStageType)
+        ));
+    }
+
+    @Test
+    public void testNormalStage_MultiWord() throws ParseException, FormatException {
+        String input = "!run Mr. Mime team: a !end";
+        testParse(input, Arrays.asList(
+                new ExpectedResult<>("Mr. Mime", RawRunDetails::getStage),
+                new ExpectedResult<>(StageType.NORMAL, RawRunDetails::getStageType)
+        ));
+    }
+
+    @Test
+    public void testCompStage() throws ParseException, FormatException {
+        String input = "!comp team: a !end";
+        testParse(input, Arrays.asList(
+                new ExpectedResult<>(null, RawRunDetails::getStage),
+                new ExpectedResult<>(StageType.COMPETITION, RawRunDetails::getStageType)
+        ));
     }
 }
