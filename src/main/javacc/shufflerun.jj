@@ -8,6 +8,7 @@ options {
 PARSER_BEGIN(RunParser)
 package org.jchien.shuffle.parser;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.jchien.shuffle.model.FormatException;
 import org.jchien.shuffle.model.MoveType;
 import org.jchien.shuffle.model.StageType;
@@ -64,6 +65,7 @@ public class RunParser {
         team.add(pkmnBuilder.build());
     }
 
+    @VisibleForTesting
     boolean isLevel(StringBuilder sb) {
         return isDigits(sb, 0)
             || isLevel(sb, "lv")
