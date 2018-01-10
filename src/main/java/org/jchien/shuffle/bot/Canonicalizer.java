@@ -136,7 +136,8 @@ public class Canonicalizer {
     private static final Pattern SKILL_NAME_PATTERN = Pattern.compile("(?<start>.*)(?:\\bsl\\s*[0-9]+\\b)?(?<end>.*)",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    private String getSkillName(String raw) {
+    @VisibleForTesting
+    String getSkillName(String raw) {
         if (raw == null) {
             return null;
         }

@@ -173,4 +173,23 @@ public class CanonicalizerTest {
             assertNull(c.getSkillLevel(input));
         }
     }
+
+    @Test
+    public void testGetSkillName_Basic() {
+        Canonicalizer c = new Canonicalizer();
+        assertNull(c.getSkillName(null));
+
+        String[] inputs = {
+                "4 up",
+                "4up",
+                "sl",
+                "sleep charm",
+                "power of 5",
+                "sl5butnospace",
+        };
+
+        for (String input : inputs) {
+            assertEquals(input, c.getSkillName(input));
+        }
+    }
 }
