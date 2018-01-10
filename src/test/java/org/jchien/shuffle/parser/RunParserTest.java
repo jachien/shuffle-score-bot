@@ -6,9 +6,10 @@ import org.jchien.shuffle.model.StageType;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 import static junit.framework.TestCase.*;
 
@@ -17,8 +18,23 @@ import static junit.framework.TestCase.*;
  */
 
 public class RunParserTest {
-    private final List<RawPokemon> EMPTY_TEAM = Collections.EMPTY_LIST;
-    private final List<String> EMPTY_ITEMS = Collections.EMPTY_LIST;
+    private final List<RawPokemon> EMPTY_TEAM = new ArrayList<>();
+    private final List<String> EMPTY_ITEMS = new ArrayList<>();
+
+    private void testParse(String input, RawRunDetails expected) throws ParseException, FormatException {
+        RunParser p = new RunParser(new StringReader(input));
+        p.start();
+        RawRunDetails d = p.getDetails();
+        assertEquals("input: " + input, expected, d);
+    }
+
+    private <T> void testParse(String input, T expected, Function<RawRunDetails, T> getter) throws ParseException, FormatException {
+        RunParser p = new RunParser(new StringReader(input));
+        p.start();
+        RawRunDetails d = p.getDetails();
+        T result = getter.apply(d);
+        assertEquals("input: " + input, expected, result);
+    }
 
     @Test
     public void testBasic() throws ParseException, FormatException {
@@ -60,89 +76,45 @@ public class RunParserTest {
                 "team: mmy (Lv1 Lv2)\n" +
                 "!end\n";
 
-        List<RawPokemon> team = Arrays.asList(
+        List<RawPokemon> expected = Arrays.asList(
                 new RawPokemon("mmy", null, "Lv1 Lv2", null, false)
         );
 
-        RawRunDetails expected = new RawRunDetails(
-                team,
-                EMPTY_ITEMS,
-                null,
-                null,
-                null,
-                null,
-                StageType.COMPETITION,
-                MoveType.MOVES
-        );
-
-        testParse(input, expected);
+        testParse(input, expected, RawRunDetails::getTeam);
     }
 
     @Test
     public void testPokemonName() throws ParseException, FormatException {
         String input = "!comp team: diancie !end";
 
-        List<RawPokemon> team = Arrays.asList(
+        List<RawPokemon> expected = Arrays.asList(
                 new RawPokemon("diancie", null, null, null, false)
         );
 
-        RawRunDetails expected = new RawRunDetails(
-                team,
-                EMPTY_ITEMS,
-                null,
-                null,
-                null,
-                null,
-                StageType.COMPETITION,
-                MoveType.MOVES
-        );
-
-        testParse(input, expected);
+        testParse(input, expected, RawRunDetails::getTeam);
     }
 
     @Test
     public void testPokemonMultiToken() throws ParseException, FormatException {
         String input = "!comp team: shiny mega charizard x !end";
 
-        List<RawPokemon> team = Arrays.asList(
+        List<RawPokemon> expected = Arrays.asList(
                 new RawPokemon("shiny mega charizard x", null, null, null, false)
         );
 
-        RawRunDetails expected = new RawRunDetails(
-                team,
-                EMPTY_ITEMS,
-                null,
-                null,
-                null,
-                null,
-                StageType.COMPETITION,
-                MoveType.MOVES
-        );
-
-        testParse(input, expected);
+        testParse(input, expected, RawRunDetails::getTeam);
     }
 
     @Test
     public void testMultiplePokemon() throws ParseException, FormatException {
         String input = "!comp team: shiny diancie, azumarill !end";
 
-        List<RawPokemon> team = Arrays.asList(
+        List<RawPokemon> expected = Arrays.asList(
                 new RawPokemon("shiny diancie", null, null, null, false),
                 new RawPokemon("azumarill", null, null, null, false)
         );
 
-        RawRunDetails expected = new RawRunDetails(
-                team,
-                EMPTY_ITEMS,
-                null,
-                null,
-                null,
-                null,
-                StageType.COMPETITION,
-                MoveType.MOVES
-        );
-
-        testParse(input, expected);
+        testParse(input, expected, RawRunDetails::getTeam);
     }
 
     @Test
@@ -172,22 +144,11 @@ public class RunParserTest {
 
             String expectedLevel = inputMiddle.replaceAll("\\s+", " ").trim();
 
-            List<RawPokemon> team = Arrays.asList(
+            List<RawPokemon> expected = Arrays.asList(
                     new RawPokemon("ms-diancie", expectedLevel, null, null, false)
             );
 
-            RawRunDetails expected = new RawRunDetails(
-                    team,
-                    EMPTY_ITEMS,
-                    null,
-                    null,
-                    null,
-                    null,
-                    StageType.COMPETITION,
-                    MoveType.MOVES
-            );
-
-            testParse(input, expected);
+            testParse(input, expected, RawRunDetails::getTeam);
         }
     }
 
@@ -213,22 +174,11 @@ public class RunParserTest {
                     .replaceAll("\\s?/\\s?", "/")
                     .trim();
 
-            List<RawPokemon> team = Arrays.asList(
+            List<RawPokemon> expected = Arrays.asList(
                     new RawPokemon("ms-diancie", null, null, expectedMsus, false)
             );
 
-            RawRunDetails expected = new RawRunDetails(
-                    team,
-                    EMPTY_ITEMS,
-                    null,
-                    null,
-                    null,
-                    null,
-                    StageType.COMPETITION,
-                    MoveType.MOVES
-            );
-
-            testParse(input, expected);
+            testParse(input, expected, RawRunDetails::getTeam);
         }
     }
 
@@ -253,30 +203,12 @@ public class RunParserTest {
             String expectedSkill = inputMiddle.replaceAll("\\s+", " ")
                     .trim();
 
-            List<RawPokemon> team = Arrays.asList(
+            List<RawPokemon> expected = Arrays.asList(
                     new RawPokemon("ms-diancie", null, expectedSkill, null, false)
             );
 
-            RawRunDetails expected = new RawRunDetails(
-                    team,
-                    EMPTY_ITEMS,
-                    null,
-                    null,
-                    null,
-                    null,
-                    StageType.COMPETITION,
-                    MoveType.MOVES
-            );
-
-            testParse(input, expected);
+            testParse(input, expected, RawRunDetails::getTeam);
         }
-    }
-
-    private void testParse(String input, RawRunDetails expected) throws ParseException, FormatException {
-        RunParser p = new RunParser(new StringReader(input));
-        p.start();
-        RawRunDetails d = p.getDetails();
-        assertEquals("input: " + input, expected, d);
     }
 
     @Test
@@ -309,5 +241,12 @@ public class RunParserTest {
         for (String notLevel : notLevels) {
             assertFalse(p.isLevel(new StringBuilder(notLevel)));
         }
+    }
+
+    @Test
+    public void testEBStage() throws ParseException, FormatException {
+        String input = "!eb 150 team: a !end";
+        String expected = "150";
+        testParse(input, expected, RawRunDetails::getStage);
     }
 }
