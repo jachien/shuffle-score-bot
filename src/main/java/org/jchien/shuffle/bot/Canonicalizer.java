@@ -150,6 +150,10 @@ public class Canonicalizer {
         StringBuilder sb = new StringBuilder();
 
         for (int i=1; i <= m.groupCount(); i++) {
+            if (m.group(i).length() == 0) {
+                continue;
+            }
+
             if (sb.length() > 0) {
                 sb.append(' ');
             }
