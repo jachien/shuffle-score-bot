@@ -52,4 +52,25 @@ public class CanonicalizerTest {
         assertThrows(FormatException.class, () -> c.getLevel(""));
         assertThrows(FormatException.class, () -> c.getLevel("(1)"));
     }
+
+    @Test
+    public void testGetSkillLevel() throws FormatException {
+        Canonicalizer c = new Canonicalizer();
+        for (int i=1; i <= 5; i++) {
+            String s = "sl" + i;
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+
+            // space ok
+            s = "sl " + i;
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+
+            // multiple spaces ok
+            s = "sl  " + i;
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+
+            // case insensitive
+            s = "SL " + i;
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+        }
+    }
 }

@@ -104,8 +104,10 @@ public class Canonicalizer {
         return Integer.parseInt(m.group(1), 10);
     }
 
-    private static final Pattern SKILL_LEVEL_PATTERN = Pattern.compile("\\bsl\\s*([0-5]+)\\b", Pattern.CASE_INSENSITIVE);
-    private Integer getSkillLevel(String raw) throws FormatException {
+    private static final Pattern SKILL_LEVEL_PATTERN = Pattern.compile("\\bsl\\s*([0-9]+)\\b", Pattern.CASE_INSENSITIVE);
+
+    @VisibleForTesting
+    Integer getSkillLevel(String raw) throws FormatException {
         if (raw == null) {
             return null;
         }
