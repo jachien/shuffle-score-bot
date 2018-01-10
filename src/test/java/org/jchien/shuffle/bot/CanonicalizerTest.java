@@ -11,6 +11,12 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class CanonicalizerTest {
     @Test
+    public void testGetLevel_Null() throws FormatException {
+        Canonicalizer c = new Canonicalizer();
+        assertNull(c.getLevel(null));
+    }
+
+    @Test
     public void testGetLevel_NumOnly() throws FormatException {
         Canonicalizer c = new Canonicalizer();
         for (int i=1; i < 50; i++) {
@@ -54,8 +60,10 @@ public class CanonicalizerTest {
     }
 
     @Test
-    public void testGetSkillLevel() throws FormatException {
+    public void testGetSkillLevel_Basic() throws FormatException {
         Canonicalizer c = new Canonicalizer();
+        assertNull(c.getSkillLevel(null));
+
         for (int i=1; i <= 5; i++) {
             String s = "sl" + i;
             assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
@@ -71,6 +79,98 @@ public class CanonicalizerTest {
             // case insensitive
             s = "SL " + i;
             assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+        }
+    }
+
+    @Test
+    public void testGetSkillLevel_BasicBadValues() {
+        Canonicalizer c = new Canonicalizer();
+
+        assertThrows(FormatException.class, () -> c.getSkillLevel("sl0"));
+
+        for (int i=6; i <= 15; i++) {
+            final String s = "sl" + i;
+            assertThrows(FormatException.class, () -> c.getSkillLevel(s));
+        }
+    }
+
+    @Test
+    public void testGetSkillLevel_Prefix() throws FormatException {
+        Canonicalizer c = new Canonicalizer();
+        for (int i=1; i <= 5; i++) {
+            String s = "sl" + i + " ss";
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+
+            // space ok
+            s = "sl " + i + " ss";
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+
+            // multiple spaces ok
+            s = "sl  " + i + " ss";
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+
+            // case insensitive
+            s = "SL " + i + " ss";
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+        }
+    }
+
+    @Test
+    public void testGetSkillLevel_Suffix() throws FormatException {
+        Canonicalizer c = new Canonicalizer();
+        for (int i=1; i <= 5; i++) {
+            String s = "ss sl" + i;
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+
+            // space ok
+            s = "ss sl " + i;
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+
+            // multiple spaces ok
+            s = "ss sl  " + i;
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+
+            // case insensitive
+            s = "ss SL " + i;
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+        }
+    }
+
+    @Test
+    public void testGetSkillLevel_Middle() throws FormatException {
+        Canonicalizer c = new Canonicalizer();
+        for (int i=1; i <= 5; i++) {
+            String s = "ss sl" + i + " shot out";
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+
+            // space ok
+            s = "ss sl " + i + " shot out";
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+
+            // multiple spaces ok
+            s = "ss sl  " + i + " shot out";
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+
+            // case insensitive
+            s = "ss SL " + i + " shot out";
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+        }
+    }
+
+    @Test
+    public void testGetSkillLevel_Omitted() throws FormatException {
+        Canonicalizer c = new Canonicalizer();
+        String[] inputs = {
+                "4 up",
+                "4up",
+                "sl",
+                "sleep charm",
+                "power of 5",
+                "sl5butnospace",
+        };
+
+        for (String input : inputs) {
+            assertNull(c.getSkillLevel(input));
         }
     }
 }
