@@ -131,7 +131,7 @@ TOKEN: {
 TOKEN: {
     < #DIGIT: (["0"-"9"]) >
     | < #LETTER: (["A"-"Z"]) >
-    | < WORD: (<DIGIT> | <LETTER> | "+" | "-" | "?" | "!")+ >
+    | < WORD: (<DIGIT> | <LETTER> | "+" | "-" | "?" | "!" | ".")+ >
     | < SLASH: "/" >
 }
 
