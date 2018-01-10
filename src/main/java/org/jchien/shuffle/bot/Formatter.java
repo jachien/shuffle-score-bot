@@ -1,6 +1,7 @@
 package org.jchien.shuffle.bot;
 
 import org.jchien.shuffle.model.Item;
+import org.jchien.shuffle.model.MoveType;
 import org.jchien.shuffle.model.Pokemon;
 import org.jchien.shuffle.model.RunDetails;
 import org.jchien.shuffle.model.UserRunDetails;
@@ -43,7 +44,7 @@ public class Formatter {
             appendDelimiter(sb);
             appendItems(sb, details.getItems());
             appendDelimiter(sb);
-            appendScore(sb, submissionUrl, urd.getCommentId(), details.getMovesLeft());
+            appendScore(sb, submissionUrl, urd.getCommentId(), details.getScore());
         }
         return sb.toString();
 
@@ -78,7 +79,14 @@ public class Formatter {
             appendDelimiter(sb);
             appendItems(sb, details.getItems());
             appendDelimiter(sb);
-            appendMovesLeft(sb, submissionUrl, urd.getCommentId(), details.getMovesLeft());
+
+            appendResult(sb,
+                    submissionUrl,
+                    urd.getCommentId(),
+                    details.getMoveType(),
+                    details.getMovesLeft(),
+                    details.getTimeLeft());
+
         }
         return sb.toString();
     }
@@ -153,24 +161,37 @@ public class Formatter {
         DecimalFormat df = new DecimalFormat();
         df.setGroupingSize(3);
         df.setGroupingUsed(true);
-
-        sb.append('[');
-        if (score == null) {
-            sb.append("Unknown");
-        } else {
-            sb.append(df.format(score));
-        }
-        sb.append("](");
-        sb.append(RedditUtils.getCommentPermalink(submissionUrl, commentId));
-        sb.append(')');
+        String formattedScore = df.format(score);
+        appendResult(sb, submissionUrl, commentId, formattedScore);
     }
 
-    private void appendMovesLeft(StringBuilder sb, String submissionUrl, String commentId, Integer movesLeft) {
+    private void appendResult(StringBuilder sb,
+                              String submissionUrl,
+                              String commentId,
+                              MoveType moveType,
+                              Integer movesLeft,
+                              Integer timeLeft) {
+        String result;
+        switch (moveType) {
+            case MOVES:
+                result = MoveType.MOVES.format(movesLeft);
+                break;
+            case TIME:
+                result = MoveType.TIME.format(timeLeft);
+                break;
+            default:
+                result = null;
+        }
+        appendResult(sb, submissionUrl, commentId, result);
+    }
+
+
+    private void appendResult(StringBuilder sb, String submissionUrl, String commentId, String result) {
         sb.append('[');
-        if (movesLeft == null) {
+        if (result == null) {
             sb.append("Unknown");
         } else {
-            sb.append(movesLeft).append(movesLeft).append(" moves left");
+            sb.append(result);
         }
         sb.append("](");
         sb.append(RedditUtils.getCommentPermalink(submissionUrl, commentId));
