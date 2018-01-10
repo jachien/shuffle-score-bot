@@ -302,4 +302,43 @@ public class RunParserTest {
                 new ExpectedResult<>(StageType.COMPETITION, RawRunDetails::getStageType)
         ));
     }
+
+    @Test
+    public void testMovesLeft() throws ParseException, FormatException {
+        String input = "!eb 100 moves left: 1 !end";
+        testParse(input, Arrays.asList(
+                new ExpectedResult<>("1", RawRunDetails::getMovesLeft),
+                new ExpectedResult<>(MoveType.MOVES, RawRunDetails::getMoveType)
+        ));
+    }
+
+    @Test
+    public void testTimeLeft() throws ParseException, FormatException {
+        String input = "!eb 100 time left: 1 !end";
+        testParse(input, Arrays.asList(
+                new ExpectedResult<>("1", RawRunDetails::getTimeLeft),
+                new ExpectedResult<>(MoveType.TIME, RawRunDetails::getMoveType)
+        ));
+    }
+
+    @Test
+    public void testScore() throws ParseException, FormatException {
+        String input = "!eb 100 score: 123456 !end";
+        // comma isn't part of word production, so it's not part of the parsed score
+        testParse(input, "123456", RawRunDetails::getScore);
+    }
+
+    @Test
+    public void testScore_WithComma() throws ParseException, FormatException {
+        String input = "!eb 100 score: 123,456 !end";
+        // comma isn't part of word production, so it's not part of the parsed score
+        testParse(input, "123456", RawRunDetails::getScore);
+    }
+
+    @Test
+    public void testScore_WithPeriod() throws ParseException, FormatException {
+        String input = "!eb 100 score: 123.456 !end";
+        // period is part of the word production, so it's included in the parsed score
+        testParse(input, "123.456", RawRunDetails::getScore);
+    }
 }
