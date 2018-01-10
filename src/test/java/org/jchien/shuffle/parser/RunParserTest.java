@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
-import static junit.framework.TestCase.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author jchien
@@ -53,7 +53,7 @@ public class RunParserTest {
         for (ExpectedResult<? extends Object> er : expectedResults) {
             Object result = er.getter.apply(d);
             if (er.message != null) {
-                assertEquals(er.message, er.expected, result);
+                assertEquals(er.expected, result, er.message);
             } else {
                 assertEquals(er.expected, result);
             }
