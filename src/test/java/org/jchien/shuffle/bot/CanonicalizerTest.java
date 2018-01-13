@@ -264,4 +264,26 @@ public class CanonicalizerTest {
             assertThrows(FormatException.class, () -> c.getSkillLevel(input));
         }
     }
+
+    @Test
+    public void testGetSkillLevel_MultipleShouldFail() {
+        Canonicalizer c = new Canonicalizer();
+
+        String[] inputs = {
+                "sl1 sl2",
+                "sl1 sl 2",
+                "sl 1 sl2",
+                "sl 1 sl 2",
+                "sl1 makes no sense sl2",
+                "sl1 sl2 makes no sense",
+                "sl1 makes no sl2 sense",
+                "sl1 sl2 sl3",
+                "sl1 makes no sl2 sense sl3",
+        };
+
+        for (String input : inputs) {
+            assertThrows(FormatException.class, () -> c.getSkillLevel(input));
+        }
+    }
+
 }
