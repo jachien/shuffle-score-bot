@@ -72,6 +72,10 @@ public class CanonicalizerTest {
             s = "sl " + i;
             assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
 
+            // space before and after ok
+            s = " sl " + i + " ";
+            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
+
             // multiple spaces ok
             s = "sl  " + i;
             assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
@@ -137,27 +141,6 @@ public class CanonicalizerTest {
     }
 
     @Test
-    public void testGetSkillLevel_Middle() throws FormatException {
-        Canonicalizer c = new Canonicalizer();
-        for (int i=1; i <= 5; i++) {
-            String s = "ss sl" + i + " shot out";
-            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
-
-            // space ok
-            s = "ss sl " + i + " shot out";
-            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
-
-            // multiple spaces ok
-            s = "ss sl  " + i + " shot out";
-            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
-
-            // case insensitive
-            s = "ss SL " + i + " shot out";
-            assertEquals(Integer.valueOf(i), c.getSkillLevel(s));
-        }
-    }
-
-    @Test
     public void testGetSkillLevel_Omitted() throws FormatException {
         Canonicalizer c = new Canonicalizer();
         String[] inputs = {
@@ -190,6 +173,95 @@ public class CanonicalizerTest {
 
         for (String input : inputs) {
             assertEquals(input, c.getSkillName(input));
+        }
+    }
+
+    @Test
+    public void testGetSkillName_EmptyStringsReturnNull() {
+        Canonicalizer c = new Canonicalizer();
+
+        String[] inputs = {
+                "",
+                " ",
+                "  ",
+                "\t",
+                "\t ",
+                "\n",
+        };
+
+        for (String input : inputs) {
+            assertNull(c.getSkillName(input));
+        }
+    }
+
+    @Test
+    public void testGetSkillName_NormalizeWhitespace() {
+        Canonicalizer c = new Canonicalizer();
+
+        String[][] tests = {
+                { " 4 up  ", "4 up" },
+                { "4  up", "4 up" },
+                { "4\tup", "4 up" },
+                { " 4\tup  ", "4 up" },
+                { " 4\nup  ", "4 up" },
+                { "\tdemolish\n", "demolish" },
+        };
+
+        for (String[] test : tests) {
+            String input = test[0];
+            String expected = test[1];
+            assertEquals(expected, c.getSkillName(input));
+        }
+    }
+
+    @Test
+    public void testGetSkillName_Prefix() {
+        Canonicalizer c = new Canonicalizer();
+
+        String[][] tests = {
+                { "demolish sl 1", "demolish" },
+                { "Shot Out SL5", "Shot Out" },
+                { "Shot Out  SL5", "Shot Out" },
+                { "Shot Out \tSL5", "Shot Out" },
+        };
+
+        for (String[] test : tests) {
+            String input = test[0];
+            String expected = test[1];
+            assertEquals(expected, c.getSkillName(input));
+        }
+    }
+
+    @Test
+    public void testGetSkillName_Suffix() {
+        Canonicalizer c = new Canonicalizer();
+
+        String[][] tests = {
+                { "sl 1 demolish", "demolish" },
+                { "SL5 Shot Out", "Shot Out" },
+                { "SL5  Shot Out", "Shot Out" },
+                { "SL5 \tShot Out", "Shot Out" },
+        };
+
+        for (String[] test : tests) {
+            String input = test[0];
+            String expected = test[1];
+            assertEquals(expected, c.getSkillName(input));
+        }
+    }
+
+    @Test
+    public void testGetSkillLevel_MiddleShouldFail() {
+        Canonicalizer c = new Canonicalizer();
+
+        String[] inputs = {
+                "a sl 1 b",
+                "a sl1 b",
+                "shot sl5 out",
+        };
+
+        for (String input : inputs) {
+            assertThrows(FormatException.class, () -> c.getSkillLevel(input));
         }
     }
 }

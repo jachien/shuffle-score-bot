@@ -104,7 +104,7 @@ public class Canonicalizer {
         return Integer.parseInt(m.group(1), 10);
     }
 
-    private static final Pattern SKILL_LEVEL_PATTERN = Pattern.compile("\\bsl\\s*([0-9]+)\\b", Pattern.CASE_INSENSITIVE);
+    private static final Pattern SKILL_LEVEL_PATTERN = Pattern.compile("\\s*\\bsl\\s*(\\d+)\\b\\s*", Pattern.CASE_INSENSITIVE);
 
     @VisibleForTesting
     Integer getSkillLevel(String raw) throws FormatException {
@@ -120,9 +120,18 @@ public class Canonicalizer {
         }
 
         String levelStr = m.group(1);
+        int start = m.start();
         int end = m.end();
 
-        if (m.find(end)) {
+        if (start != 0 && end != raw.length()) {
+            String matchedText = m.group(0).trim();
+            throw new FormatException(
+                    String.format("Skill level \"%s\" must be at the start or end of the skill section \"%s\"",
+                            matchedText,
+                            raw));
+        }
+
+        if (m.find()) {
             throw new FormatException("Multiple skill levels defined: \"" + raw + "\".");
         }
 
@@ -133,7 +142,7 @@ public class Canonicalizer {
         return skillLevel;
     }
 
-    private static final Pattern SKILL_NAME_PATTERN = Pattern.compile("(?<start>.*)(?:\\bsl\\s*[0-9]+\\b)?(?<end>.*)",
+    private static final Pattern SKILL_NAME_PATTERN = Pattern.compile("(?:\\bsl\\s*\\d+\\b)?(.*?)(?:\\bsl\\s*\\d+\\b)?",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     @VisibleForTesting
@@ -161,12 +170,16 @@ public class Canonicalizer {
             sb.append(m.group(i));
         }
 
-        if (sb.length() == 0) {
+        // todo validate skill name
+        String ret = sb.toString()
+                .replaceAll("\\s+", " ")
+                .trim();
+
+        if (ret.length() == 0) {
             return null;
         }
 
-        // todo validate skill name
-        return sb.toString();
+        return ret;
     }
 
     private static final Pattern MSU_PATTERN = Pattern.compile("([0-9]+)\\s*/\\s*([0-9]+)");
