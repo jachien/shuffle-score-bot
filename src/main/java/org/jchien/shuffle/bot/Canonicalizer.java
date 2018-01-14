@@ -182,7 +182,8 @@ public class Canonicalizer {
         return ret;
     }
 
-    private static final Pattern MSU_PATTERN = Pattern.compile("([0-9]+)\\s*/\\s*([0-9]+)");
+    private static final Pattern MSU_PATTERN = Pattern.compile("\\s*(\\d+)\\s*/\\s*(\\d+)\\s*");
+
     private Integer getMsuCount(String raw) throws FormatException {
         if (raw == null) {
             return null;
