@@ -200,7 +200,8 @@ public class Canonicalizer {
         return Integer.parseInt(m.group(1));
     }
 
-    private Integer getMaxMsus(String raw) throws FormatException {
+    @VisibleForTesting
+    Integer getMaxMsus(String raw) throws FormatException {
         if (raw == null) {
             return null;
         }

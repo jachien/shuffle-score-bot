@@ -311,4 +311,30 @@ public class CanonicalizerTest {
             assertEquals(expected, c.getMsuCount(input));
         }
     }
+
+    @Test
+    public void testGetMaxMsus() throws FormatException {
+        Canonicalizer c = new Canonicalizer();
+        Object[][] tests = {
+                { null, null },
+                { "0/3", 3 },
+                { "1/3", 3 },
+                { "2/3", 3 },
+                { "3/3", 3 },
+                { "0/20", 20 },
+                { "0 / 20", 20 },
+                { "14/20", 20 },
+                { "14 / 20", 20 },
+                { " 14\t  /\t20 ", 20 },
+                { "20/20", 20 },
+                { "20 / 20", 20 },
+                { "000 / 20", 20 },
+        };
+
+        for (Object[] test : tests) {
+            String input = (String) test[0];
+            Integer expected = (Integer) test[1];
+            assertEquals(expected, c.getMsuCount(input));
+        }
+    }
 }
