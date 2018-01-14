@@ -184,7 +184,8 @@ public class Canonicalizer {
 
     private static final Pattern MSU_PATTERN = Pattern.compile("\\s*(\\d+)\\s*/\\s*(\\d+)\\s*");
 
-    private Integer getMsuCount(String raw) throws FormatException {
+    @VisibleForTesting
+    Integer getMsuCount(String raw) throws FormatException {
         if (raw == null) {
             return null;
         }
