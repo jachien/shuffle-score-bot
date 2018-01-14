@@ -208,7 +208,7 @@ public class Canonicalizer {
         Matcher m = MSU_PATTERN.matcher(raw);
 
         if (!m.matches()) {
-            throw new FormatException("Unable to parse msu count: \n" + raw +"\n");
+            throw new FormatException("Unable to parse max msus: \n" + raw +"\n");
         }
 
         // todo validate
