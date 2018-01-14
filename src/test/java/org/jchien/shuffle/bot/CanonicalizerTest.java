@@ -334,7 +334,7 @@ public class CanonicalizerTest {
         for (Object[] test : tests) {
             String input = (String) test[0];
             Integer expected = (Integer) test[1];
-            assertEquals(expected, c.getMsuCount(input));
+            assertEquals(expected, c.getMaxMsus(input));
         }
     }
 }
