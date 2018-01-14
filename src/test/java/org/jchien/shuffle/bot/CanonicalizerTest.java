@@ -313,6 +313,24 @@ public class CanonicalizerTest {
     }
 
     @Test
+    public void testGetMsuCount_ShouldFail() {
+        Canonicalizer c = new Canonicalizer();
+        String[] inputs = {
+                "",
+                "1",
+                "14",
+                "a/b",
+                "a/1",
+                "1/a",
+                "I am 12 and what is this / 12",
+        };
+
+        for (String input : inputs) {
+            assertThrows(FormatException.class, () -> c.getMsuCount(input));
+        }
+    }
+
+    @Test
     public void testGetMaxMsus() throws FormatException {
         Canonicalizer c = new Canonicalizer();
         Object[][] tests = {
@@ -335,6 +353,24 @@ public class CanonicalizerTest {
             String input = (String) test[0];
             Integer expected = (Integer) test[1];
             assertEquals(expected, c.getMaxMsus(input));
+        }
+    }
+
+    @Test
+    public void testGetMaxMsus_ShouldFail() {
+        Canonicalizer c = new Canonicalizer();
+        String[] inputs = {
+                "",
+                "1",
+                "14",
+                "a/b",
+                "a/1",
+                "1/a",
+                "I am 12 and what is this / 12",
+        };
+
+        for (String input : inputs) {
+            assertThrows(FormatException.class, () -> c.getMaxMsus(input));
         }
     }
 }
