@@ -30,7 +30,7 @@ public class Canonicalizer {
             // this should logically be a set, but I don't want to deal with validating that
             List<Pokemon> team = getTeam(raw.getTeam());
 
-            List<Item> items = getItems(raw.getItems());
+            List<Item> items = getItems(raw.getItems(), raw.getMoveType());
 
             String stage = getStage(raw.getStage());
 
@@ -216,7 +216,8 @@ public class Canonicalizer {
         return Integer.parseInt(m.group(2));
     }
 
-    public List<Item> getItems(List<String> raw) throws FormatException {
+    @VisibleForTesting
+    List<Item> getItems(List<String> raw, MoveType moveType) throws FormatException {
         if (raw == null) {
             return null;
         }
@@ -235,7 +236,7 @@ public class Canonicalizer {
                     || "full items".equalsIgnoreCase(rawItem)
                     || "full item run".equalsIgnoreCase(rawItem)) {
                 // people don't generally include a jewel when they say full item run
-                return new ArrayList<>(EnumSet.complementOf(EnumSet.of(Item.JEWEL)));
+                return new ArrayList<>(Item.getFullItems(moveType));
             }
         }
 

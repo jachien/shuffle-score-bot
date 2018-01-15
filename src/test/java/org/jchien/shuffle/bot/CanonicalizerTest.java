@@ -1,8 +1,14 @@
 package org.jchien.shuffle.bot;
 
 import org.jchien.shuffle.model.FormatException;
+import org.jchien.shuffle.model.Item;
+import org.jchien.shuffle.model.MoveType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -371,6 +377,41 @@ public class CanonicalizerTest {
 
         for (String input : inputs) {
             assertThrows(FormatException.class, () -> c.getMaxMsus(input));
+        }
+    }
+
+    @Test
+    public void testGetItems() throws FormatException {
+        Canonicalizer c = new Canonicalizer();
+
+        final List<Item> fullItemsMoves = new ArrayList<>(Item.getFullItems(MoveType.MOVES));
+        final List<Item> fullItemsTime = new ArrayList<>(Item.getFullItems(MoveType.TIME));
+
+        Object[][] tests = {
+                { MoveType.MOVES, null, null },
+                { MoveType.MOVES, Arrays.asList(), Arrays.asList() },
+                { MoveType.MOVES, Arrays.asList("none"), Arrays.asList() },
+                { MoveType.MOVES, Arrays.asList("itemless"), Arrays.asList() },
+                { MoveType.MOVES, Arrays.asList("no items"), Arrays.asList() },
+                { MoveType.MOVES, Arrays.asList("full"), fullItemsMoves },
+                { MoveType.MOVES, Arrays.asList("full items"), fullItemsMoves },
+                { MoveType.MOVES, Arrays.asList("full item run"), fullItemsMoves },
+                { MoveType.TIME, Arrays.asList("full"), fullItemsTime },
+                { MoveType.TIME, Arrays.asList("full items"), fullItemsTime },
+                { MoveType.TIME, Arrays.asList("full item run"), fullItemsTime },
+                { MoveType.MOVES, Arrays.asList("m+5"), Arrays.asList(Item.MOVES_PLUS_5)},
+                { MoveType.MOVES, Arrays.asList("m + 5"), Arrays.asList(Item.MOVES_PLUS_5)},
+                { MoveType.MOVES, Arrays.asList("M+5"), Arrays.asList(Item.MOVES_PLUS_5)},
+                { MoveType.MOVES, Arrays.asList("Moves +5"), Arrays.asList(Item.MOVES_PLUS_5)},
+                { MoveType.MOVES, Arrays.asList("+5 moves"), Arrays.asList(Item.MOVES_PLUS_5)},
+        };
+
+        for (Object[] test : tests) {
+            MoveType moveType = (MoveType) test[0];
+            List<String> input = (List<String>) test[1];
+            List<Item> expected = (List<Item>) test[2];
+            // order does matter
+            assertEquals(expected, c.getItems(input, moveType));
         }
     }
 }
