@@ -384,21 +384,9 @@ public class CanonicalizerTest {
     public void testGetItems() throws FormatException {
         Canonicalizer c = new Canonicalizer();
 
-        final List<Item> fullItemsMoves = new ArrayList<>(Item.getFullItems(MoveType.MOVES));
-        final List<Item> fullItemsTime = new ArrayList<>(Item.getFullItems(MoveType.TIME));
-
         Object[][] tests = {
                 { MoveType.MOVES, null, null },
                 { MoveType.MOVES, Arrays.asList(), Arrays.asList() },
-                { MoveType.MOVES, Arrays.asList("none"), Arrays.asList() },
-                { MoveType.MOVES, Arrays.asList("itemless"), Arrays.asList() },
-                { MoveType.MOVES, Arrays.asList("no items"), Arrays.asList() },
-                { MoveType.MOVES, Arrays.asList("full"), fullItemsMoves },
-                { MoveType.MOVES, Arrays.asList("full items"), fullItemsMoves },
-                { MoveType.MOVES, Arrays.asList("full item run"), fullItemsMoves },
-                { MoveType.TIME, Arrays.asList("full"), fullItemsTime },
-                { MoveType.TIME, Arrays.asList("full items"), fullItemsTime },
-                { MoveType.TIME, Arrays.asList("full item run"), fullItemsTime },
                 { MoveType.MOVES, Arrays.asList("m+5"), Arrays.asList(Item.MOVES_PLUS_5)},
                 { MoveType.MOVES, Arrays.asList("m + 5"), Arrays.asList(Item.MOVES_PLUS_5)},
                 { MoveType.MOVES, Arrays.asList("M+5"), Arrays.asList(Item.MOVES_PLUS_5)},
@@ -412,6 +400,43 @@ public class CanonicalizerTest {
             List<Item> expected = (List<Item>) test[2];
             // order does matter
             assertEquals(expected, c.getItems(input, moveType));
+        }
+    }
+
+    @Test
+    public void testGetItems_None() throws FormatException {
+        Canonicalizer c = new Canonicalizer();
+
+        String[] noneAliases = {
+                "none",
+                "itemless",
+                "no items",
+        };
+
+        final List<Item> noItems = new ArrayList<>();
+
+        for (String alias : noneAliases) {
+            assertEquals(noItems, c.getItems(Arrays.asList(alias), MoveType.MOVES));
+            assertEquals(noItems, c.getItems(Arrays.asList(alias), MoveType.TIME));
+        }
+    }
+
+    @Test
+    public void testGetItems_Full() throws FormatException {
+        Canonicalizer c = new Canonicalizer();
+
+        String[] fullAliases = {
+                "full",
+                "full items",
+                "full item run",
+        };
+
+        final List<Item> fullItemsMoves = new ArrayList<>(Item.getFullItems(MoveType.MOVES));
+        final List<Item> fullItemsTime = new ArrayList<>(Item.getFullItems(MoveType.TIME));
+
+        for (String alias : fullAliases) {
+            assertEquals(fullItemsMoves, c.getItems(Arrays.asList(alias), MoveType.MOVES));
+            assertEquals(fullItemsTime, c.getItems(Arrays.asList(alias), MoveType.TIME));
         }
     }
 }
