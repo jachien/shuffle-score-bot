@@ -470,6 +470,59 @@ public class CanonicalizerTest {
     }
 
     @Test
+    public void testGetItems_ReturnOrderMatters() throws FormatException {
+        Canonicalizer c = new Canonicalizer();
+
+        Object[][] tests = {
+                {
+                        Arrays.asList("dd", "m+5"),
+                        Arrays.asList(Item.MOVES_PLUS_5, Item.DISRUPTION_DELAY)
+                },
+                {
+                        Arrays.asList("m+5", "dd", "ms"),
+                        Arrays.asList(Item.MOVES_PLUS_5, Item.MEGA_START, Item.DISRUPTION_DELAY)
+                },
+                {
+                        Arrays.asList("apu", "m+5"),
+                        Arrays.asList(Item.MOVES_PLUS_5, Item.ATTACK_POWER_UP)
+                },
+                {
+                        Arrays.asList("c-1", "ms"),
+                        Arrays.asList(Item.MEGA_START, Item.COMPLEXITY_MINUS_1)
+                },
+                {
+                        Arrays.asList("m+5", "dd", "ms", "ap+", "c-1", "jewel"),
+                        Arrays.asList(Item.MOVES_PLUS_5,
+                                Item.MEGA_START,
+                                Item.DISRUPTION_DELAY,
+                                Item.ATTACK_POWER_UP,
+                                Item.COMPLEXITY_MINUS_1,
+                                Item.JEWEL)
+                },
+                {
+                        // multiple jewels allowed
+                        Arrays.asList("jewel", "jewel", "jewel", "m+5", "ms", "dd", "apu", "c-1"),
+                        Arrays.asList(Item.MOVES_PLUS_5,
+                                Item.MEGA_START,
+                                Item.DISRUPTION_DELAY,
+                                Item.ATTACK_POWER_UP,
+                                Item.COMPLEXITY_MINUS_1,
+                                Item.JEWEL,
+                                Item.JEWEL,
+                                Item.JEWEL)
+                },
+        };
+
+        for (Object[] test : tests) {
+            List<String> input = (List<String>) test[0];
+            List<Item> expected = (List<Item>) test[1];
+            // order does matter
+            // MoveType argument not important for this test
+            assertEquals(expected, c.getItems(input, MoveType.MOVES));
+        }
+    }
+
+    @Test
     public void testGetItems_Full() throws FormatException {
         Canonicalizer c = new Canonicalizer();
 
