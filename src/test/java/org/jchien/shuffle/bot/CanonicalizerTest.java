@@ -541,4 +541,26 @@ public class CanonicalizerTest {
             assertEquals(fullItemsTime, c.getItems(Arrays.asList(alias), MoveType.TIME));
         }
     }
+
+    @Test
+    public void testGetItems_BadItems() {
+        Canonicalizer c = new Canonicalizer();
+
+        String[][] inputs = {
+                { "" },
+                { "ms+5" },
+                { null },
+                { "m+5", null, "ms" },
+                { "m+5", "full" },
+                { "m+5", "none" },
+                { "full", "m+5" },
+                { "none", "m+5" },
+                { "itemless", "all" },
+                { "full", "all" },
+        };
+
+        for (String[] input : inputs) {
+            assertThrows(FormatException.class, () -> c.getItems(Arrays.asList(input), MoveType.MOVES));
+        }
+    }
 }
