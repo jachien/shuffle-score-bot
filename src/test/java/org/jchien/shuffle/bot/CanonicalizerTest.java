@@ -385,21 +385,69 @@ public class CanonicalizerTest {
         Canonicalizer c = new Canonicalizer();
 
         Object[][] tests = {
-                { MoveType.MOVES, null, null },
-                { MoveType.MOVES, Arrays.asList(), Arrays.asList() },
-                { MoveType.MOVES, Arrays.asList("m+5"), Arrays.asList(Item.MOVES_PLUS_5)},
-                { MoveType.MOVES, Arrays.asList("m + 5"), Arrays.asList(Item.MOVES_PLUS_5)},
-                { MoveType.MOVES, Arrays.asList("M+5"), Arrays.asList(Item.MOVES_PLUS_5)},
-                { MoveType.MOVES, Arrays.asList("Moves +5"), Arrays.asList(Item.MOVES_PLUS_5)},
-                { MoveType.MOVES, Arrays.asList("+5 moves"), Arrays.asList(Item.MOVES_PLUS_5)},
+                { null, null },
+                { Arrays.asList(), Arrays.asList() },
+                { Arrays.asList("m+5"), Arrays.asList(Item.MOVES_PLUS_5)},
+                { Arrays.asList("m + 5"), Arrays.asList(Item.MOVES_PLUS_5)},
+                { Arrays.asList("M+5"), Arrays.asList(Item.MOVES_PLUS_5)},
+                { Arrays.asList("Moves +5"), Arrays.asList(Item.MOVES_PLUS_5)},
+                { Arrays.asList("+5 moves"), Arrays.asList(Item.MOVES_PLUS_5)},
+                { Arrays.asList("dd"), Arrays.asList(Item.DISRUPTION_DELAY)},
+                { Arrays.asList("ms"), Arrays.asList(Item.MEGA_START)},
+                { Arrays.asList("apu"), Arrays.asList(Item.ATTACK_POWER_UP)},
+                { Arrays.asList("ap+"), Arrays.asList(Item.ATTACK_POWER_UP)},
+                { Arrays.asList("c-1"), Arrays.asList(Item.COMPLEXITY_MINUS_1)},
+
+                {
+                    // no validation done even though t+10 and m+5 don't make sense together
+                    Arrays.asList("+5 moves", "time +10"),
+                    Arrays.asList(Item.MOVES_PLUS_5, Item.TIME_PLUS_10)
+                },
+                {
+                    Arrays.asList("m+5", "dd"),
+                    Arrays.asList(Item.MOVES_PLUS_5, Item.DISRUPTION_DELAY)
+                },
+                {
+                    Arrays.asList("m+5", "ms", "dd"),
+                    Arrays.asList(Item.MOVES_PLUS_5, Item.MEGA_START, Item.DISRUPTION_DELAY)
+                },
+                {
+                    Arrays.asList("m+5", "apu"),
+                    Arrays.asList(Item.MOVES_PLUS_5, Item.ATTACK_POWER_UP)
+                },
+                {
+                    Arrays.asList("ms", "c-1"),
+                    Arrays.asList(Item.MEGA_START, Item.COMPLEXITY_MINUS_1)
+                },
+                {
+                    Arrays.asList("m+5", "ms", "dd", "ap+", "c-1", "jewel"),
+                    Arrays.asList(Item.MOVES_PLUS_5,
+                            Item.MEGA_START,
+                            Item.DISRUPTION_DELAY,
+                            Item.ATTACK_POWER_UP,
+                            Item.COMPLEXITY_MINUS_1,
+                            Item.JEWEL)
+                },
+                {
+                    // multiple jewels allowed
+                    Arrays.asList("m+5", "ms", "dd", "apu", "c-1", "jewel", "jewel", "jewel"),
+                    Arrays.asList(Item.MOVES_PLUS_5,
+                            Item.MEGA_START,
+                            Item.DISRUPTION_DELAY,
+                            Item.ATTACK_POWER_UP,
+                            Item.COMPLEXITY_MINUS_1,
+                            Item.JEWEL,
+                            Item.JEWEL,
+                            Item.JEWEL)
+                },
         };
 
         for (Object[] test : tests) {
-            MoveType moveType = (MoveType) test[0];
-            List<String> input = (List<String>) test[1];
-            List<Item> expected = (List<Item>) test[2];
+            List<String> input = (List<String>) test[0];
+            List<Item> expected = (List<Item>) test[1];
             // order does matter
-            assertEquals(expected, c.getItems(input, moveType));
+            // MoveType argument not important for this test
+            assertEquals(expected, c.getItems(input, MoveType.MOVES));
         }
     }
 
