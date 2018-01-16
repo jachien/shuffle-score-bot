@@ -67,6 +67,9 @@ public enum Item {
     }
 
     public static Item get(String alias) {
+        if (alias == null) {
+            throw new NoSuchElementException("No null item");
+        }
         Item ret = ALIAS_MAP.get(removeSpaces(alias.toLowerCase()));
         if (ret == null) {
             throw new NoSuchElementException("No item matching \"" + alias + "\"");
