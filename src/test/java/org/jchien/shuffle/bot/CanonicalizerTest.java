@@ -527,6 +527,7 @@ public class CanonicalizerTest {
         Canonicalizer c = new Canonicalizer();
 
         String[] fullAliases = {
+                "all",
                 "full",
                 "full items",
                 "full item run",
