@@ -593,6 +593,7 @@ public class CanonicalizerTest {
                 "123k", // no support for thousands abbreviation
                 "12.3k", // no support for thousands abbreviation
                 "2m", // no support for millions abbreviation (also nobody does this)
+                "-123",
         };
         for (String input : inputs) {
             assertThrows(FormatException.class, () -> c.getScore(input));
