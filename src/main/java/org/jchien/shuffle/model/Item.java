@@ -14,8 +14,8 @@ public enum Item {
     // using mobile costs, not going to worry about 3ds cost differences
 
     // first alias element is canonical name for toString() purposes
-    MOVES_PLUS_5(1000, new String[] { "+5 Moves", "Moves +5", "M+5", "+5" }),
-    TIME_PLUS_10(1000, new String[] { "+10 Secs", "Time +10", "T+10", "+10 seconds", "+10" }),
+    MOVES_PLUS_5(1000, new String[] { "Moves +5", "+5 Moves", "M+5", "+5" }),
+    TIME_PLUS_10(1000, new String[] { "Time +10", "T+10", "+10 Secs", "+10 seconds", "+10" }),
     MEGA_START(2500, new String[] { "MS", "mega start" }),
     DISRUPTION_DELAY(2000, new String[] { "DD", "disruption delay" }),
     ATTACK_POWER_UP(5000, new String[] { "APU", "ap+" }),
