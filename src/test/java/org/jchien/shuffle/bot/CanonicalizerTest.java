@@ -565,7 +565,7 @@ public class CanonicalizerTest {
     }
 
     @Test
-    public void testGetScore() throws FormatException {
+    public void testGetNonNegativeInteger() throws FormatException {
         Canonicalizer c = new Canonicalizer();
         Object[][] tests = {
                 { null, null },
@@ -578,12 +578,12 @@ public class CanonicalizerTest {
         for (Object[] test : tests) {
             String input = (String) test[0];
             Integer expected = (Integer) test[1];
-            assertEquals(expected, c.getScore(input));
+            assertEquals(expected, c.getNonNegativeInteger(input, ""));
         }
     }
 
     @Test
-    public void testGetScore_BadInputs() {
+    public void testGetNonNegativeInteger_BadInputs() {
         Canonicalizer c = new Canonicalizer();
         String[] inputs = {
                 "",
@@ -596,7 +596,7 @@ public class CanonicalizerTest {
                 "-123",
         };
         for (String input : inputs) {
-            assertThrows(FormatException.class, () -> c.getScore(input));
+            assertThrows(FormatException.class, () -> c.getNonNegativeInteger(input, ""));
         }
     }
 }

@@ -255,22 +255,9 @@ public class Canonicalizer {
         return ret;
     }
 
-    @VisibleForTesting
-    Integer getScore(String raw) throws FormatException {
-        if (raw == null) {
-            return null;
-        }
-
+    private Integer getScore(String raw) throws FormatException {
         // the parser stripped commas and decimals so we don't have to worry about differing thousands separators
-        try {
-            int value = Integer.parseInt(raw, 10);
-            if (value < 0) {
-                throw new FormatException("Negative score disallowed: \"" + value + "\"");
-            }
-            return value;
-        } catch (NumberFormatException e) {
-            throw new FormatException("Unable to parse score: \"" + raw + "\"");
-        }
+        return getNonNegativeInteger(raw, "score");
     }
 
     private String getStage(String raw) {
@@ -279,38 +266,32 @@ public class Canonicalizer {
     }
 
     private Integer getMovesLeft(String raw) throws FormatException {
-        if (raw == null) {
-            return null;
-        }
-
-        try {
-            // todo should this verify there is exactly one number and ignore everything else?
-            // then we can handle strings like "3 moves" or "3 moves left"
-            int value = Integer.parseInt(raw, 10);
-            if (value < 0) {
-                throw new FormatException("Negative moves left disallowed: \"" + value + "\"");
-            }
-            return value;
-        } catch (NumberFormatException e) {
-            throw new FormatException("Unable to parse moves left: \"" + raw + "\"");
-        }
+        // todo should this verify there is exactly one number and ignore everything else?
+        // then we can handle strings like "3 moves" or "3 moves left"
+        return getNonNegativeInteger(raw, "moves left");
     }
 
+
     private Integer getTimeLeft(String raw) throws FormatException {
+        // todo should this verify there is exactly one number and ignore everything else?
+        // then we can handle strings like "3 moves" or "3 moves left"
+        return getNonNegativeInteger(raw, "time left");
+    }
+
+    @VisibleForTesting
+    Integer getNonNegativeInteger(String raw, String section) throws FormatException {
         if (raw == null) {
             return null;
         }
 
         try {
-            // todo should this verify there is exactly one number and ignore everything else?
-            // then we can handle strings like "3s" or "3 secs"
             int value = Integer.parseInt(raw, 10);
             if (value < 0) {
-                throw new FormatException("Negative time left disallowed: \"" + value + "\"");
+                throw new FormatException("Negative " + section + " disallowed: \"" + value + "\"");
             }
             return value;
         } catch (NumberFormatException e) {
-            throw new FormatException("Unable to parse time left: \"" + raw + "\"");
+            throw new FormatException("Unable to parse " + section + ": \"" + raw + "\"");
         }
     }
 }
