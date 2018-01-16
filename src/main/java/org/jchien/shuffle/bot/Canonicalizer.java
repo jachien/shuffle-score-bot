@@ -255,7 +255,8 @@ public class Canonicalizer {
         return ret;
     }
 
-    private Integer getScore(String raw) throws FormatException {
+    @VisibleForTesting
+    Integer getScore(String raw) throws FormatException {
         if (raw == null) {
             return null;
         }

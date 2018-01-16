@@ -563,4 +563,39 @@ public class CanonicalizerTest {
             assertThrows(FormatException.class, () -> c.getItems(Arrays.asList(input), MoveType.MOVES));
         }
     }
+
+    @Test
+    public void testGetScore() throws FormatException {
+        Canonicalizer c = new Canonicalizer();
+        Object[][] tests = {
+                { null, null },
+                { "0", 0 },
+                { "123", 123 },
+                { "123456", 123456 },
+                { "100123456", 100123456 },
+        };
+
+        for (Object[] test : tests) {
+            String input = (String) test[0];
+            Integer expected = (Integer) test[1];
+            assertEquals(expected, c.getScore(input));
+        }
+    }
+
+    @Test
+    public void testGetScore_BadInputs() {
+        Canonicalizer c = new Canonicalizer();
+        String[] inputs = {
+                "",
+                "this is text",
+                "123,456", // commas should be removed on initial comment parse
+                "123.456", // periods should be removed on initial comment parse
+                "123k", // no support for thousands abbreviation
+                "12.3k", // no support for thousands abbreviation
+                "2m", // no support for millions abbreviation (also nobody does this)
+        };
+        for (String input : inputs) {
+            assertThrows(FormatException.class, () -> c.getScore(input));
+        }
+    }
 }
