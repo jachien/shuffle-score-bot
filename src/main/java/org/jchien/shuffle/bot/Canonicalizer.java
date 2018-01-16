@@ -263,7 +263,11 @@ public class Canonicalizer {
 
         // the parser stripped commas and decimals so we don't have to worry about differing thousands separators
         try {
-            return Integer.parseInt(raw, 10);
+            int value = Integer.parseInt(raw, 10);
+            if (value < 0) {
+                throw new FormatException("Negative score disallowed: \"" + value + "\"");
+            }
+            return value;
         } catch (NumberFormatException e) {
             throw new FormatException("Unable to parse score: \"" + raw + "\"");
         }
@@ -282,7 +286,11 @@ public class Canonicalizer {
         try {
             // todo should this verify there is exactly one number and ignore everything else?
             // then we can handle strings like "3 moves" or "3 moves left"
-            return Integer.parseInt(raw, 10);
+            int value = Integer.parseInt(raw, 10);
+            if (value < 0) {
+                throw new FormatException("Negative moves left disallowed: \"" + value + "\"");
+            }
+            return value;
         } catch (NumberFormatException e) {
             throw new FormatException("Unable to parse moves left: \"" + raw + "\"");
         }
@@ -296,7 +304,11 @@ public class Canonicalizer {
         try {
             // todo should this verify there is exactly one number and ignore everything else?
             // then we can handle strings like "3s" or "3 secs"
-            return Integer.parseInt(raw, 10);
+            int value = Integer.parseInt(raw, 10);
+            if (value < 0) {
+                throw new FormatException("Negative time left disallowed: \"" + value + "\"");
+            }
+            return value;
         } catch (NumberFormatException e) {
             throw new FormatException("Unable to parse time left: \"" + raw + "\"");
         }
