@@ -139,7 +139,7 @@ public class Formatter {
                     sb.append(delim);
                 }
 
-                sb.append(pokemon.getName());
+                sb.append(pokemon.getSkillName());
                 delim = ", ";
             }
             if (pokemon.getMsus() != null && pokemon.getMaxMsus() != null) {
