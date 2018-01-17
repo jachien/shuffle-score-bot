@@ -50,11 +50,11 @@ public class Formatter {
 
     }
 
-    public final static String EB_HEADER_PREFIX = "###Stage ";
-    private static final String EB_TABLE_HEADER = "\n" +
+    public final static String STAGE_HEADER_PREFIX = "###Stage ";
+    private static final String STAGE_TABLE_HEADER = "\n" +
             "Username| Team | Items | Result\n" +
             "|:----------: | :----------: | :-----------: | :-----------:\n";
-    public String formatEscalationBattle(List<UserRunDetails> runs, int stage, String submissionUrl) {
+    public String formatStage(List<UserRunDetails> runs, String stageId, String submissionUrl) {
         // inlining these lambdas into Comparator.comparing() makes intellij 2017.3.1 think it's a syntax error
         Function<UserRunDetails, Integer> itemsCost = (r) -> r.getRunDetails().getItemsCost();
         Function<UserRunDetails, Integer> movesLeft = (r) -> r.getRunDetails().getMovesLeft();
@@ -69,7 +69,7 @@ public class Formatter {
         // username (link to /u/user) | team | items | score (link to comment)
 
         StringBuilder sb = new StringBuilder();
-        sb.append(EB_HEADER_PREFIX).append(stage).append(EB_TABLE_HEADER);
+        sb.append(STAGE_HEADER_PREFIX).append(stageId).append(STAGE_TABLE_HEADER);
         for (UserRunDetails urd : runs) {
             RunDetails details = urd.getRunDetails();
 
