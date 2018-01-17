@@ -45,9 +45,9 @@ public class Formatter {
             appendItems(sb, details.getItems());
             appendDelimiter(sb);
             appendScore(sb, submissionUrl, urd.getCommentId(), details.getScore());
+            sb.append('\n');
         }
 
-        sb.append('\n');
         return sb.toString();
     }
 
@@ -89,9 +89,9 @@ public class Formatter {
                     details.getMovesLeft(),
                     details.getTimeLeft());
 
+            sb.append('\n');
         }
 
-        sb.append('\n');
         return sb.toString();
     }
 
