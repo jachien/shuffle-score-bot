@@ -64,14 +64,14 @@ public class SubmissionHandler {
                 }
 
                 try {
-                    LOG.info(comment.getId() +
-                            " | " + comment.getAuthor() +
-                            " | " + submission.getTitle() +
-                            " | c: " + comment.getCreated() +
-                            " | e: " + comment.getEdited());
-                    LOG.info(comment.getBody());
-
-                    parseRuns(submission, comment);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(comment.getId() +
+                                " | " + comment.getAuthor() +
+                                " | " + submission.getTitle() +
+                                " | c: " + comment.getCreated() +
+                                " | e: " + comment.getEdited());
+                        LOG.debug(comment.getBody());
+                    }
 
                     if (botUser.equals(comment.getAuthor())) {
                         cacheBotComments(comment.getId(), comment.getBody());
