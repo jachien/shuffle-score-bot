@@ -20,7 +20,7 @@ public class RunParser {
     private List<RawPokemon> team = new ArrayList<RawPokemon>();
     private boolean teamSet = false;
 
-    private List<String> items = new ArrayList<String>();
+    private List<String> items = null;
     private boolean itemsSet = false;
 
     private String score = null;
@@ -266,10 +266,10 @@ void items() throws DupeSectionException: {
     Token t;
 } {
     {
-        if (itemsSet) {
+        if (items != null) {
             throw new DupeSectionException(Section.ITEMS);
         }
-        itemsSet = true;
+        items = new ArrayList<String>();
     }
     <ITEMS_HEADER> t=<WORD> { items.add(t.image); } ("," t=<WORD> { items.add(t.image); })*
 }

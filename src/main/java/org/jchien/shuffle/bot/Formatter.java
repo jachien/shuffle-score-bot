@@ -157,10 +157,16 @@ public class Formatter {
     }
 
     private void appendItems(StringBuilder sb, List<Item> items) {
-        String delim = "";
-        for (Item item : items) {
-            sb.append(delim).append(item.toString());
-            delim = ", ";
+        if (items == null) {
+            sb.append("Unknown");
+        } else if (items.size() == 0) {
+            sb.append("Itemless");
+        } else {
+            String delim = "";
+            for (Item item : items) {
+                sb.append(delim).append(item.toString());
+                delim = ", ";
+            }
         }
     }
 
