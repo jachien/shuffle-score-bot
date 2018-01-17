@@ -178,16 +178,20 @@ public class Formatter {
                               MoveType moveType,
                               Integer movesLeft,
                               Integer timeLeft) {
-        String result;
-        switch (moveType) {
-            case MOVES:
-                result = MoveType.MOVES.format(movesLeft);
-                break;
-            case TIME:
-                result = MoveType.TIME.format(timeLeft);
-                break;
-            default:
-                result = null;
+        final String result;
+        if (moveType == null) {
+            result = null;
+        } else {
+            switch (moveType) {
+                case MOVES:
+                    result = MoveType.MOVES.format(movesLeft);
+                    break;
+                case TIME:
+                    result = MoveType.TIME.format(timeLeft);
+                    break;
+                default:
+                    throw new IllegalArgumentException("unsupported MoveType: " + moveType);
+            }
         }
         appendResult(sb, submissionUrl, commentId, result);
     }
