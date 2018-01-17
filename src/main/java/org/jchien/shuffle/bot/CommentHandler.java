@@ -36,7 +36,9 @@ public class CommentHandler {
         while (m.find()) {
             int start = m.start();
             int end = m.end();
-            LOG.info("found match at (" + start + ", " + end + ")");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("found match at (" + start + ", " + end + ")");
+            }
 
             String region = comment.substring(start, end);
 
