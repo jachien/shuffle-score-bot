@@ -45,12 +45,12 @@ public class RunParserTest {
         testParse(input, Arrays.asList(new ExpectedResult<>("input: " + input, expected, getter)));
     }
 
-    private void testParse(String input, List<ExpectedResult<? extends Object>> expectedResults) throws ParseException, FormatException {
+    private void testParse(String input, List<ExpectedResult<?>> expectedResults) throws ParseException, FormatException {
         RunParser p = new RunParser(new StringReader(input));
         p.start();
         RawRunDetails d = p.getDetails();
 
-        for (ExpectedResult<? extends Object> er : expectedResults) {
+        for (ExpectedResult<?> er : expectedResults) {
             Object result = er.getter.apply(d);
             if (er.message != null) {
                 assertEquals(er.expected, result, er.message);
