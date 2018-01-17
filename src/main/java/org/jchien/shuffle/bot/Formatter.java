@@ -104,8 +104,11 @@ public class Formatter {
     }
 
     private void appendTeam(StringBuilder sb, List<Pokemon> team) {
+        String delim = "";
         for (Pokemon pokemon : team) {
+            sb.append(delim);
             appendPokemon(sb, pokemon);
+            delim = ", ";
         }
     }
 
