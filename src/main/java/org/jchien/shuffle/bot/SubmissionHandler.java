@@ -118,7 +118,7 @@ public class SubmissionHandler {
 
     private List<UserRunDetails> getInvalidRuns(List<RunDetails> runs, String commentAuthor, String commentId) {
         return runs.stream()
-                .filter(run -> run.hasException())
+                .filter(RunDetails::hasException)
                 .map(run -> new UserRunDetails(commentAuthor, commentId, run))
                 .collect(Collectors.toList());
     }
