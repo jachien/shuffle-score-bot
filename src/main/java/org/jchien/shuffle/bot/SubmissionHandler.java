@@ -44,8 +44,7 @@ public class SubmissionHandler {
 
         writeBotComments(redditClient, submission.getId(), submission.getUrl());
 
-        // todo write aggregate comments
-        // pm users with bad comments
+        // todo pm or reply to users with bad comments
     }
 
     private void processComments(RedditClient redditClient, Submission submission) {
