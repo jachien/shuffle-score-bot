@@ -49,6 +49,8 @@ public class SubmissionHandler {
     }
 
     private void processComments(RedditClient redditClient, Submission submission) {
+        final String botUser = redditClient.me().getUsername();
+
         if (submission.getCommentCount() > 0) {
             RootCommentNode root = redditClient.submission(submission.getId()).comments();
             root.loadFully(redditClient);
@@ -69,8 +71,12 @@ public class SubmissionHandler {
                             " | c: " + comment.getCreated() +
                             " | e: " + comment.getEdited());
                     LOG.info(comment.getBody());
+
                     parseRuns(submission, comment);
-                    cacheBotComments(comment.getId(), comment.getBody());
+
+                    if (botUser.equals(comment.getAuthor())) {
+                        cacheBotComments(comment.getId(), comment.getBody());
+                    }
                 } catch (Exception e) {
                     String commentUrl = RedditUtils.getCommentPermalink(submission.getUrl(), comment.getId());
                     LOG.warn("failed to handle comment " + commentUrl, e);
