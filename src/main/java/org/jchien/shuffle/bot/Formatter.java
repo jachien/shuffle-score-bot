@@ -208,4 +208,9 @@ public class Formatter {
         sb.append(RedditUtils.getCommentPermalink(submissionUrl, commentId));
         sb.append(')');
     }
+
+    public String getStringForJrawCommenting(String raw) {
+        // hack to get around newlines being stripped by okhttp's HttpUrl.canonicalize()
+        return raw.replaceAll("\n", "%0A").replaceAll("\\+", "%2B");
+    }
 }

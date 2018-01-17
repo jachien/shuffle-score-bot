@@ -42,7 +42,7 @@ public class SubmissionHandler {
     public void handleSubmission(RedditClient redditClient, Submission submission) {
         processComments(redditClient, submission);
 
-        writeBotComments();
+        writeBotComments(redditClient, submission.getId(), submission.getUrl());
 
         // todo write aggregate comments
         // pm users with bad comments
@@ -141,10 +141,49 @@ public class SubmissionHandler {
             return;
         }
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("found stage " + stage + " from comment " + commentId);
+        }
+
         botCommentMap.put(stage.getStageId(), new BotComment(commentId, commentBody));
     }
 
-    private void writeBotComments() {
-        // todo write me
+    private void writeBotComments(RedditClient redditClient, String submissionId, String submissionUrl) {
+        Formatter f = new Formatter();
+
+        for (Map.Entry<String, List<UserRunDetails>> entry : stageMap.entrySet()) {
+            String stageId = entry.getKey();
+            List<UserRunDetails> runs = entry.getValue();
+            // todo make stageMap a mapping of Stage -> runs and make this check based off StageType
+            final String commentBody;
+            if (stageId == null) {
+                commentBody = f.formatCompetitionRun(runs, submissionUrl);
+            } else {
+                commentBody = f.formatStage(runs, stageId, submissionUrl);
+            }
+
+            LOG.debug("generated comment:\n" + commentBody);
+
+            BotComment existing = botCommentMap.get(stageId);
+            if (existing == null) {
+                // no bot comment exists yet
+
+                // hack to get around newlines being stripped by okhttp's HttpUrl.canonicalize()
+                String jrawComment = f.getStringForJrawCommenting(commentBody);
+
+                redditClient.submission(submissionId)
+                        .reply(jrawComment);
+            } else if (!Objects.equals(existing.getContent(), commentBody)) {
+                // we've already written a comment for this stage but it's outdated
+
+                // hack to get around newlines being stripped by okhttp's HttpUrl.canonicalize()
+                String jrawComment = f.getStringForJrawCommenting(commentBody);
+
+                redditClient.comment(existing.getCommentId())
+                        .edit(jrawComment);
+            } else {
+                // no need to write anything, existing bot comment already has correct content
+            }
+        }
     }
 }
