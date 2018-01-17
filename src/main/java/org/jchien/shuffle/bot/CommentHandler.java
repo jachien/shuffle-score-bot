@@ -59,7 +59,7 @@ public class CommentHandler {
         return runs;
     }
 
-    private static final Pattern STAGE_PATTERN = Pattern.compile("^" + Formatter.STAGE_HEADER_PREFIX + " (.+?)\n");
+    private static final Pattern STAGE_PATTERN = Pattern.compile("^" + Formatter.STAGE_HEADER_PREFIX + "(.+)\n");
     public Stage getAggregateStage(String comment) {
         // assumes the we've already checked that the configured bot user is the commenter
 
