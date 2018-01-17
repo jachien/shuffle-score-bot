@@ -168,6 +168,10 @@ public class SubmissionHandler {
             if (existing == null) {
                 // no bot comment exists yet
 
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("no comment for " + stageId + " yet in " + submissionUrl + ", creating new comment");
+                }
+
                 // hack to get around newlines being stripped by okhttp's HttpUrl.canonicalize()
                 String jrawComment = f.getStringForJrawCommenting(commentBody);
 
@@ -176,6 +180,11 @@ public class SubmissionHandler {
             } else if (!Objects.equals(existing.getContent(), commentBody)) {
                 // we've already written a comment for this stage but it's outdated
 
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("comment for " + stageId + " outdated in " + submissionUrl +
+                            ", updating comment " + existing.getCommentId());
+                }
+
                 // hack to get around newlines being stripped by okhttp's HttpUrl.canonicalize()
                 String jrawComment = f.getStringForJrawCommenting(commentBody);
 
@@ -183,6 +192,9 @@ public class SubmissionHandler {
                         .edit(jrawComment);
             } else {
                 // no need to write anything, existing bot comment already has correct content
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("comment for " + stageId + " already up to date in " + submissionUrl);
+                }
             }
         }
     }
