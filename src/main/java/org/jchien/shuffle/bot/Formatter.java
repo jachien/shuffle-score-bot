@@ -4,6 +4,8 @@ import org.jchien.shuffle.model.Item;
 import org.jchien.shuffle.model.MoveType;
 import org.jchien.shuffle.model.Pokemon;
 import org.jchien.shuffle.model.RunDetails;
+import org.jchien.shuffle.model.Stage;
+import org.jchien.shuffle.model.StageType;
 import org.jchien.shuffle.model.UserRunDetails;
 
 import java.text.DecimalFormat;
@@ -34,7 +36,9 @@ public class Formatter {
 
         // username (link to /u/user) | team | items | score (link to comment)
         StringBuilder sb = new StringBuilder();
-        sb.append(COMP_HEADER_PREFIX).append(COMP_TABLE_HEADER);
+        sb.append(COMP_HEADER_PREFIX);
+        appendAddRunInstructions(sb, StageType.COMPETITION, null);
+        sb.append(COMP_TABLE_HEADER);
         for (UserRunDetails urd : runs) {
             RunDetails details = urd.getRunDetails();
 
@@ -56,7 +60,7 @@ public class Formatter {
             "Username | Team | Items | Result\n" +
             "|:----------: | :----------: | :-----------: | :-----------:\n";
 
-    public String formatStage(List<UserRunDetails> runs, String stageId, String submissionUrl) {
+    public String formatStage(List<UserRunDetails> runs, Stage stage, String submissionUrl) {
         // inlining these lambdas into Comparator.comparing() makes intellij 2017.3.1 think it's a syntax error
         Function<UserRunDetails, Integer> itemsCost = (r) -> r.getRunDetails().getItemsCost();
         Function<UserRunDetails, Integer> movesLeft = (r) -> r.getRunDetails().getMovesLeft();
@@ -71,7 +75,9 @@ public class Formatter {
         // username (link to /u/user) | team | items | score (link to comment)
 
         StringBuilder sb = new StringBuilder();
-        sb.append(STAGE_HEADER_PREFIX).append(stageId).append(STAGE_TABLE_HEADER);
+        sb.append(STAGE_HEADER_PREFIX).append(stage.getStageId());
+        appendAddRunInstructions(sb, stage.getStageType(), stage.getStageId());
+        sb.append(STAGE_TABLE_HEADER);
         for (UserRunDetails urd : runs) {
             RunDetails details = urd.getRunDetails();
 
@@ -93,6 +99,10 @@ public class Formatter {
         }
 
         return sb.toString();
+    }
+
+    private void appendAddRunInstructions(StringBuilder sb, StageType stageType, String stageId) {
+        sb.append("\n\nUse `").append(stageType.getHeader(stageId)).append("` to add your run.");
     }
 
     private void appendDelimiter(StringBuilder sb) {
@@ -201,7 +211,6 @@ public class Formatter {
         }
         appendResult(sb, submissionUrl, commentId, result);
     }
-
 
     private void appendResult(StringBuilder sb, String submissionUrl, String commentId, String result) {
         sb.append('[');
