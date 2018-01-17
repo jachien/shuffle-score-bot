@@ -19,8 +19,8 @@ import static java.util.Comparator.*;
  */
 public class Formatter {
     public final static String COMP_HEADER_PREFIX = "###Runs";
-    private static final String COMP_TABLE_HEADER = "\n" +
-            "Username| Team | Items | Score\n" +
+    private static final String COMP_TABLE_HEADER = "\n\n" +
+            "Username | Team | Items | Score\n" +
             "|:----------: | :----------: | :-----------: | :-----------:\n";
     public String formatCompetitionRun(List<UserRunDetails> runs, String submissionUrl) {
         // inlining these lambdas into Comparator.comparing() makes intellij 2017.3.1 think it's a syntax error
@@ -46,14 +46,16 @@ public class Formatter {
             appendDelimiter(sb);
             appendScore(sb, submissionUrl, urd.getCommentId(), details.getScore());
         }
-        return sb.toString();
 
+        sb.append('\n');
+        return sb.toString();
     }
 
     public final static String STAGE_HEADER_PREFIX = "###Stage ";
-    private static final String STAGE_TABLE_HEADER = "\n" +
-            "Username| Team | Items | Result\n" +
+    private static final String STAGE_TABLE_HEADER = "\n\n" +
+            "Username | Team | Items | Result\n" +
             "|:----------: | :----------: | :-----------: | :-----------:\n";
+
     public String formatStage(List<UserRunDetails> runs, String stageId, String submissionUrl) {
         // inlining these lambdas into Comparator.comparing() makes intellij 2017.3.1 think it's a syntax error
         Function<UserRunDetails, Integer> itemsCost = (r) -> r.getRunDetails().getItemsCost();
@@ -88,6 +90,8 @@ public class Formatter {
                     details.getTimeLeft());
 
         }
+
+        sb.append('\n');
         return sb.toString();
     }
 
