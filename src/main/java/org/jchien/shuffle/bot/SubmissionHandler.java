@@ -110,13 +110,6 @@ public class SubmissionHandler {
         invalidRuns.addAll(badRuns);
     }
 
-    private String normalizeStageId(String stage) {
-        if (stage == null) {
-            return null;
-        }
-        return stage.replaceAll("\\s+", "").toLowerCase().trim();
-    }
-
     private List<UserRunDetails> getValidRuns(List<RunDetails> runs, String commentAuthor, String commentId) {
         return runs.stream()
                 .filter(run -> !run.hasException())
@@ -132,7 +125,7 @@ public class SubmissionHandler {
     }
 
     private void addStageRun(UserRunDetails urd) {
-        String stageId = normalizeStageId(urd.getRunDetails().getStage());
+        String stageId = Stage.normalizeStageId(urd.getRunDetails().getStage());
         List<UserRunDetails> stageRuns = stageMap.get(stageId);
         if (stageRuns == null) {
             stageRuns = new ArrayList<>();
