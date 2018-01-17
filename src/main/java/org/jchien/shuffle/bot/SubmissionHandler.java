@@ -27,11 +27,13 @@ import java.util.stream.Collectors;
 public class SubmissionHandler {
     private static final Logger LOG = LoggerFactory.getLogger(SubmissionHandler.class);
 
-    private Map<String, List<UserRunDetails>> stageMap = new TreeMap<>(
-            Comparator.nullsFirst(Comparator.naturalOrder())
-    );
+    private static final Comparator<String> STAGE_ID_COMPARATOR = Comparator.nullsFirst(Comparator.naturalOrder());
 
-    private Map<String, BotComment> botCommentMap = new TreeMap<>();
+    // stage id -> runs
+    private Map<String, List<UserRunDetails>> stageMap = new TreeMap<>(STAGE_ID_COMPARATOR);
+
+    // stage id -> bot comment data
+    private Map<String, BotComment> botCommentMap = new TreeMap<>(STAGE_ID_COMPARATOR);
 
     private List<UserRunDetails> invalidRuns = new ArrayList<>();
 
