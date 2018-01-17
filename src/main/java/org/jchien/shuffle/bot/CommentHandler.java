@@ -2,6 +2,8 @@ package org.jchien.shuffle.bot;
 
 import org.jchien.shuffle.model.FormatException;
 import org.jchien.shuffle.model.RunDetails;
+import org.jchien.shuffle.model.Stage;
+import org.jchien.shuffle.model.StageType;
 import org.jchien.shuffle.parser.ParseException;
 import org.jchien.shuffle.parser.RawRunDetails;
 import org.jchien.shuffle.parser.RunParser;
@@ -57,18 +59,25 @@ public class CommentHandler {
         return runs;
     }
 
-    private static final Pattern STAGE_PATTERN = Pattern.compile("^" + Formatter.EB_HEADER_PREFIX + " (\\d+)");
-    private Integer getAggregateStage(String comment) {
+    private static final Pattern STAGE_PATTERN = Pattern.compile("^" + Formatter.STAGE_HEADER_PREFIX + " (.+?)\n");
+    public Stage getAggregateStage(String comment) {
         // assumes the we've already checked that the configured bot user is the commenter
+
+        if (comment.startsWith(Formatter.COMP_HEADER_PREFIX)) {
+            return new Stage(StageType.COMPETITION, null);
+        }
+
         Matcher m = STAGE_PATTERN.matcher(comment);
         if (m.find()) {
-            return Integer.parseInt(m.group(1));
+            String stageId = m.group(1);
+            try {
+                Integer.parseInt(stageId);
+                return new Stage(StageType.ESCALATION_BATTLE, stageId);
+            } catch (NumberFormatException e) {
+                return new Stage(StageType.NORMAL, stageId);
+            }
         }
-        return null;
-    }
 
-    private boolean isAggregateRuns(String comment) {
-        // assumes the we've already checked that the configured bot user is the commenter
-        return comment.startsWith(Formatter.COMP_HEADER_PREFIX);
+        return null;
     }
 }
