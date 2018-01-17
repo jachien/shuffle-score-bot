@@ -1,15 +1,15 @@
 package org.jchien.shuffle.bot;
 
 import net.dean.jraw.RedditClient;
+import net.dean.jraw.http.NetworkAdapter;
+import net.dean.jraw.http.OkHttpNetworkAdapter;
 import net.dean.jraw.http.UserAgent;
-import net.dean.jraw.http.oauth.Credentials;
-import net.dean.jraw.http.oauth.OAuthData;
-import net.dean.jraw.http.oauth.OAuthException;
 import net.dean.jraw.models.Listing;
 import net.dean.jraw.models.Submission;
-import net.dean.jraw.paginators.Paginator;
-import net.dean.jraw.paginators.Sorting;
-import net.dean.jraw.paginators.SubredditPaginator;
+import net.dean.jraw.models.SubredditSort;
+import net.dean.jraw.oauth.Credentials;
+import net.dean.jraw.oauth.OAuthHelper;
+import net.dean.jraw.pagination.Paginator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Iterator;
 
 /**
  * @author jchien
@@ -26,7 +27,7 @@ import java.time.ZoneId;
 public class ScoreBot {
     private static final Logger LOG = LoggerFactory.getLogger(ScoreBot.class);
 
-    private static final UserAgent USER_AGENT = UserAgent.of(
+    private static final UserAgent USER_AGENT = new UserAgent(
             "server",
             "org.jchien.shuffle",
             "0.1",
@@ -41,16 +42,16 @@ public class ScoreBot {
 
     @Scheduled(fixedDelayString = "${shufflescorebot.pollDelayMillis}")
     public void poll() {
-        try {
-            for (String subreddit : config.getSubreddits()) {
+        for (String subreddit : config.getSubreddits()) {
+            try {
                 poll(subreddit);
+            } catch (Exception e) {
+                LOG.error("problem polling subreddit", e);
             }
-        } catch (OAuthException e) {
-            LOG.error("problem authenticating", e);
         }
     }
 
-    private void poll(String subreddit) throws OAuthException {
+    private void poll(String subreddit) {
         // We're not using CommentStream because there's sort by last edit option.
         // We want to be able to see bot commands added to any comments in the last n days,
         // and listings only return up to 1000 things. So we need to do something much slower
@@ -65,13 +66,10 @@ public class ScoreBot {
 
         long start = System.currentTimeMillis();
         boolean done = false;
-        while (!done && paginator.hasNext()) {
-            Listing<Submission> submissions = paginator.next();
+        Iterator<Listing<Submission>> it = paginator.iterator();
 
-            // todo
-            // cache commentId -> lastEditTime, List<UserRunDetails>
-            // cache threadId -> lastProcessedTime
-            // cache (threadId, stage) -> commentId
+        while (!done && it.hasNext()) {
+            Listing<Submission> submissions = it.next();
 
             // todo parallelize this
             for (Submission submission : submissions) {
@@ -96,18 +94,16 @@ public class ScoreBot {
         LOG.info(elapsed + " seconds, threads: " + totalThreads + ", comments: " + totalComments);
     }
 
-    private RedditClient getClient() throws OAuthException {
-        RedditClient redditClient = new RedditClient(USER_AGENT);
-
+    private RedditClient getClient() {
         Credentials credentials = Credentials.script(
                 config.getUsername(),
                 config.getPassword(),
                 config.getClientId(),
                 config.getClientSecret());
 
-        OAuthData authData = redditClient.getOAuthHelper().easyAuth(credentials);
+        NetworkAdapter adapter = new OkHttpNetworkAdapter(USER_AGENT);
 
-        redditClient.authenticate(authData);
+        RedditClient redditClient = OAuthHelper.automatic(adapter, credentials);
 
         return redditClient;
     }
@@ -118,9 +114,10 @@ public class ScoreBot {
     }
 
     private Paginator<Submission> getPaginator(RedditClient redditClient, String subreddit) {
-        SubredditPaginator paginator = new SubredditPaginator(redditClient, subreddit);
-        paginator.setSorting(Sorting.NEW);
-        paginator.setLimit(100);
-        return paginator;
+        return redditClient.subreddit(subreddit)
+                .posts()
+                .sorting(SubredditSort.NEW)
+                .limit(100)
+                .build();
     }
 }
