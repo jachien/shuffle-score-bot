@@ -8,6 +8,7 @@ import net.dean.jraw.tree.RootCommentNode;
 import org.jchien.shuffle.cache.BotComment;
 import org.jchien.shuffle.model.RunDetails;
 import org.jchien.shuffle.model.Stage;
+import org.jchien.shuffle.model.StageType;
 import org.jchien.shuffle.model.UserRunDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,19 +22,23 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import static java.util.Comparator.*;
+
 /**
  * @author jchien
  */
 public class SubmissionHandler {
     private static final Logger LOG = LoggerFactory.getLogger(SubmissionHandler.class);
 
-    private static final Comparator<String> STAGE_ID_COMPARATOR = Comparator.nullsFirst(Comparator.naturalOrder());
+    private static final Comparator<Stage> STAGE_ID_COMPARATOR =
+            comparing(Stage::getStageType)
+            .thenComparing(Stage::getStageId, nullsFirst(String.CASE_INSENSITIVE_ORDER));
 
-    // stage id -> runs
-    private Map<String, List<UserRunDetails>> stageMap = new TreeMap<>(STAGE_ID_COMPARATOR);
+    // stage -> runs
+    private Map<Stage, List<UserRunDetails>> stageMap = new TreeMap<>(STAGE_ID_COMPARATOR);
 
-    // stage id -> bot comment data
-    private Map<String, BotComment> botCommentMap = new TreeMap<>(STAGE_ID_COMPARATOR);
+    // stage -> bot comment data
+    private Map<Stage, BotComment> botCommentMap = new TreeMap<>(STAGE_ID_COMPARATOR);
 
     private List<UserRunDetails> invalidRuns = new ArrayList<>();
 
@@ -73,7 +78,9 @@ public class SubmissionHandler {
                         LOG.debug(comment.getBody());
                     }
 
-                    if (botUser.equals(comment.getAuthor())) {
+                    if (!botUser.equals(comment.getAuthor())) {
+                        parseRuns(submission, comment);
+                    } else {
                         cacheBotComments(comment.getId(), comment.getBody());
                     }
                 } catch (Exception e) {
@@ -124,11 +131,14 @@ public class SubmissionHandler {
     }
 
     private void addStageRun(UserRunDetails urd) {
-        String stageId = Stage.normalizeStageId(urd.getRunDetails().getStage());
-        List<UserRunDetails> stageRuns = stageMap.get(stageId);
+        RunDetails run = urd.getRunDetails();
+        String stageId = Stage.normalizeStageId(run.getStage());
+        Stage stage = new Stage(run.getStageType(), stageId);
+
+        List<UserRunDetails> stageRuns = stageMap.get(stage);
         if (stageRuns == null) {
             stageRuns = new ArrayList<>();
-            stageMap.put(stageId, stageRuns);
+            stageMap.put(stage, stageRuns);
         }
         stageRuns.add(urd);
     }
@@ -144,31 +154,30 @@ public class SubmissionHandler {
             LOG.debug("found stage " + stage + " from comment " + commentId);
         }
 
-        botCommentMap.put(stage.getStageId(), new BotComment(commentId, commentBody));
+        botCommentMap.put(stage, new BotComment(commentId, commentBody));
     }
 
     private void writeBotComments(RedditClient redditClient, String submissionId, String submissionUrl) {
         Formatter f = new Formatter();
 
-        for (Map.Entry<String, List<UserRunDetails>> entry : stageMap.entrySet()) {
-            String stageId = entry.getKey();
+        for (Map.Entry<Stage, List<UserRunDetails>> entry : stageMap.entrySet()) {
+            Stage stage = entry.getKey();
             List<UserRunDetails> runs = entry.getValue();
-            // todo make stageMap a mapping of Stage -> runs and make this check based off StageType
             final String commentBody;
-            if (stageId == null) {
+            if (stage.getStageType() == StageType.COMPETITION) {
                 commentBody = f.formatCompetitionRun(runs, submissionUrl);
             } else {
-                commentBody = f.formatStage(runs, stageId, submissionUrl);
+                commentBody = f.formatStage(runs, stage, submissionUrl);
             }
 
             LOG.debug("generated comment:\n" + commentBody);
 
-            BotComment existing = botCommentMap.get(stageId);
+            BotComment existing = botCommentMap.get(stage);
             if (existing == null) {
                 // no bot comment exists yet
 
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("no comment for " + stageId + " yet in " + submissionUrl + ", creating new comment");
+                    LOG.debug("no comment for " + stage + " yet in " + submissionUrl + ", creating new comment");
                 }
 
                 // hack to get around newlines being stripped by okhttp's HttpUrl.canonicalize()
@@ -180,7 +189,7 @@ public class SubmissionHandler {
                 // we've already written a comment for this stage but it's outdated
 
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("comment for " + stageId + " outdated in " + submissionUrl +
+                    LOG.debug("comment for " + stage + " outdated in " + submissionUrl +
                             ", updating comment " + existing.getCommentId());
                 }
 
@@ -192,7 +201,7 @@ public class SubmissionHandler {
             } else {
                 // no need to write anything, existing bot comment already has correct content
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("comment for " + stageId + " already up to date in " + submissionUrl);
+                    LOG.debug("comment for " + stage + " already up to date in " + submissionUrl);
                 }
             }
         }
