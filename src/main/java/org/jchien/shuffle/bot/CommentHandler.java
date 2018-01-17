@@ -69,7 +69,7 @@ public class CommentHandler {
 
         Matcher m = STAGE_PATTERN.matcher(comment);
         if (m.find()) {
-            String stageId = m.group(1);
+            String stageId = Stage.normalizeStageId(m.group(1));
             try {
                 Integer.parseInt(stageId);
                 return new Stage(StageType.ESCALATION_BATTLE, stageId);
