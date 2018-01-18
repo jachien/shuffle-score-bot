@@ -123,15 +123,28 @@ public class Formatter {
     }
 
     private void appendPokemon(StringBuilder sb, Pokemon pokemon) {
-        sb.append(pokemon.getName());
+        appendCapitalizedWords(sb, pokemon.getName());
         sb.append(getPokemonStats(pokemon));
+    }
+
+    private void appendCapitalizedWords(StringBuilder sb, String str) {
+        for (int i=0; i < str.length();) {
+            int codePoint = str.codePointAt(i);
+            if (i == 0 || Character.isWhitespace(str.codePointBefore(i))) {
+                sb.appendCodePoint(Character.toUpperCase(codePoint));
+            } else {
+                // don't lowercase stuff so we still handle things like "MMY" nicely
+                sb.appendCodePoint(codePoint);
+            }
+            i += Character.charCount(codePoint);
+        }
     }
 
     private String getPokemonStats(Pokemon pokemon) {
         StringBuilder sb = new StringBuilder(" (");
         String delim = "";
         if (pokemon.isPerfect()) {
-            sb.append("perfect");
+            sb.append("Perfect");
         } else {
             if (pokemon.getLevel() != null) {
                 sb.append("Lv").append(pokemon.getLevel());
@@ -149,7 +162,7 @@ public class Formatter {
                     sb.append(delim);
                 }
 
-                sb.append(pokemon.getSkillName());
+                appendCapitalizedWords(sb, pokemon.getSkillName());
                 delim = ", ";
             }
             if (pokemon.getMsus() != null && pokemon.getMaxMsus() != null) {
