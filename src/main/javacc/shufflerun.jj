@@ -258,7 +258,7 @@ void score() throws DupeSectionException: {
     }
     <SCORE_HEADER> t=<WORD>
     { sb.append(t.image); }
-    ( ("," | ".") t=<WORD> { sb.append(t.image); } )*
+    ( "," t=<WORD> { sb.append(t.image); } )*
     { score = sb.toString(); }
 }
 
