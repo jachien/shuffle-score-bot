@@ -1,4 +1,4 @@
-package org.jchien.shuffle.cache;
+package org.jchien.shuffle.model;
 
 /**
  * @author jchien

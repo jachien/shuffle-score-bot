@@ -5,7 +5,7 @@ import net.dean.jraw.models.PublicContribution;
 import net.dean.jraw.models.Submission;
 import net.dean.jraw.tree.CommentNode;
 import net.dean.jraw.tree.RootCommentNode;
-import org.jchien.shuffle.cache.BotComment;
+import org.jchien.shuffle.model.BotComment;
 import org.jchien.shuffle.model.RunDetails;
 import org.jchien.shuffle.model.Stage;
 import org.jchien.shuffle.model.StageType;
