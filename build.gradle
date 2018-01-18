@@ -23,6 +23,7 @@ version="1.0"
 sourceCompatibility="1.8"
 
 repositories {
+    maven { url 'https://jitpack.io' }
     jcenter()
     mavenLocal()
 }
@@ -34,8 +35,8 @@ dependencies {
     // https://mvnrepository.com/artifact/net.java.dev.javacc/javacc
     compile group: 'net.java.dev.javacc', name: 'javacc', version: '7.0.3'
 
-    // https://bintray.com/thatjavanerd/maven/JRAW
-    compile 'net.dean.jraw:JRAW:1.0.0'
+    // https://github.com/mattbdean/JRAW/issues/220
+    compile 'com.github.mattbdean:JRAW:a6d5c10'
 
     // https://github.com/google/guava
     compile 'com.google.guava:guava:23.6-jre'

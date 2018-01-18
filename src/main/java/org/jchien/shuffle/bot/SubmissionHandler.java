@@ -179,12 +179,7 @@ public class SubmissionHandler {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("no comment for " + stage + " yet in " + submissionUrl + ", creating new comment");
                 }
-
-                // hack to get around newlines being stripped by okhttp's HttpUrl.canonicalize()
-                String jrawComment = f.getStringForJrawCommenting(commentBody);
-
-                redditClient.submission(submissionId)
-                        .reply(jrawComment);
+                redditClient.submission(submissionId).reply(commentBody);
             } else if (!Objects.equals(existing.getContent(), commentBody)) {
                 // we've already written a comment for this stage but it's outdated
 
@@ -192,12 +187,7 @@ public class SubmissionHandler {
                     LOG.debug("comment for " + stage + " outdated in " + submissionUrl +
                             ", updating comment " + existing.getCommentId());
                 }
-
-                // hack to get around newlines being stripped by okhttp's HttpUrl.canonicalize()
-                String jrawComment = f.getStringForJrawCommenting(commentBody);
-
-                redditClient.comment(existing.getCommentId())
-                        .edit(jrawComment);
+                redditClient.comment(existing.getCommentId()).edit(commentBody);
             } else {
                 // no need to write anything, existing bot comment already has correct content
                 if (LOG.isDebugEnabled()) {
