@@ -134,7 +134,7 @@ public class Formatter {
             sb.append("perfect");
         } else {
             if (pokemon.getLevel() != null) {
-                sb.append(pokemon.getLevel());
+                sb.append("Lv").append(pokemon.getLevel());
                 delim = ", ";
             }
             if (pokemon.getSkillLevel() != null) {
