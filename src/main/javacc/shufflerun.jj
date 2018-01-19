@@ -131,10 +131,13 @@ TOKEN: {
 }
 
 TOKEN: {
-    < #DIGIT: (["0"-"9"]) >
+    < SLASH: "/" >
+    | < LPAREN: "(" >
+    | < RPAREN: ")" >
+    | < COMMA: "," >
+    | < #DIGIT: (["0"-"9"]) >
     | < #LETTER: (["A"-"Z"]) >
     | < WORD: (<DIGIT> | <LETTER> | "+" | "-" | "?" | "!" | ".")+ >
-    | < SLASH: "/" >
 }
 
 // goal is to have simplest grammar, validate after parsing
@@ -200,7 +203,7 @@ void team() throws DupeSectionException: {
         teamSet = true;
         initPokemon();
     }
-    <TEAM_HEADER> support() ({ storePokemon(); initPokemon(); } "," support())*
+    <TEAM_HEADER> support() ({ storePokemon(); initPokemon(); } <COMMA> support())*
     { storePokemon(); }
 }
 
@@ -212,7 +215,7 @@ void support(): {
     { sb.append(t.image); }
     (t=<WORD> { sb.append(' ').append(t.image); })*
     { pkmnBuilder.setName(sb.toString()); }
-    [ "(" (<PERFECT> { pkmnBuilder.setPerfect(true); } | (supportSection() ("," supportSection())*)) ")" ]
+    [ <LPAREN> (<PERFECT> { pkmnBuilder.setPerfect(true); } | (supportSection() (<COMMA> supportSection())*)) <RPAREN> ]
 }
 
 void supportSection(): {
@@ -258,7 +261,7 @@ void score() throws DupeSectionException: {
     }
     <SCORE_HEADER> t=<WORD>
     { sb.append(t.image); }
-    ( "," t=<WORD> { sb.append(t.image); } )*
+    ( <COMMA> t=<WORD> { sb.append(t.image); } )*
     { score = sb.toString(); }
 }
 
@@ -271,7 +274,7 @@ void items() throws DupeSectionException: {
         }
         items = new ArrayList<String>();
     }
-    <ITEMS_HEADER> t=<WORD> { items.add(t.image); } ("," t=<WORD> { items.add(t.image); })*
+    <ITEMS_HEADER> t=<WORD> { items.add(t.image); } (<COMMA> t=<WORD> { items.add(t.image); })*
 }
 
 void movesLeft() throws FormatException: {
