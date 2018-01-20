@@ -62,36 +62,42 @@ public class SubmissionHandler {
             int cnt = 0;
             Iterator<CommentNode<PublicContribution<?>>> it = root.walkTree().iterator();
             while (it.hasNext()) {
-                PublicContribution<?> comment = it.next().getSubject();
-                if (Objects.equals(comment.getId(), submission.getId())) {
-                    // seems like the submission itself gets included with a null body
-                    continue;
-                }
-
+                CommentNode<PublicContribution<?>> node = it.next();
                 try {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(comment.getId() +
-                                " | " + comment.getAuthor() +
-                                " | " + submission.getTitle() +
-                                " | c: " + comment.getCreated() +
-                                " | e: " + comment.getEdited());
-                        LOG.debug(comment.getBody());
-                    }
-
-                    if (!botUser.equals(comment.getAuthor())) {
-                        parseRuns(submission, comment);
-                    } else {
-                        cacheBotComments(comment.getId(), comment.getBody());
-                    }
+                    processComment(submission, node, botUser);
                 } catch (Exception e) {
-                    String commentUrl = RedditUtils.getCommentPermalink(submission.getUrl(), comment.getId());
-                    LOG.warn("failed to handle comment " + commentUrl, e);
+                    String commentUrl = RedditUtils.getCommentPermalink(submission.getUrl(), node.getSubject().getId());
+                    LOG.warn("unable to process comment " + commentUrl, e);
                 }
                 cnt++;
             }
 
             LOG.debug(cnt + " comments, " + submission.getCommentCount() + " comments according to submission");
             // it's possible comments were written between submission pagination and comment retrieval, I just want to see that these numbers are close
+        }
+    }
+
+    private void processComment(Submission submission, CommentNode<PublicContribution<?>> commentNode, String botUser) {
+        PublicContribution<?> comment = commentNode.getSubject();
+
+        if (Objects.equals(comment.getId(), submission.getId())) {
+            // seems like the submission itself gets included with a null body
+            return;
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(comment.getId() +
+                    " | " + comment.getAuthor() +
+                    " | " + submission.getTitle() +
+                    " | c: " + comment.getCreated() +
+                    " | e: " + comment.getEdited());
+            LOG.debug(comment.getBody());
+        }
+
+        if (!botUser.equals(comment.getAuthor())) {
+            parseRuns(submission, comment);
+        } else {
+            cacheBotComments(comment.getId(), comment.getBody());
         }
     }
 
