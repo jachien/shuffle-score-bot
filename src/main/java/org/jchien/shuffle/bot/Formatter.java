@@ -62,12 +62,22 @@ public class Formatter {
 
     public String formatStage(List<UserRunDetails> runs, Stage stage, String submissionUrl) {
         // inlining these lambdas into Comparator.comparing() makes intellij 2017.3.1 think it's a syntax error
-        Function<UserRunDetails, Integer> itemsCost = (r) -> r.getRunDetails().getItemsCost();
-        Function<UserRunDetails, Integer> movesLeft = (r) -> r.getRunDetails().getMovesLeft();
+        Function<UserRunDetails, Integer> itemsCost = r -> r.getRunDetails().getItemsCost();
+        Function<UserRunDetails, Integer> unitsLeft = urd -> {
+            RunDetails r = urd.getRunDetails();
+            switch (r.getMoveType()) {
+                case MOVES: return r.getMovesLeft();
+                case TIME: return r.getTimeLeft();
+                default: return null;
+            }
+        };
 
-        // sort by item cost asc, moves left desc, username
+        // sort by item cost asc, moves / time left desc, username
+        // We're not going to validate whether this was supposed to be a moves stage or a time stage.
+        // If people have conflicting moves types then that's too bad,
+        // later on we'll implement excluding runs for comments below some reddit score threshold, probably 0 or 1.
         Comparator<UserRunDetails> comparator = comparing(itemsCost, nullsLast(naturalOrder()))
-                .thenComparing(movesLeft, nullsLast(reverseOrder()))
+                .thenComparing(unitsLeft, nullsLast(reverseOrder()))
                 .thenComparing(UserRunDetails::getUser);
 
         Collections.sort(runs, comparator);
