@@ -38,7 +38,10 @@ public class SubmissionHandler {
     private Map<Stage, List<UserRunDetails>> stageMap = new TreeMap<>(STAGE_ID_COMPARATOR);
 
     // stage -> bot comment data
-    private Map<Stage, BotComment> botCommentMap = new TreeMap<>(STAGE_ID_COMPARATOR);
+    private Map<Stage, BotComment> aggregateTableMap = new TreeMap<>(STAGE_ID_COMPARATOR);
+
+    // user comment id -> bot reply
+    private Map<String, BotComment> botReplyMap = new TreeMap<>();
 
     private List<UserRunDetails> invalidRuns = new ArrayList<>();
 
@@ -47,7 +50,7 @@ public class SubmissionHandler {
     public void handleSubmission(RedditClient redditClient, Submission submission) {
         processComments(redditClient, submission);
 
-        writeBotComments(redditClient, submission.getId(), submission.getUrl());
+        writeAggregateTables(redditClient, submission.getId(), submission.getUrl());
 
         // todo pm or reply to users with bad comments
     }
@@ -77,6 +80,15 @@ public class SubmissionHandler {
         }
     }
 
+    private String getParentId(CommentNode<?> node) {
+        CommentNode<?> parent = node.getParent();
+        if (parent != null) {
+            // for top level comments this seems to return the submission id
+            return parent.getSubject().getId();
+        }
+        return null;
+    }
+
     private void processComment(Submission submission, CommentNode<PublicContribution<?>> commentNode, String botUser) {
         PublicContribution<?> comment = commentNode.getSubject();
 
@@ -85,9 +97,12 @@ public class SubmissionHandler {
             return;
         }
 
+        String parentId = getParentId(commentNode);
+
         if (LOG.isDebugEnabled()) {
-            LOG.debug(comment.getId() +
-                    " | " + comment.getAuthor() +
+            LOG.debug("id: " + comment.getId() +
+                    " | pid: " + parentId +
+                    " | author: " + comment.getAuthor() +
                     " | " + submission.getTitle() +
                     " | c: " + comment.getCreated() +
                     " | e: " + comment.getEdited());
@@ -97,7 +112,8 @@ public class SubmissionHandler {
         if (!botUser.equals(comment.getAuthor())) {
             parseRuns(submission, comment);
         } else {
-            cacheBotComments(comment.getId(), comment.getBody());
+            cacheAggregateTables(comment.getId(), comment.getBody());
+            cacheBotReplies(comment.getId(), comment.getBody(), parentId, submission.getId());
         }
     }
 
@@ -149,7 +165,7 @@ public class SubmissionHandler {
         stageRuns.add(urd);
     }
 
-    private void cacheBotComments(String commentId, String commentBody) {
+    private void cacheAggregateTables(String commentId, String commentBody) {
         Stage stage = commentHandler.getAggregateStage(commentBody);
 
         if (stage == null) {
@@ -160,10 +176,19 @@ public class SubmissionHandler {
             LOG.debug("found stage " + stage + " from comment " + commentId);
         }
 
-        botCommentMap.put(stage, new BotComment(commentId, commentBody));
+        aggregateTableMap.put(stage, new BotComment(commentId, commentBody));
     }
 
-    private void writeBotComments(RedditClient redditClient, String submissionId, String submissionUrl) {
+    private void cacheBotReplies(String commentId, String commentBody, String parentId, String submissionId) {
+        if (Objects.equals(parentId, submissionId) || parentId == null) {
+            // this is a top level reply, so it's an aggregate table
+            return;
+        }
+
+        botReplyMap.put(parentId, new BotComment(commentId, commentBody));
+    }
+
+    private void writeAggregateTables(RedditClient redditClient, String submissionId, String submissionUrl) {
         Formatter f = new Formatter();
 
         for (Map.Entry<Stage, List<UserRunDetails>> entry : stageMap.entrySet()) {
@@ -178,7 +203,7 @@ public class SubmissionHandler {
 
             LOG.debug("generated comment:\n" + commentBody);
 
-            BotComment existing = botCommentMap.get(stage);
+            BotComment existing = aggregateTableMap.get(stage);
             if (existing == null) {
                 // no bot comment exists yet
 
