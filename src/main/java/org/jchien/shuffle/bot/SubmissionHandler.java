@@ -13,8 +13,10 @@ import org.jchien.shuffle.model.UserRunDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +45,7 @@ public class SubmissionHandler {
     // user comment id -> bot reply
     private Map<String, BotComment> botReplyMap = new TreeMap<>();
 
-    private List<UserRunDetails> invalidRuns = new ArrayList<>();
+    private Map<String, List<UserRunDetails>> invalidRunMap = new TreeMap<>();
 
     private CommentHandler commentHandler = new CommentHandler();
 
@@ -52,7 +54,7 @@ public class SubmissionHandler {
 
         writeAggregateTables(redditClient, submission.getId(), submission.getUrl());
 
-        // todo pm or reply to users with bad comments
+        writeBotReplies(redditClient, submission.getId(), submission.getUrl());
     }
 
     private void processComments(RedditClient redditClient, Submission submission) {
@@ -128,27 +130,46 @@ public class SubmissionHandler {
             }
         }
 
-        List<UserRunDetails> userRuns = getValidRuns(runs, comment.getAuthor(), comment.getId());
+        Instant lastModDate = getLastModifiedDate(comment);
+
+        List<UserRunDetails> userRuns = getValidRuns(runs, comment.getAuthor(), comment.getId(), lastModDate);
 
         for (UserRunDetails urd : userRuns) {
             addStageRun(urd);
         }
 
-        List<UserRunDetails> badRuns = getInvalidRuns(runs, comment.getAuthor(), comment.getId());
-        invalidRuns.addAll(badRuns);
+        List<UserRunDetails> badRuns = getInvalidRuns(runs, comment.getAuthor(), comment.getId(), lastModDate);
+
+        if (badRuns.size() > 0) {
+            invalidRunMap.put(comment.getId(), badRuns);
+        }
     }
 
-    private List<UserRunDetails> getValidRuns(List<RunDetails> runs, String commentAuthor, String commentId) {
+    private Instant getLastModifiedDate(PublicContribution<?> comment) {
+        Date editTime = comment.getEdited();
+        if (editTime != null) {
+            return editTime.toInstant();
+        }
+        return comment.getCreated().toInstant();
+    }
+
+    private List<UserRunDetails> getValidRuns(List<RunDetails> runs,
+                                              String commentAuthor,
+                                              String commentId,
+                                              Instant lastModifiedTime) {
         return runs.stream()
                 .filter(run -> !run.hasException())
-                .map(run -> new UserRunDetails(commentAuthor, commentId, run))
+                .map(run -> new UserRunDetails(commentAuthor, commentId, lastModifiedTime, run))
                 .collect(Collectors.toList());
     }
 
-    private List<UserRunDetails> getInvalidRuns(List<RunDetails> runs, String commentAuthor, String commentId) {
+    private List<UserRunDetails> getInvalidRuns(List<RunDetails> runs,
+                                                String commentAuthor,
+                                                String commentId,
+                                                Instant lastModifiedTime) {
         return runs.stream()
                 .filter(RunDetails::hasException)
-                .map(run -> new UserRunDetails(commentAuthor, commentId, run))
+                .map(run -> new UserRunDetails(commentAuthor, commentId, lastModifiedTime, run))
                 .collect(Collectors.toList());
     }
 
@@ -226,5 +247,42 @@ public class SubmissionHandler {
                 }
             }
         }
+    }
+
+    private void writeBotReplies(RedditClient redditClient, String submissionUrl) {
+        for (Map.Entry<String, List<UserRunDetails>> entry : invalidRunMap.entrySet()) {
+            String userCommentId = entry.getKey();
+            List<UserRunDetails> urds = entry.getValue();
+
+            InvalidRunFormatter f = new InvalidRunFormatter();
+            String botReplyBody = f.formatInvalidRuns(urds);
+
+            BotComment existing = botReplyMap.get(userCommentId);
+            if (existing == null) {
+                // no bot comment exists yet
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("no reply for " + userCommentId + " yet in " + submissionUrl + ", creating new reply");
+                }
+                redditClient.comment(userCommentId).reply(botReplyBody);
+            } else if (!Objects.equals(existing.getContent(), botReplyBody)) {
+                // we've already written a reply for these runs but it's outdated
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("reply for " + userCommentId + " outdated in " + submissionUrl +
+                            ", updating comment " + existing.getCommentId());
+                }
+                redditClient.comment(existing.getCommentId()).edit(botReplyBody);
+            } else {
+                // no need to write anything, existing bot comment already has correct content
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("reply for " + userCommentId + " already up to date in " + submissionUrl);
+                }
+            }
+        }
+
+        // todo keep set of comment ids that have bad run details,
+        // do set difference of bot reply map keyset and bad comment ids
+        // update any comments that are in this difference since they are fixed comments
     }
 }
