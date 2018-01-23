@@ -13,7 +13,7 @@ public class CommentHandlerTest {
     @Test
     public void testGetAggregateStage_CompetitionStage() {
         CommentHandler ch = new CommentHandler();
-        String comment = "###Runs\n" +
+        String comment = "###Competition Runs\n" +
                 "\n" +
                 "Username | Team | Items | Score\n" +
                 "|:----------: | :----------: | :-----------: | :-----------:\n" +
