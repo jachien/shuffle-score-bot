@@ -15,6 +15,10 @@ public enum StageType {
     }
 
     public String getHeader(String normalizedStage) {
-        return String.format(headerFormat, normalizedStage);
+        if (normalizedStage == null) {
+            normalizedStage = "";
+        }
+        // seems like it doesn't matter if I give more arguments than format specifiers
+        return String.format(headerFormat, normalizedStage).trim();
     }
 }
