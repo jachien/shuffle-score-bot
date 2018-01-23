@@ -112,7 +112,10 @@ public class Formatter {
     }
 
     private void appendAddRunInstructions(StringBuilder sb, StageType stageType, String stageId) {
-        sb.append("\n\nUse `").append(stageType.getHeader(stageId)).append("` to add your run.");
+        sb.append("\n\nUse `")
+                .append(stageType.getHeader(stageId))
+                .append("` to add your run.  \n\n" +
+                        "See [examples and syntax overview.](https://jachien.github.io/shuffle-score-bot/)  \n\n");
     }
 
     private void appendDelimiter(StringBuilder sb) {
