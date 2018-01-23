@@ -42,20 +42,22 @@ public class CommentHandler {
 
             String region = comment.substring(start, end);
 
+            RunParser p = new RunParser(new StringReader(region));
+            Exception exception = null;
             try {
-                RunParser p = new RunParser(new StringReader(region));
                 p.start();
-                RawRunDetails rawDetails = p.getDetails();
-                LOG.debug(rawDetails.toString());
-                RunDetails details = canonicalizer.canonicalize(rawDetails);
-                runs.add(details);
             } catch (ParseException e) {
-                runs.add(new RunDetails(new FormatException("Unable to parse run details.", e)));
                 LOG.warn("failed to parse:\n" + region, e);
+                exception = e;
             } catch (FormatException e) {
-                runs.add(new RunDetails(e));
                 LOG.warn("format exception", e);
+                exception = e;
             }
+
+            RawRunDetails rawDetails = p.getDetails();
+            LOG.debug(rawDetails.toString());
+            RunDetails details = canonicalizer.canonicalize(rawDetails, exception);
+            runs.add(details);
         }
 
         return runs;

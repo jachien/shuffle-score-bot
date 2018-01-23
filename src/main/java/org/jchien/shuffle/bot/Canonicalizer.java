@@ -6,7 +6,7 @@ import org.jchien.shuffle.model.Item;
 import org.jchien.shuffle.model.MoveType;
 import org.jchien.shuffle.model.Pokemon;
 import org.jchien.shuffle.model.RunDetails;
-import org.jchien.shuffle.model.StageType;
+import org.jchien.shuffle.model.RunDetailsBuilder;
 import org.jchien.shuffle.parser.RawPokemon;
 import org.jchien.shuffle.parser.RawRunDetails;
 
@@ -25,37 +25,45 @@ import java.util.regex.Pattern;
  * @author jchien
  */
 public class Canonicalizer {
-    public RunDetails canonicalize(RawRunDetails raw) {
+    private interface DetailConsumer {
+        void consume() throws FormatException;
+    }
+
+    public RunDetails canonicalize(RawRunDetails raw, Exception preexistingException) {
+        List<Exception> exceptions = new ArrayList<>();
+        if (preexistingException != null) {
+            exceptions.add(preexistingException);
+        }
+
+        final RunDetailsBuilder rdb = new RunDetailsBuilder();
+
+        addDetail(exceptions, () -> rdb.setTeam(getTeam(raw.getTeam())));
+
+        addDetail(exceptions, () -> rdb.setItems(getItems(raw.getItems(), raw.getMoveType())));
+
+        addDetail(exceptions, () -> rdb.setStage(getStage(raw.getStage())));
+
+        addDetail(exceptions, () -> rdb.setScore(getScore(raw.getScore())));
+
+        addDetail(exceptions, () -> rdb.setMovesLeft(getMovesLeft(raw.getMovesLeft())));
+
+        addDetail(exceptions, () -> rdb.setTimeLeft(getTimeLeft(raw.getTimeLeft())));
+
+        addDetail(exceptions, () -> rdb.setStageType(raw.getStageType()));
+
+        addDetail(exceptions, () -> rdb.setMoveType(raw.getMoveType()));
+
+        rdb.setExceptions(exceptions);
+
+        return rdb.build();
+    }
+
+    private void addDetail(List<Exception> exceptions,
+                           DetailConsumer consumer) {
         try {
-            // this should logically be a set, but I don't want to deal with validating that
-            List<Pokemon> team = getTeam(raw.getTeam());
-
-            List<Item> items = getItems(raw.getItems(), raw.getMoveType());
-
-            String stage = getStage(raw.getStage());
-
-            Integer score = getScore(raw.getScore());
-
-            Integer movesLeft = getMovesLeft(raw.getMovesLeft());
-
-            Integer timeLeft = getTimeLeft(raw.getTimeLeft());
-
-            StageType stageType = raw.getStageType();
-
-            MoveType moveType = raw.getMoveType();
-
-            return new RunDetails(
-                    team,
-                    items,
-                    stage,
-                    score,
-                    movesLeft,
-                    timeLeft,
-                    stageType,
-                    moveType
-            );
-        } catch (FormatException e) {
-            return new RunDetails(e);
+            consumer.consume();
+        } catch(Exception e) {
+            exceptions.add(e);
         }
     }
 

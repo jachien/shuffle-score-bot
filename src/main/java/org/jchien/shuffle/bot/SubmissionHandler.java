@@ -1,11 +1,13 @@
 package org.jchien.shuffle.bot;
 
+import com.google.common.collect.Sets;
 import net.dean.jraw.RedditClient;
 import net.dean.jraw.models.PublicContribution;
 import net.dean.jraw.models.Submission;
 import net.dean.jraw.tree.CommentNode;
 import net.dean.jraw.tree.RootCommentNode;
 import org.jchien.shuffle.model.BotComment;
+import org.jchien.shuffle.model.InvalidRuns;
 import org.jchien.shuffle.model.RunDetails;
 import org.jchien.shuffle.model.Stage;
 import org.jchien.shuffle.model.StageType;
@@ -21,7 +23,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.*;
@@ -45,7 +49,7 @@ public class SubmissionHandler {
     // user comment id -> bot reply
     private Map<String, BotComment> botReplyMap = new TreeMap<>();
 
-    private Map<String, List<UserRunDetails>> invalidRunMap = new TreeMap<>();
+    private Map<String, InvalidRuns> invalidRunMap = new TreeMap<>();
 
     private CommentHandler commentHandler = new CommentHandler();
 
@@ -54,7 +58,7 @@ public class SubmissionHandler {
 
         writeAggregateTables(redditClient, submission.getId(), submission.getUrl());
 
-        writeBotReplies(redditClient, submission.getId(), submission.getUrl());
+        writeBotReplies(redditClient, submission.getUrl());
     }
 
     private void processComments(RedditClient redditClient, Submission submission) {
@@ -124,7 +128,9 @@ public class SubmissionHandler {
 
         for (RunDetails run : runs) {
             if (run.hasException()) {
-                LOG.warn("failed to parse run from comment " + RedditUtils.getCommentPermalink(submission.getUrl(), comment.getId()), run.getException());
+                Exception exception = run.getExceptions().stream().findFirst().get();
+                LOG.warn("failed to parse run from comment " + RedditUtils.getCommentPermalink(submission.getUrl(), comment.getId()),
+                         exception);
             } else {
                 LOG.info(run.toString());
             }
@@ -132,16 +138,16 @@ public class SubmissionHandler {
 
         Instant lastModDate = getLastModifiedDate(comment);
 
-        List<UserRunDetails> userRuns = getValidRuns(runs, comment.getAuthor(), comment.getId(), lastModDate);
+        List<UserRunDetails> userRuns = getValidRuns(runs, comment.getAuthor(), comment.getId());
 
         for (UserRunDetails urd : userRuns) {
             addStageRun(urd);
         }
 
-        List<UserRunDetails> badRuns = getInvalidRuns(runs, comment.getAuthor(), comment.getId(), lastModDate);
+        List<UserRunDetails> badRuns = getInvalidRuns(runs, comment.getAuthor(), comment.getId());
 
         if (badRuns.size() > 0) {
-            invalidRunMap.put(comment.getId(), badRuns);
+            invalidRunMap.put(comment.getId(), new InvalidRuns(comment.getId(), lastModDate, badRuns));
         }
     }
 
@@ -155,21 +161,19 @@ public class SubmissionHandler {
 
     private List<UserRunDetails> getValidRuns(List<RunDetails> runs,
                                               String commentAuthor,
-                                              String commentId,
-                                              Instant lastModifiedTime) {
+                                              String commentId) {
         return runs.stream()
                 .filter(run -> !run.hasException())
-                .map(run -> new UserRunDetails(commentAuthor, commentId, lastModifiedTime, run))
+                .map(run -> new UserRunDetails(commentAuthor, commentId, run))
                 .collect(Collectors.toList());
     }
 
     private List<UserRunDetails> getInvalidRuns(List<RunDetails> runs,
                                                 String commentAuthor,
-                                                String commentId,
-                                                Instant lastModifiedTime) {
+                                                String commentId) {
         return runs.stream()
                 .filter(RunDetails::hasException)
-                .map(run -> new UserRunDetails(commentAuthor, commentId, lastModifiedTime, run))
+                .map(run -> new UserRunDetails(commentAuthor, commentId, run))
                 .collect(Collectors.toList());
     }
 
@@ -210,79 +214,104 @@ public class SubmissionHandler {
     }
 
     private void writeAggregateTables(RedditClient redditClient, String submissionId, String submissionUrl) {
-        Formatter f = new Formatter();
+
 
         for (Map.Entry<Stage, List<UserRunDetails>> entry : stageMap.entrySet()) {
             Stage stage = entry.getKey();
             List<UserRunDetails> runs = entry.getValue();
-            final String commentBody;
-            if (stage.getStageType() == StageType.COMPETITION) {
-                commentBody = f.formatCompetitionRun(runs, submissionUrl);
-            } else {
-                commentBody = f.formatStage(runs, stage, submissionUrl);
+            try {
+                writeAggregateTable(redditClient, submissionId, submissionUrl, stage, runs);
+            } catch (Exception e) {
+                LOG.error("failed to write table for stage " + stage + " at " + submissionUrl);
             }
+        }
+    }
 
-            LOG.debug("generated comment:\n" + commentBody);
+    private void writeAggregateTable(RedditClient redditClient,
+                                     String submissionId,
+                                     String submissionUrl,
+                                     Stage stage,
+                                     List<UserRunDetails> runs) {
+        Formatter f = new Formatter();
+        final String commentBody;
+        if (stage.getStageType() == StageType.COMPETITION) {
+            commentBody = f.formatCompetitionRun(runs, submissionUrl);
+        } else {
+            commentBody = f.formatStage(runs, stage, submissionUrl);
+        }
 
-            BotComment existing = aggregateTableMap.get(stage);
-            if (existing == null) {
-                // no bot comment exists yet
+        LOG.debug("generated comment:\n" + commentBody);
 
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("no comment for " + stage + " yet in " + submissionUrl + ", creating new comment");
-                }
-                redditClient.submission(submissionId).reply(commentBody);
-            } else if (!Objects.equals(existing.getContent(), commentBody)) {
-                // we've already written a comment for this stage but it's outdated
+        BotComment existing = aggregateTableMap.get(stage);
+        if (existing == null) {
+            // no bot comment exists yet
 
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("comment for " + stage + " outdated in " + submissionUrl +
-                            ", updating comment " + existing.getCommentId());
-                }
-                redditClient.comment(existing.getCommentId()).edit(commentBody);
-            } else {
-                // no need to write anything, existing bot comment already has correct content
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("comment for " + stage + " already up to date in " + submissionUrl);
-                }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("no comment for " + stage + " yet in " + submissionUrl + ", creating new comment");
+            }
+            redditClient.submission(submissionId).reply(commentBody);
+        } else if (!Objects.equals(existing.getContent(), commentBody)) {
+            // we've already written a comment for this stage but it's outdated
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("comment for " + stage + " outdated in " + submissionUrl +
+                                  ", updating comment " + existing.getCommentId());
+            }
+            redditClient.comment(existing.getCommentId()).edit(commentBody);
+        } else {
+            // no need to write anything, existing bot comment already has correct content
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("comment for " + stage + " already up to date in " + submissionUrl);
             }
         }
     }
 
     private void writeBotReplies(RedditClient redditClient, String submissionUrl) {
-        for (Map.Entry<String, List<UserRunDetails>> entry : invalidRunMap.entrySet()) {
+        InvalidRunFormatter f = new InvalidRunFormatter();
+
+        Set<String> badCommentIds = new TreeSet<>();
+
+        for (Map.Entry<String, InvalidRuns> entry : invalidRunMap.entrySet()) {
             String userCommentId = entry.getKey();
-            List<UserRunDetails> urds = entry.getValue();
+            badCommentIds.add(userCommentId);
 
-            InvalidRunFormatter f = new InvalidRunFormatter();
-            String botReplyBody = f.formatInvalidRuns(urds);
-
-            BotComment existing = botReplyMap.get(userCommentId);
-            if (existing == null) {
-                // no bot comment exists yet
-
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("no reply for " + userCommentId + " yet in " + submissionUrl + ", creating new reply");
-                }
-                redditClient.comment(userCommentId).reply(botReplyBody);
-            } else if (!Objects.equals(existing.getContent(), botReplyBody)) {
-                // we've already written a reply for these runs but it's outdated
-
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("reply for " + userCommentId + " outdated in " + submissionUrl +
-                            ", updating comment " + existing.getCommentId());
-                }
-                redditClient.comment(existing.getCommentId()).edit(botReplyBody);
-            } else {
-                // no need to write anything, existing bot comment already has correct content
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("reply for " + userCommentId + " already up to date in " + submissionUrl);
-                }
-            }
+            InvalidRuns invalidRuns = entry.getValue();
+            Instant lastModDate = invalidRuns.getLastModifiedDate();
+            List<UserRunDetails> urds = invalidRuns.getRuns();
+            String botReplyBody = f.formatInvalidRuns(lastModDate, urds);
+            createOrUpdateReply(redditClient, userCommentId, botReplyBody, submissionUrl);
         }
 
-        // todo keep set of comment ids that have bad run details,
-        // do set difference of bot reply map keyset and bad comment ids
-        // update any comments that are in this difference since they are fixed comments
+        // now update replies for people who fixed their previously bad comment
+        Set<String> okCommentIds = Sets.difference(botReplyMap.keySet(), badCommentIds);
+        for (String okCommentId : okCommentIds) {
+            String botReplyBody = f.getAllGoodMessage();
+            createOrUpdateReply(redditClient, okCommentId, botReplyBody, submissionUrl);
+        }
+    }
+
+    private void createOrUpdateReply(RedditClient redditClient, String userCommentId, String botReplyBody, String submissionUrl) {
+        BotComment existing = botReplyMap.get(userCommentId);
+        if (existing == null) {
+            // no bot comment exists yet
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("no reply for " + userCommentId + " yet in " + submissionUrl + ", creating new reply");
+            }
+            redditClient.comment(userCommentId).reply(botReplyBody);
+        } else if (!Objects.equals(existing.getContent(), botReplyBody)) {
+            // we've already written a reply for these runs but it's outdated
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("reply for " + userCommentId + " outdated in " + submissionUrl +
+                        ", updating comment " + existing.getCommentId());
+            }
+            redditClient.comment(existing.getCommentId()).edit(botReplyBody);
+        } else {
+            // no need to write anything, existing bot comment already has correct content
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("reply for " + userCommentId + " already up to date in " + submissionUrl);
+            }
+        }
     }
 }
