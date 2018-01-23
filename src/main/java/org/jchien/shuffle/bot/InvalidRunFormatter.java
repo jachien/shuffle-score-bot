@@ -14,7 +14,8 @@ public class InvalidRunFormatter {
     public String formatInvalidRuns(Instant lastModTime, List<UserRunDetails> invalidRuns) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("It looks like you were trying to write run details, but I couldn't parse what you wrote.\n\n" +
+        sb.append("It looks like you were trying to write run details, but I couldn't parse what you wrote.  \n" +
+                "[Check out the examples and syntax overview.](https://jachien.github.io/shuffle-score-bot/)  \n" +
                 "*****\n\n");
         for (UserRunDetails urd : invalidRuns) {
             RunDetails run = urd.getRunDetails();
