@@ -20,7 +20,7 @@ import static java.util.Comparator.*;
  * @author jchien
  */
 public class Formatter {
-    public final static String COMP_HEADER_PREFIX = "###Runs";
+    public final static String COMP_HEADER_PREFIX = "###Competition Runs";
     private static final String COMP_TABLE_HEADER = "\n\n" +
             "Username | Team | Items | Score\n" +
             "|:----------: | :----------: | :-----------: | :-----------:\n";
