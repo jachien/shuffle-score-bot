@@ -140,15 +140,27 @@ public class Formatter {
         sb.append(getPokemonStats(pokemon));
     }
 
+    private final int DASH_CODEPOINT = (int)'-';
+
     private void appendCapitalizedWords(StringBuilder sb, String str) {
+        boolean capitalize = true;
+
         for (int i=0; i < str.length();) {
             int codePoint = str.codePointAt(i);
-            if (i == 0 || Character.isWhitespace(str.codePointBefore(i))) {
+
+            if (capitalize) {
                 sb.appendCodePoint(Character.toUpperCase(codePoint));
             } else {
                 // don't lowercase stuff so we still handle things like "MMY" nicely
                 sb.appendCodePoint(codePoint);
             }
+
+            if (Character.isWhitespace(codePoint) || DASH_CODEPOINT == codePoint) {
+                capitalize = true;
+            } else {
+                capitalize = false;
+            }
+
             i += Character.charCount(codePoint);
         }
     }
