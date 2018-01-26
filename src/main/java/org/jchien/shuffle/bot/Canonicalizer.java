@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,7 +30,7 @@ public class Canonicalizer {
         void consume() throws FormatException;
     }
 
-    public RunDetails canonicalize(RawRunDetails raw, Exception preexistingException) {
+    public RunDetails canonicalize(RawRunDetails raw, Map<String, Pokemon> roster, Exception preexistingException) {
         List<Exception> exceptions = new ArrayList<>();
         if (preexistingException != null) {
             exceptions.add(preexistingException);
@@ -37,7 +38,7 @@ public class Canonicalizer {
 
         final RunDetailsBuilder rdb = new RunDetailsBuilder();
 
-        addDetail(exceptions, () -> rdb.setTeam(getTeam(raw.getTeam())));
+        addDetail(exceptions, () -> rdb.setTeam(getTeam(raw.getTeam(), roster)));
 
         addDetail(exceptions, () -> rdb.setItems(getItems(raw.getItems(), raw.getMoveType())));
 
@@ -67,10 +68,15 @@ public class Canonicalizer {
         }
     }
 
-    private List<Pokemon> getTeam(List<RawPokemon> raw) throws FormatException {
+    private List<Pokemon> getTeam(List<RawPokemon> raw, Map<String, Pokemon> roster) throws FormatException {
         List<Pokemon> team = new ArrayList<>();
         for (RawPokemon rawPokemon : raw) {
-            team.add(getPokemon(rawPokemon));
+            String rosterKey = rawPokemon.getName().toLowerCase();
+            if (roster != null && roster.containsKey(rosterKey)) {
+                team.add(roster.get(rosterKey));
+            } else {
+                team.add(getPokemon(rawPokemon));
+            }
         }
         return team;
     }

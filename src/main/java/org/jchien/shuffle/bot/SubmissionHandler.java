@@ -8,7 +8,9 @@ import net.dean.jraw.tree.CommentNode;
 import net.dean.jraw.tree.RootCommentNode;
 import org.jchien.shuffle.model.BotComment;
 import org.jchien.shuffle.model.InvalidRuns;
+import org.jchien.shuffle.model.Pokemon;
 import org.jchien.shuffle.model.RunDetails;
+import org.jchien.shuffle.model.RunDetailsBuilder;
 import org.jchien.shuffle.model.Stage;
 import org.jchien.shuffle.model.StageType;
 import org.jchien.shuffle.model.UserRunDetails;
@@ -17,9 +19,11 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -124,7 +128,18 @@ public class SubmissionHandler {
     }
 
     private void parseRuns(Submission submission, PublicContribution<?> comment) {
-        List<RunDetails> runs = commentHandler.getRunDetails(comment.getBody());
+        String commentBody = comment.getBody();
+
+        Exception rosterException = null;
+        Map<String, Pokemon> roster;
+        try {
+            roster = commentHandler.getRoster(commentBody);
+        } catch (Exception e) {
+            roster = new LinkedHashMap<>();
+            rosterException = e;
+        }
+
+        List<RunDetails> runs = commentHandler.getRunDetails(commentBody, roster);
 
         for (RunDetails run : runs) {
             if (run.hasException()) {
@@ -144,7 +159,7 @@ public class SubmissionHandler {
             addStageRun(urd);
         }
 
-        List<UserRunDetails> badRuns = getInvalidRuns(runs, comment.getAuthor(), comment.getId());
+        List<UserRunDetails> badRuns = getInvalidRuns(runs, comment.getAuthor(), comment.getId(), rosterException);
 
         if (badRuns.size() > 0) {
             invalidRunMap.put(comment.getId(), new InvalidRuns(comment.getId(), lastModDate, badRuns));
@@ -170,11 +185,20 @@ public class SubmissionHandler {
 
     private List<UserRunDetails> getInvalidRuns(List<RunDetails> runs,
                                                 String commentAuthor,
-                                                String commentId) {
-        return runs.stream()
-                .filter(RunDetails::hasException)
-                .map(run -> new UserRunDetails(commentAuthor, commentId, run))
-                .collect(Collectors.toList());
+                                                String commentId,
+                                                Exception rosterException) {
+
+        List<UserRunDetails> ret = new ArrayList<>();
+
+        if (rosterException != null) {
+            RunDetails rosterDetails = new RunDetailsBuilder().setExceptions(Arrays.asList(rosterException)).build();
+            UserRunDetails rosterUrd = new UserRunDetails(commentAuthor, commentId, rosterDetails);
+            ret.add(rosterUrd);
+        }
+
+        runs.stream().filter(RunDetails::hasException).map(run -> new UserRunDetails(commentAuthor, commentId, run)).forEach(ret::add);
+
+        return ret;
     }
 
     private void addStageRun(UserRunDetails urd) {

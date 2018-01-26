@@ -121,6 +121,7 @@ TOKEN: {
     < COMP_HEADER: "!COMP" >
     | < RUN_HEADER: "!RUN" >
     | < EB_HEADER: "!EB" >
+    | < ROSTER_HEADER: "!ROSTER" >
     | < TEAM_HEADER: "TEAM:" >
     | < SCORE_HEADER: "SCORE:" >
     | < ITEMS_HEADER: "ITEMS:" >
@@ -153,6 +154,13 @@ void run() throws FormatException: {
     (runHeader() | ebHeader() | compHeader())
     (section())+
     <END_HEADER>
+}
+
+void roster() throws FormatException: {
+} {
+    <ROSTER_HEADER> supportList() <END_HEADER>
+    // this isn't a stage but we're hacking in the initial roster support implementation
+    { stageType = StageType.ROSTER; }
 }
 
 void runHeader(): {
@@ -196,6 +204,11 @@ void section() throws FormatException: {} {
 
 void team() throws DupeSectionException: {
 } {
+    <TEAM_HEADER> supportList()
+}
+
+void supportList() throws DupeSectionException: {
+} {
     {
         if (teamSet) {
             throw new DupeSectionException(Section.TEAM);
@@ -203,7 +216,7 @@ void team() throws DupeSectionException: {
         teamSet = true;
         initPokemon();
     }
-    <TEAM_HEADER> support() ({ storePokemon(); initPokemon(); } <COMMA> support())*
+    support() ({ storePokemon(); initPokemon(); } <COMMA> support())*
     { storePokemon(); }
 }
 

@@ -6,7 +6,8 @@ package org.jchien.shuffle.model;
 public enum StageType {
     COMPETITION("!comp"),
     ESCALATION_BATTLE("!eb %s"),
-    NORMAL("!run %s");
+    NORMAL("!run %s"),
+    ROSTER("!roster"); // this doesn't really belong here
 
     private final String headerFormat;
 
