@@ -191,7 +191,10 @@ public class SubmissionHandler {
         List<UserRunDetails> ret = new ArrayList<>();
 
         if (rosterException != null) {
-            RunDetails rosterDetails = new RunDetailsBuilder().setExceptions(Arrays.asList(rosterException)).build();
+            RunDetails rosterDetails = new RunDetailsBuilder()
+                    .setStageType(StageType.ROSTER)
+                    .setExceptions(Arrays.asList(rosterException))
+                    .build();
             UserRunDetails rosterUrd = new UserRunDetails(commentAuthor, commentId, rosterDetails);
             ret.add(rosterUrd);
         }
