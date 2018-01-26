@@ -128,7 +128,7 @@ public class SubmissionHandler {
 
         for (RunDetails run : runs) {
             if (run.hasException()) {
-                Exception exception = run.getExceptions().stream().findFirst().get();
+                Exception exception = run.getExceptions().get(0);
                 LOG.warn("failed to parse run from comment " + RedditUtils.getCommentPermalink(submission.getUrl(), comment.getId()),
                          exception);
             } else {
