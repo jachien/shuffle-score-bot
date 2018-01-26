@@ -199,7 +199,10 @@ public class SubmissionHandler {
             ret.add(rosterUrd);
         }
 
-        runs.stream().filter(RunDetails::hasException).map(run -> new UserRunDetails(commentAuthor, commentId, run)).forEach(ret::add);
+        runs.stream()
+                .filter(RunDetails::hasException)
+                .map(run -> new UserRunDetails(commentAuthor, commentId, run))
+                .forEach(ret::add);
 
         return ret;
     }
