@@ -85,7 +85,8 @@ public class Formatter {
         // username (link to /u/user) | team | items | score (link to comment)
 
         StringBuilder sb = new StringBuilder();
-        sb.append(STAGE_HEADER_PREFIX).append(stage.getStageId());
+        sb.append(STAGE_HEADER_PREFIX);
+        appendCapitalizedWords(sb, stage.getStageId());
         appendAddRunInstructions(sb, stage.getStageType(), stage.getStageId());
         sb.append(STAGE_TABLE_HEADER);
         for (UserRunDetails urd : runs) {
