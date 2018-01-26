@@ -25,7 +25,7 @@ public class CommentHandler {
     private Canonicalizer canonicalizer = new Canonicalizer();
 
     // word boundary matcher doesn't seem to trigger in front of an exclamation mark
-    private static final Pattern PATTERN = Pattern.compile("(?:!comp|!eb|!run)\\b.*?!end\\b",
+    static final Pattern PATTERN = Pattern.compile("(^|\\s)(?:!comp|!eb|!run)\\b.*?!end\\b",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     public List<RunDetails> getRunDetails(String comment) {
@@ -40,7 +40,7 @@ public class CommentHandler {
                 LOG.debug("found match at (" + start + ", " + end + ")");
             }
 
-            String region = comment.substring(start, end);
+            String region = comment.substring(start, end).trim();
 
             RunParser p = new RunParser(new StringReader(region));
             Exception exception = null;
