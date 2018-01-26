@@ -135,7 +135,6 @@ public class CommentHandlerTest {
 
     @Test
     public void testRunPattern_MatchMarkdownCodeWithSpace() {
-        // maybe this should match, but I'd like inlined code (e.g. `!comp`) to not trigger the bot
         Stream.concat(Arrays.stream(RUN_PATTERN_INPUTS), Arrays.stream(RUN_PATTERN_LINE_BREAK_INPUTS)).peek(
                 runDetails -> {
                     String input = "` " + runDetails + " `";
