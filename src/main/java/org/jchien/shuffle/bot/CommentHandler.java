@@ -6,6 +6,7 @@ import org.jchien.shuffle.model.RunDetails;
 import org.jchien.shuffle.model.Stage;
 import org.jchien.shuffle.model.StageType;
 import org.jchien.shuffle.parser.ParseException;
+import org.jchien.shuffle.parser.ParseExceptionUtils;
 import org.jchien.shuffle.parser.RawRunDetails;
 import org.jchien.shuffle.parser.RunParser;
 import org.slf4j.Logger;
@@ -71,7 +72,7 @@ public class CommentHandler {
                 p.start();
             } catch (ParseException e) {
                 LOG.warn("failed to parse:\n" + block, e);
-                exception = e;
+                exception = ParseExceptionUtils.getFormatException(e);
             } catch (FormatException e) {
                 LOG.warn("format exception", e);
                 exception = e;
