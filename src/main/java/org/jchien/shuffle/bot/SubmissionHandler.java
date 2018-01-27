@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import net.dean.jraw.RedditClient;
 import net.dean.jraw.models.PublicContribution;
 import net.dean.jraw.models.Submission;
+import net.dean.jraw.references.InboxReference;
 import net.dean.jraw.tree.CommentNode;
 import net.dean.jraw.tree.RootCommentNode;
 import org.jchien.shuffle.model.BotComment;
@@ -52,6 +53,9 @@ public class SubmissionHandler {
 
     // user comment id -> bot reply
     private Map<String, BotComment> botReplyMap = new TreeMap<>();
+
+    // user comment id -> author
+    private Map<String, String> authorMap = new TreeMap<>();
 
     private Map<String, InvalidRuns> invalidRunMap = new TreeMap<>();
 
@@ -118,6 +122,9 @@ public class SubmissionHandler {
                     " | e: " + comment.getEdited());
             LOG.debug(comment.getBody());
         }
+
+        // we only care about a subset for PMing but it's simplest to just store this for every comment
+        authorMap.put(comment.getId(), comment.getAuthor());
 
         if (!botUser.equals(comment.getAuthor())) {
             parseRuns(submission, comment);
@@ -297,8 +304,6 @@ public class SubmissionHandler {
     }
 
     private void writeBotReplies(RedditClient redditClient, String submissionUrl) {
-        InvalidRunFormatter f = new InvalidRunFormatter();
-
         Set<String> badCommentIds = new TreeSet<>();
 
         for (Map.Entry<String, InvalidRuns> entry : invalidRunMap.entrySet()) {
@@ -308,14 +313,14 @@ public class SubmissionHandler {
             InvalidRuns invalidRuns = entry.getValue();
             Instant lastModDate = invalidRuns.getLastModifiedDate();
             List<UserRunDetails> urds = invalidRuns.getRuns();
-            String botReplyBody = f.formatInvalidRuns(lastModDate, urds);
+            String botReplyBody = InvalidRunFormatter.formatInvalidRuns(lastModDate, urds);
             createOrUpdateReply(redditClient, userCommentId, botReplyBody, submissionUrl);
         }
 
         // now update replies for people who fixed their previously bad comment
         Set<String> okCommentIds = Sets.difference(botReplyMap.keySet(), badCommentIds);
         for (String okCommentId : okCommentIds) {
-            String botReplyBody = f.getAllGoodMessage();
+            String botReplyBody = InvalidRunFormatter.getAllGoodMessage();
             createOrUpdateReply(redditClient, okCommentId, botReplyBody, submissionUrl);
         }
     }
@@ -337,6 +342,11 @@ public class SubmissionHandler {
                         ", updating comment " + existing.getCommentId());
             }
             redditClient.comment(existing.getCommentId()).edit(botReplyBody);
+
+            String username = authorMap.get(userCommentId);
+            InboxReference inbox = redditClient.me().inbox();
+            String pmBody = InvalidRunFormatter.getPrivateMessageContent(submissionUrl, userCommentId, botReplyBody);
+            inbox.compose(username, "status update", pmBody);
         } else {
             // no need to write anything, existing bot comment already has correct content
             if (LOG.isDebugEnabled()) {
