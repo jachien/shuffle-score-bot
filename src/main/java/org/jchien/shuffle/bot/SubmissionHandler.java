@@ -251,8 +251,6 @@ public class SubmissionHandler {
     }
 
     private void writeAggregateTables(RedditClient redditClient, String submissionId, String submissionUrl) {
-
-
         for (Map.Entry<Stage, List<UserRunDetails>> entry : stageMap.entrySet()) {
             Stage stage = entry.getKey();
             List<UserRunDetails> runs = entry.getValue();
