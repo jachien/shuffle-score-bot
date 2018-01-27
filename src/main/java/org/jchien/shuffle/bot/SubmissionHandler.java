@@ -66,6 +66,8 @@ public class SubmissionHandler {
 
         writeAggregateTables(redditClient, submission.getId(), submission.getUrl());
 
+        removeEmptyAggregateTables(redditClient);
+
         writeBotReplies(redditClient, submission.getUrl());
     }
 
@@ -298,6 +300,20 @@ public class SubmissionHandler {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("comment for " + stage + " already up to date in " + submissionUrl);
             }
+        }
+    }
+
+    private void removeEmptyAggregateTables(RedditClient redditClient) {
+        Set<Stage> emptyStages = Sets.difference(aggregateTableMap.keySet(), stageMap.keySet());
+        for (Stage stage : emptyStages) {
+            BotComment comment = aggregateTableMap.get(stage);
+            String commentId = comment.getCommentId();
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("removing empty aggregate table with comment id " + commentId);
+            }
+
+            redditClient.comment(commentId).delete();
         }
     }
 
