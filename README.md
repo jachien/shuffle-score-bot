@@ -14,11 +14,19 @@ Score: 124,018
 
 ### Escalation Battle
 ```
-!eb 100
-Team: M-Bee (Lv7, SL5 Swap++, 12/12), A-Greninja, Flygon, blank    
-Items: DD
-Moves left: 1
-!end
+!roster M-Bee (Lv7, Swap++ SL5, 12/12), SMCX (SL1, 15/15), A-Greninja (Lv15, UP SL5), Flygon (Lv15, Shot Out SL5) !end
+
+!eb 50  
+Team: SMCX, A-Greninja, Flygon, blank  
+Items: none
+Moves left: 5  
+!end  
+
+!eb 100  
+Team: M-Bee, A-Greninja, Flygon, blank  
+Items: DD  
+Moves left: 1  
+!end  
 ```
 
 ### Normal Stage
