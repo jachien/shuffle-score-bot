@@ -236,6 +236,23 @@ public class RunParserTest {
     }
 
     @Test
+    public void testPokemonStats_AnyOrder() throws ParseException, FormatException {
+        List<RawPokemon> expectedTeam = Arrays.asList(
+                new RawPokemon("m-gengar", "10", null, "1/1", false)
+        );
+
+        testParse("!comp team: m-gengar (10, 1/1) !end", expectedTeam, RawRunDetails::getTeam);
+        testParse("!comp team: m-gengar (1/1, 10) !end", expectedTeam, RawRunDetails::getTeam);
+
+        expectedTeam = Arrays.asList(
+                new RawPokemon("m-gengar", null, "power of 5", "1/1", false)
+        );
+
+        testParse("!comp team: m-gengar (power of 5, 1/1) !end", expectedTeam, RawRunDetails::getTeam);
+        testParse("!comp team: m-gengar (1/1, power of 5) !end", expectedTeam, RawRunDetails::getTeam);
+    }
+
+    @Test
     public void testIsLevel() {
         RunParser p = new RunParser();
 
