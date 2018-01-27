@@ -1,8 +1,9 @@
 options {
     STATIC = false;
     IGNORE_CASE = true;
-    LOOKAHEAD = 2;
+    LOOKAHEAD = 1;
     UNICODE_INPUT = true;
+    // DEBUG_PARSER = true;
 }
 
 PARSER_BEGIN(RunParser)
@@ -234,6 +235,7 @@ void support(): {
 void supportSection(): {
 } {
     // todo dupe section exceptions
+    LOOKAHEAD(2)
     msus() | levelOrSkill()
 }
 
