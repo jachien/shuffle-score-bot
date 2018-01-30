@@ -6,7 +6,6 @@ import org.jchien.shuffle.model.StageType;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
@@ -18,9 +17,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 
 public class RunParserTest {
-    private final List<RawPokemon> EMPTY_TEAM = new ArrayList<>();
-    private final List<String> EMPTY_ITEMS = new ArrayList<>();
-
     private class ExpectedResult<T> {
         String message;
         T expected;
