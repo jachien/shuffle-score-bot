@@ -113,6 +113,7 @@ public class SubmissionHandler {
             return;
         }
 
+        String commentBody = unescapeHtmlEntities(comment.getBody());
         String parentId = getParentId(commentNode);
 
         if (LOG.isDebugEnabled()) {
@@ -122,22 +123,32 @@ public class SubmissionHandler {
                     " | " + submission.getTitle() +
                     " | c: " + comment.getCreated() +
                     " | e: " + comment.getEdited());
-            LOG.debug(comment.getBody());
+            LOG.debug(commentBody);
         }
 
         // we only care about a subset for PMing but it's simplest to just store this for every comment
         authorMap.put(comment.getId(), comment.getAuthor());
 
         if (!botUser.equals(comment.getAuthor())) {
-            parseRuns(submission, comment);
+            parseRuns(submission,
+                      comment.getId(),
+                      comment.getAuthor(),
+                      commentBody,
+                      comment.getCreated(),
+                      comment.getEdited());
         } else {
-            cacheAggregateTables(comment.getId(), comment.getBody());
-            cacheBotReplies(comment.getId(), comment.getBody(), parentId, submission.getId());
+            cacheAggregateTables(comment.getId(), commentBody);
+            cacheBotReplies(comment.getId(), commentBody, parentId, submission.getId());
         }
     }
 
-    private void parseRuns(Submission submission, PublicContribution<?> comment) {
-        String commentBody = comment.getBody();
+    private void parseRuns(Submission submission,
+                           String commentId,
+                           String commentAuthor,
+                           String commentBody,
+                           Date createTime,
+                           Date editTime) {
+
 
         Exception rosterException = null;
         Map<String, Pokemon> roster;
@@ -153,34 +164,33 @@ public class SubmissionHandler {
         for (RunDetails run : runs) {
             if (run.hasException()) {
                 Exception exception = run.getExceptions().get(0);
-                LOG.warn("failed to parse run from comment " + RedditUtils.getCommentPermalink(submission.getUrl(), comment.getId()),
+                LOG.warn("failed to parse run from comment " + RedditUtils.getCommentPermalink(submission.getUrl(), commentId),
                          exception);
             } else {
                 LOG.info(run.toString());
             }
         }
 
-        Instant lastModDate = getLastModifiedDate(comment);
+        Instant lastModDate = getLastModifiedDate(createTime, editTime);
 
-        List<UserRunDetails> userRuns = getValidRuns(runs, comment.getAuthor(), comment.getId());
+        List<UserRunDetails> userRuns = getValidRuns(runs, commentAuthor, commentId);
 
         for (UserRunDetails urd : userRuns) {
             addStageRun(urd);
         }
 
-        List<UserRunDetails> badRuns = getInvalidRuns(runs, comment.getAuthor(), comment.getId(), rosterException);
+        List<UserRunDetails> badRuns = getInvalidRuns(runs, commentAuthor, commentId, rosterException);
 
         if (badRuns.size() > 0) {
-            invalidRunMap.put(comment.getId(), new InvalidRuns(comment.getId(), lastModDate, badRuns));
+            invalidRunMap.put(commentId, new InvalidRuns(commentId, lastModDate, badRuns));
         }
     }
 
-    private Instant getLastModifiedDate(PublicContribution<?> comment) {
-        Date editTime = comment.getEdited();
+    private Instant getLastModifiedDate(Date createTime, Date editTime) {
         if (editTime != null) {
             return editTime.toInstant();
         }
-        return comment.getCreated().toInstant();
+        return createTime.toInstant();
     }
 
     private List<UserRunDetails> getValidRuns(List<RunDetails> runs,
@@ -367,5 +377,11 @@ public class SubmissionHandler {
                 LOG.debug("reply for " + userCommentId + " already up to date in " + submissionUrl);
             }
         }
+    }
+
+    private String unescapeHtmlEntities(String s) {
+        return s.replaceAll("&lt;", "<")
+                .replaceAll("&gt;", ">")
+                .replaceAll("&amp;", "&");
     }
 }
