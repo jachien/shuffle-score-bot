@@ -142,6 +142,10 @@ TOKEN: {
     | < WORD: (<DIGIT> | <LETTER> | "+" | "-" | "?" | "!" | ".")+ >
 }
 
+SKIP: {
+    < UNSUPPORTED_TOKEN: ~[]>
+}
+
 // goal is to have simplest grammar, validate after parsing
 
 // top level production
