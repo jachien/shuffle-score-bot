@@ -130,7 +130,7 @@ public class SubmissionHandler {
         authorMap.put(comment.getId(), comment.getAuthor());
 
         if (!botUser.equals(comment.getAuthor())) {
-            parseRuns(submission,
+            parseRuns(submission.getUrl(),
                       comment.getId(),
                       comment.getAuthor(),
                       commentBody,
@@ -142,14 +142,12 @@ public class SubmissionHandler {
         }
     }
 
-    private void parseRuns(Submission submission,
+    private void parseRuns(String submissionUrl,
                            String commentId,
                            String commentAuthor,
                            String commentBody,
                            Date createTime,
                            Date editTime) {
-
-
         Exception rosterException = null;
         Map<String, Pokemon> roster;
         try {
@@ -160,16 +158,6 @@ public class SubmissionHandler {
         }
 
         List<RunDetails> runs = commentHandler.getRunDetails(commentBody, roster);
-
-        for (RunDetails run : runs) {
-            if (run.hasException()) {
-                Exception exception = run.getExceptions().get(0);
-                LOG.warn("failed to parse run from comment " + RedditUtils.getCommentPermalink(submission.getUrl(), commentId),
-                         exception);
-            } else {
-                LOG.info(run.toString());
-            }
-        }
 
         Instant lastModDate = getLastModifiedDate(createTime, editTime);
 
@@ -183,6 +171,13 @@ public class SubmissionHandler {
 
         if (badRuns.size() > 0) {
             invalidRunMap.put(commentId, new InvalidRuns(commentId, lastModDate, badRuns));
+
+            String commentPermalink = RedditUtils.getCommentPermalink(submissionUrl, commentId);
+            for (UserRunDetails run : badRuns) {
+                for (Exception e : run.getRunDetails().getExceptions()) {
+                    LOG.warn("bad run for " + commentPermalink, e);
+                }
+            }
         }
     }
 

@@ -71,10 +71,8 @@ public class CommentHandler {
             try {
                 p.start();
             } catch (ParseException e) {
-                LOG.warn("failed to parse:\n" + block, e);
                 exception = ParseExceptionUtils.getFormatException(e);
             } catch (FormatException e) {
-                LOG.warn("format exception", e);
                 exception = e;
             }
 
