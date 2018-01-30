@@ -376,7 +376,6 @@ public class RunParserTest {
     @Test
     public void testSkipChars_Asterisk() throws ParseException, FormatException {
         String input = "!eb 100 team: pidgey, *blank* !end";
-        // period is part of the word production, so it's included in the parsed score
         List<RawPokemon> expected = Arrays.asList(
                 new RawPokemon("pidgey", null, null, null, false),
                 new RawPokemon("blank", null, null, null, false)
@@ -387,7 +386,6 @@ public class RunParserTest {
     @Test
     public void testSkipChars_Hash() throws ParseException, FormatException {
         String input = "!eb 100 #team: pidgey, blank !end";
-        // period is part of the word production, so it's included in the parsed score
         List<RawPokemon> expected = Arrays.asList(
                 new RawPokemon("pidgey", null, null, null, false),
                 new RawPokemon("blank", null, null, null, false)
