@@ -321,6 +321,24 @@ public class RunParserTest {
     }
 
     @Test
+    public void testItems_Single() throws ParseException, FormatException {
+        String input = "!run foo items: m+5 !end";
+        testParse(input, Arrays.asList("m+5"), RawRunDetails::getItems);
+    }
+
+    @Test
+    public void testItems_Multiple() throws ParseException, FormatException {
+        String input = "!run foo items: m+5, dd, apu !end";
+        testParse(input, Arrays.asList("m+5", "dd", "apu"), RawRunDetails::getItems);
+    }
+
+    @Test
+    public void testItems_MultiWord() throws ParseException, FormatException {
+        String input = "!run foo items: moves +5 !end";
+        testParse(input, Arrays.asList("moves +5"), RawRunDetails::getItems);
+    }
+
+    @Test
     public void testMovesLeft() throws ParseException, FormatException {
         String input = "!eb 100 moves left: 1 !end";
         testParse(input, Arrays.asList(
