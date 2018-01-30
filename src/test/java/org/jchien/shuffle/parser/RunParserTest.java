@@ -258,19 +258,19 @@ public class RunParserTest {
 
         // doesn't validate a pokemon can be the level, just that the String looks like a level
         for (int i=0; i <= 30; i++) {
-            assertTrue(p.isLevel(new StringBuilder(Integer.toString(i))));
-            assertTrue(p.isLevel(new StringBuilder("lv" + Integer.toString(i))));
-            assertTrue(p.isLevel(new StringBuilder("Lv" + Integer.toString(i))));
-            assertTrue(p.isLevel(new StringBuilder("lv " + Integer.toString(i))));
-            assertTrue(p.isLevel(new StringBuilder("Lv " + Integer.toString(i))));
+            assertTrue(p.isLevel(Integer.toString(i)));
+            assertTrue(p.isLevel("lv" + Integer.toString(i)));
+            assertTrue(p.isLevel("Lv" + Integer.toString(i)));
+            assertTrue(p.isLevel("lv " + Integer.toString(i)));
+            assertTrue(p.isLevel("Lv " + Integer.toString(i)));
             // any additional whitespace should be truncated by the tokenization before isLevel is called
         }
-        assertTrue(p.isLevel(new StringBuilder("01")));
-        assertTrue(p.isLevel(new StringBuilder("lv01")));
-        assertTrue(p.isLevel(new StringBuilder("lv 01")));
-        assertTrue(p.isLevel(new StringBuilder("123456")));
-        assertTrue(p.isLevel(new StringBuilder("lv123456")));
-        assertTrue(p.isLevel(new StringBuilder("lv 123456")));
+        assertTrue(p.isLevel("01"));
+        assertTrue(p.isLevel("lv01"));
+        assertTrue(p.isLevel("lv 01"));
+        assertTrue(p.isLevel("123456"));
+        assertTrue(p.isLevel("lv123456"));
+        assertTrue(p.isLevel("lv 123456"));
 
         String[] notLevels = new String[] {
             "sl1",
@@ -280,7 +280,7 @@ public class RunParserTest {
         };
 
         for (String notLevel : notLevels) {
-            assertFalse(p.isLevel(new StringBuilder(notLevel)));
+            assertFalse(p.isLevel(notLevel));
         }
     }
 

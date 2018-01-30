@@ -67,24 +67,24 @@ public class RunParser {
     }
 
     @VisibleForTesting
-    boolean isLevel(StringBuilder sb) {
-        return isDigits(sb, 0)
-            || isLevel(sb, "lv")
-            || isLevel(sb, "lv ");
+    boolean isLevel(String s) {
+        return isDigits(s, 0)
+            || isLevel(s, "lv")
+            || isLevel(s, "lv ");
     }
 
-    private boolean isLevel(StringBuilder sb, String prefix) {
-        return startsWithIgnoreCase(sb, prefix) && isDigits(sb, prefix.length());
+    private boolean isLevel(String s, String prefix) {
+        return startsWithIgnoreCase(s, prefix) && isDigits(s, prefix.length());
     }
 
-    private boolean startsWithIgnoreCase(StringBuilder sb, String prefix) {
-        if (prefix.length() > sb.length()) {
+    private boolean startsWithIgnoreCase(String s, String prefix) {
+        if (prefix.length() > s.length()) {
             return false;
         }
 
         for (int i=0; i < prefix.length(); i++) {
             char expected = Character.toLowerCase(prefix.charAt(i));
-            char actual = Character.toLowerCase(sb.charAt(i));
+            char actual = Character.toLowerCase(s.charAt(i));
             if (expected != actual) {
                 return false;
             }
@@ -94,14 +94,14 @@ public class RunParser {
     }
 
     // return true if remaining characters are all digits
-    private boolean isDigits(StringBuilder sb, int start) {
+    private boolean isDigits(String s, int start) {
         // there must be at least one digit
-        if (start >= sb.length()) {
+        if (start >= s.length()) {
             return false;
         }
 
-        for (int i=start; i < sb.length(); i++) {
-            char ch = sb.charAt(i);
+        for (int i=start; i < s.length(); i++) {
+            char ch = s.charAt(i);
             if (ch < '0' || '9' < ch) {
                 return false;
             }
@@ -164,26 +164,33 @@ void roster() throws FormatException: {
     { stageType = StageType.ROSTER; }
 }
 
-void runHeader(): {
+String multiWord(): {
     Token t;
     StringBuilder sb = new StringBuilder();
 } {
-    <RUN_HEADER> t=<WORD> { sb.append(t.image); }
-    (t=<WORD> { sb.append(' ').append(t.image); })*
+    t=<WORD> { sb.append(t.image); }
+    (t=<WORD> { sb.append(' ').append(t.image); } )*
+    { return sb.toString(); }
+}
+
+void runHeader(): {
+    Token t;
+    String s;
+} {
+    <RUN_HEADER> s=multiWord()
     {
-        stage = sb.toString();
+        stage = s;
         stageType = StageType.NORMAL;
     }
 }
 
 void ebHeader(): {
     Token t;
-    StringBuilder sb = new StringBuilder();
+    String s;
 } {
-    <EB_HEADER> t=<WORD> { sb.append(t.image); }
-    (t=<WORD> { sb.append(' ').append(t.image); })*
+    <EB_HEADER> s=multiWord()
     {
-        stage = sb.toString();
+        stage = s;
         stageType = StageType.ESCALATION_BATTLE;
     }
 }
@@ -223,12 +230,10 @@ void supportList() throws DupeSectionException: {
 
 void support(): {
     Token t = null;
-    StringBuilder sb = new StringBuilder();
+    String s;
 } {
-    t=<WORD>
-    { sb.append(t.image); }
-    (t=<WORD> { sb.append(' ').append(t.image); })*
-    { pkmnBuilder.setName(sb.toString()); }
+    s=multiWord()
+    { pkmnBuilder.setName(s); }
     [ <LPAREN> (<PERFECT> { pkmnBuilder.setPerfect(true); } | (supportSection() (<COMMA> supportSection())*)) <RPAREN> ]
 }
 
@@ -242,17 +247,16 @@ void supportSection(): {
 // try to avoid ambiguous grammar that lookahead didn't seem to be helping with
 void levelOrSkill(): {
     Token t;
-    StringBuilder sb = new StringBuilder();
+    String s;
 } {
-    t=<WORD> { sb.append(t.image); }
-    (t=<WORD> { sb.append(' ').append(t.image); } )*
+    s=multiWord()
     {
-        if (isLevel(sb)) {
-            pkmnBuilder.setLevel(sb.toString());
+        if (isLevel(s)) {
+            pkmnBuilder.setLevel(s);
         } else {
             // assume it's a skill name, possibly without stating the skill level
             // will have to validate it later
-            pkmnBuilder.setSkill(sb.toString());
+            pkmnBuilder.setSkill(s);
         }
     }
 }
@@ -281,7 +285,7 @@ void score() throws DupeSectionException: {
 }
 
 void items() throws DupeSectionException: {
-    Token t;
+    String s;
 } {
     {
         if (items != null) {
@@ -289,7 +293,9 @@ void items() throws DupeSectionException: {
         }
         items = new ArrayList<String>();
     }
-    <ITEMS_HEADER> t=<WORD> { items.add(t.image); } (<COMMA> t=<WORD> { items.add(t.image); })*
+    <ITEMS_HEADER>
+    s=multiWord() { items.add(s); }
+    (<COMMA> s=multiWord() { items.add(s); })*
 }
 
 void movesLeft() throws FormatException: {
