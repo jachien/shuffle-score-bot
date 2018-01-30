@@ -9,6 +9,7 @@ import org.jchien.shuffle.parser.ParseException;
 import org.jchien.shuffle.parser.ParseExceptionUtils;
 import org.jchien.shuffle.parser.RawRunDetails;
 import org.jchien.shuffle.parser.RunParser;
+import org.jchien.shuffle.parser.TokenMgrError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,18 +68,21 @@ public class CommentHandler {
 
         BlockConsumer runConsumer = block -> {
             RunParser p = new RunParser(new StringReader(block));
-            Exception exception = null;
+            Throwable throwable = null;
             try {
                 p.start();
             } catch (ParseException e) {
-                exception = ParseExceptionUtils.getFormatException(e);
+                throwable = ParseExceptionUtils.getFormatException(e);
             } catch (FormatException e) {
-                exception = e;
+                throwable = e;
+            } catch (TokenMgrError e) {
+                // todo make this more friendly (also find out why it's not just a ParseException)
+                throwable = e;
             }
 
             RawRunDetails rawDetails = p.getDetails();
             LOG.debug(rawDetails.toString());
-            RunDetails details = canonicalizer.canonicalize(rawDetails, roster, exception);
+            RunDetails details = canonicalizer.canonicalize(rawDetails, roster, throwable);
             runs.add(details);
         };
 

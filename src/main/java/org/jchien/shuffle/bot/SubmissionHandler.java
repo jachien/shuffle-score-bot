@@ -149,13 +149,13 @@ public class SubmissionHandler {
                            String commentBody,
                            Date createTime,
                            Date editTime) {
-        Exception rosterException = null;
+        Throwable rosterThrowable = null;
         Map<String, Pokemon> roster;
         try {
             roster = commentHandler.getRoster(commentBody);
-        } catch (Exception e) {
+        } catch (Throwable t) {
             roster = new LinkedHashMap<>();
-            rosterException = e;
+            rosterThrowable = t;
         }
 
         List<RunDetails> runs = commentHandler.getRunDetails(commentBody, roster);
@@ -168,15 +168,15 @@ public class SubmissionHandler {
             addStageRun(urd);
         }
 
-        List<UserRunDetails> badRuns = getInvalidRuns(runs, commentAuthor, commentId, rosterException);
+        List<UserRunDetails> badRuns = getInvalidRuns(runs, commentAuthor, commentId, rosterThrowable);
 
         if (badRuns.size() > 0) {
             invalidRunMap.put(commentId, new InvalidRuns(commentId, lastModDate, badRuns));
 
             String commentPermalink = RedditUtils.getCommentPermalink(submissionUrl, commentId);
             for (UserRunDetails run : badRuns) {
-                for (Exception e : run.getRunDetails().getExceptions()) {
-                    LOG.warn("bad run for " + commentPermalink, e);
+                for (Throwable t : run.getRunDetails().getThrowables()) {
+                    LOG.warn("bad run for " + commentPermalink, t);
                 }
             }
         }
@@ -193,7 +193,7 @@ public class SubmissionHandler {
                                               String commentAuthor,
                                               String commentId) {
         return runs.stream()
-                .filter(run -> !run.hasException())
+                .filter(run -> !run.hasThrowable())
                 .map(run -> new UserRunDetails(commentAuthor, commentId, run))
                 .collect(Collectors.toList());
     }
@@ -201,21 +201,21 @@ public class SubmissionHandler {
     private List<UserRunDetails> getInvalidRuns(List<RunDetails> runs,
                                                 String commentAuthor,
                                                 String commentId,
-                                                Exception rosterException) {
+                                                Throwable rosterThrowable) {
 
         List<UserRunDetails> ret = new ArrayList<>();
 
-        if (rosterException != null) {
+        if (rosterThrowable != null) {
             RunDetails rosterDetails = new RunDetailsBuilder()
                     .setStageType(StageType.ROSTER)
-                    .setExceptions(Arrays.asList(rosterException))
+                    .setThrowables(Arrays.asList(rosterThrowable))
                     .build();
             UserRunDetails rosterUrd = new UserRunDetails(commentAuthor, commentId, rosterDetails);
             ret.add(rosterUrd);
         }
 
         runs.stream()
-                .filter(RunDetails::hasException)
+                .filter(RunDetails::hasThrowable)
                 .map(run -> new UserRunDetails(commentAuthor, commentId, run))
                 .forEach(ret::add);
 

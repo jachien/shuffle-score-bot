@@ -16,7 +16,7 @@ public class RunDetails {
     private final StageType stageType;
     private final MoveType moveType;
 
-    private final List<Exception> exceptions;
+    private final List<Throwable> throwables;
 
     RunDetails(List<Pokemon> team,
                List<Item> items,
@@ -26,7 +26,7 @@ public class RunDetails {
                Integer timeLeft,
                StageType stageType,
                MoveType moveType,
-               List<Exception> exceptions) {
+               List<Throwable> throwables) {
         this.team = team;
         this.items = items;
         this.stage = stage;
@@ -35,7 +35,7 @@ public class RunDetails {
         this.timeLeft = timeLeft;
         this.stageType = stageType;
         this.moveType = moveType;
-        this.exceptions = exceptions;
+        this.throwables = throwables;
     }
 
     public List<Pokemon> getTeam() {
@@ -86,12 +86,12 @@ public class RunDetails {
         return moveType;
     }
 
-    public List<Exception> getExceptions() {
-        return exceptions;
+    public List<Throwable> getThrowables() {
+        return throwables;
     }
 
-    public boolean hasException() {
-        return exceptions != null && !exceptions.isEmpty();
+    public boolean hasThrowable() {
+        return throwables != null && !throwables.isEmpty();
     }
 
     @Override
@@ -105,7 +105,7 @@ public class RunDetails {
                 ", timeLeft=" + timeLeft +
                 ", stageType=" + stageType +
                 ", moveType=" + moveType +
-                ", exceptions=" + exceptions +
+                ", throwables=" + throwables +
                 '}';
     }
 
@@ -122,12 +122,12 @@ public class RunDetails {
                 Objects.equals(timeLeft, that.timeLeft) &&
                 stageType == that.stageType &&
                 moveType == that.moveType &&
-                Objects.equals(exceptions, that.exceptions);
+                Objects.equals(throwables, that.throwables);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(team, items, stage, score, movesLeft, timeLeft, stageType, moveType, exceptions);
+        return Objects.hash(team, items, stage, score, movesLeft, timeLeft, stageType, moveType, throwables);
     }
 }

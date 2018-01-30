@@ -20,9 +20,9 @@ public class InvalidRunFormatter {
         for (UserRunDetails urd : invalidRuns) {
             RunDetails run = urd.getRunDetails();
             appendStage(sb, run.getStageType(), run.getStage());
-            for (Exception e : run.getExceptions()) {
+            for (Throwable t : run.getThrowables()) {
                 // todo less technical message for ParseExceptions since they're not very useful right now
-                sb.append(e.getMessage()).append("  \n");
+                sb.append(t.getMessage()).append("  \n");
             }
             sb.append("\n\n*****\n\n");
         }

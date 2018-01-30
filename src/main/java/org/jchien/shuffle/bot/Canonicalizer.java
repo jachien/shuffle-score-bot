@@ -30,41 +30,41 @@ public class Canonicalizer {
         void consume() throws FormatException;
     }
 
-    public RunDetails canonicalize(RawRunDetails raw, Map<String, Pokemon> roster, Exception preexistingException) {
-        List<Exception> exceptions = new ArrayList<>();
-        if (preexistingException != null) {
-            exceptions.add(preexistingException);
+    public RunDetails canonicalize(RawRunDetails raw, Map<String, Pokemon> roster, Throwable preexistingThrowable) {
+        List<Throwable> throwables = new ArrayList<>();
+        if (preexistingThrowable != null) {
+            throwables.add(preexistingThrowable);
         }
 
         final RunDetailsBuilder rdb = new RunDetailsBuilder();
 
-        addDetail(exceptions, () -> rdb.setTeam(getTeam(raw.getTeam(), roster)));
+        addDetail(throwables, () -> rdb.setTeam(getTeam(raw.getTeam(), roster)));
 
-        addDetail(exceptions, () -> rdb.setItems(getItems(raw.getItems(), raw.getMoveType())));
+        addDetail(throwables, () -> rdb.setItems(getItems(raw.getItems(), raw.getMoveType())));
 
-        addDetail(exceptions, () -> rdb.setStage(getStage(raw.getStage())));
+        addDetail(throwables, () -> rdb.setStage(getStage(raw.getStage())));
 
-        addDetail(exceptions, () -> rdb.setScore(getScore(raw.getScore())));
+        addDetail(throwables, () -> rdb.setScore(getScore(raw.getScore())));
 
-        addDetail(exceptions, () -> rdb.setMovesLeft(getMovesLeft(raw.getMovesLeft())));
+        addDetail(throwables, () -> rdb.setMovesLeft(getMovesLeft(raw.getMovesLeft())));
 
-        addDetail(exceptions, () -> rdb.setTimeLeft(getTimeLeft(raw.getTimeLeft())));
+        addDetail(throwables, () -> rdb.setTimeLeft(getTimeLeft(raw.getTimeLeft())));
 
-        addDetail(exceptions, () -> rdb.setStageType(raw.getStageType()));
+        addDetail(throwables, () -> rdb.setStageType(raw.getStageType()));
 
-        addDetail(exceptions, () -> rdb.setMoveType(raw.getMoveType()));
+        addDetail(throwables, () -> rdb.setMoveType(raw.getMoveType()));
 
-        rdb.setExceptions(exceptions);
+        rdb.setThrowables(throwables);
 
         return rdb.build();
     }
 
-    private void addDetail(List<Exception> exceptions,
+    private void addDetail(List<Throwable> throwables,
                            DetailConsumer consumer) {
         try {
             consumer.consume();
-        } catch(Exception e) {
-            exceptions.add(e);
+        } catch(Throwable t) {
+            throwables.add(t);
         }
     }
 
