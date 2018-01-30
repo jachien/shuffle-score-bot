@@ -84,9 +84,9 @@ public class SubmissionHandler {
                 CommentNode<PublicContribution<?>> node = it.next();
                 try {
                     processComment(submission, node, botUser);
-                } catch (Exception e) {
+                } catch (Throwable t) {
                     String commentUrl = RedditUtils.getCommentPermalink(submission.getUrl(), node.getSubject().getId());
-                    LOG.warn("unable to process comment " + commentUrl, e);
+                    LOG.error("unable to process comment " + commentUrl, t);
                 }
                 cnt++;
             }
