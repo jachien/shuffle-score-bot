@@ -82,6 +82,10 @@ public class ScoreBot {
                     break;
                 }
 
+                if (submission.isLocked()) {
+                    continue;
+                }
+
                 SubmissionHandler submissionHandler = new SubmissionHandler();
                 submissionHandler.handleSubmission(redditClient, submission);
 
