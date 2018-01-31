@@ -18,7 +18,7 @@ public enum Item {
     TIME_PLUS_10(1000, new String[] { "Time +10", "T+10", "+10 Secs", "+10 seconds", "+10" }),
     MEGA_START(2500, new String[] { "MS", "mega start" }),
     DISRUPTION_DELAY(2000, new String[] { "DD", "disruption delay" }),
-    ATTACK_POWER_UP(5000, new String[] { "APU", "ap+" }),
+    ATTACK_POWER_UP(5000, new String[] { "APU", "ap+", "attack power up", "attack up" }),
     COMPLEXITY_MINUS_1(9500, new String[] { "C-1" }),
     JEWEL(20000, new String[] { "Jewel" }); // since you can buy all items with one jewel, we'll call it the sum of those items
 
