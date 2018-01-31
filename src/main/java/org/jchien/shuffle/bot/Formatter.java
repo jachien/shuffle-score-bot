@@ -1,5 +1,6 @@
 package org.jchien.shuffle.bot;
 
+import org.jchien.shuffle.model.BotComment;
 import org.jchien.shuffle.model.Item;
 import org.jchien.shuffle.model.MoveType;
 import org.jchien.shuffle.model.Pokemon;
@@ -12,7 +13,10 @@ import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.util.Comparator.*;
 
@@ -20,6 +24,59 @@ import static java.util.Comparator.*;
  * @author jchien
  */
 public class Formatter {
+    public final static String SUMMARY_HEADER = "###Run Round-up\n\n";
+
+    public String formatSummary(String submissionUrl, Map<Stage, BotComment> aggregateTableMap) {
+        Set<Stage> stages = aggregateTableMap.keySet();
+
+        StringBuilder sb = new StringBuilder(SUMMARY_HEADER);
+
+        Stage compStage = stages.stream()
+                .filter(s -> StageType.COMPETITION == s.getStageType())
+                .findFirst()
+                .orElse(null);
+
+        List<Stage> ebStages = stages.stream()
+                .filter(s -> StageType.ESCALATION_BATTLE == s.getStageType())
+                .sorted(comparingInt(s -> Integer.parseInt(s.getStageId())))
+                .collect(Collectors.toList());
+
+        List<Stage> normalStages = stages.stream()
+                .filter(s -> StageType.NORMAL == s.getStageType())
+                .sorted(comparing(Stage::getStageId))
+                .collect(Collectors.toList());
+
+        if (compStage != null) {
+            String tableUrl = getTableUrl(submissionUrl, aggregateTableMap, compStage);
+            sb.append("* **[Competition](").append(tableUrl).append(")**\n");
+        }
+
+        if (!ebStages.isEmpty()) {
+            sb.append("* **Escalation Battles**\n");
+            for (Stage stage : ebStages) {
+                String tableUrl = getTableUrl(submissionUrl, aggregateTableMap, stage);
+                sb.append(" * [Stage ").append(stage.getStageId()).append("](").append(tableUrl).append(")\n");
+            }
+        }
+
+        if (!normalStages.isEmpty()) {
+            sb.append("* **Normal / Special / Expert Stages**\n");
+            for (Stage stage : normalStages) {
+                String tableUrl = getTableUrl(submissionUrl, aggregateTableMap, stage);
+                sb.append(" * [");
+                appendCapitalizedWords(sb, stage.getStageId());
+                sb.append("](").append(tableUrl).append(")\n");
+            }
+        }
+
+        return sb.toString();
+    }
+
+    private String getTableUrl(String submissionUrl, Map<Stage, BotComment> aggregateTableMap, Stage stage) {
+        BotComment comment = aggregateTableMap.get(stage);
+        return RedditUtils.getCommentPermalink(submissionUrl, comment.getCommentId());
+    }
+
     public final static String COMP_HEADER_PREFIX = "###Competition Runs";
     private static final String COMP_TABLE_HEADER = "\n\n" +
             "Username | Team | Items | Score\n" +

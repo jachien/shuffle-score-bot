@@ -2,6 +2,7 @@ package org.jchien.shuffle.bot;
 
 import com.google.common.collect.Sets;
 import net.dean.jraw.RedditClient;
+import net.dean.jraw.models.Comment;
 import net.dean.jraw.models.PublicContribution;
 import net.dean.jraw.models.Submission;
 import net.dean.jraw.references.InboxReference;
@@ -31,6 +32,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.*;
@@ -48,8 +50,13 @@ public class SubmissionHandler {
     // stage -> runs
     private Map<Stage, List<UserRunDetails>> stageMap = new TreeMap<>(STAGE_ID_COMPARATOR);
 
+    private BotComment summaryComment = null;
+
     // stage -> bot comment data
     private Map<Stage, BotComment> aggregateTableMap = new TreeMap<>(STAGE_ID_COMPARATOR);
+
+    // temporary list for removing old tables
+    private List<BotComment> deprecatedAggregateTableMap = new ArrayList<>();
 
     // user comment id -> bot reply
     private Map<String, BotComment> botReplyMap = new TreeMap<>();
@@ -61,12 +68,16 @@ public class SubmissionHandler {
 
     private CommentHandler commentHandler = new CommentHandler();
 
+    private Formatter formatter = new Formatter();
+
     public void handleSubmission(RedditClient redditClient, Submission submission) {
         processComments(redditClient, submission);
 
         writeAggregateTables(redditClient, submission.getId(), submission.getUrl());
 
         removeEmptyAggregateTables(redditClient);
+
+        removeDeprecatedAggregateTables(redditClient);
 
         writeBotReplies(redditClient, submission.getUrl());
     }
@@ -138,8 +149,7 @@ public class SubmissionHandler {
                       comment.getCreated(),
                       comment.getEdited());
         } else {
-            cacheAggregateTables(comment.getId(), commentBody);
-            cacheBotReplies(comment.getId(), commentBody, parentId, submission.getId());
+            cacheComment(comment.getId(), commentBody, parentId, submission.getId());
         }
     }
 
@@ -235,52 +245,112 @@ public class SubmissionHandler {
         stageRuns.add(urd);
     }
 
-    private void cacheAggregateTables(String commentId, String commentBody) {
+    private void cacheComment(String commentId, String commentBody, String parentId, String submissionId) {
+        boolean isSummaryTable = cacheSummaryTable(commentId, commentBody);
+
+        boolean isAggregateTable = cacheAggregateTable(commentId, commentBody, parentId, submissionId);
+
+        if (!isSummaryTable && !isAggregateTable) {
+            cacheBotReply(commentId, commentBody, parentId);
+        }
+    }
+
+    // return true if this comment was a summary table
+    private boolean cacheSummaryTable(String commentId, String commentBody) {
+        if (commentHandler.isSummaryComment(commentBody)) {
+            summaryComment = new BotComment(commentId, commentBody);
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("found summary table, id = " + commentId);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    // return true if this comment was an aggregate table
+    private boolean cacheAggregateTable(String commentId, String commentBody, String parentId, String submissionId) {
         Stage stage = commentHandler.getAggregateStage(commentBody);
 
         if (stage == null) {
-            return;
+            return false;
         }
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("found stage " + stage + " from comment " + commentId);
         }
 
-        aggregateTableMap.put(stage, new BotComment(commentId, commentBody));
-    }
-
-    private void cacheBotReplies(String commentId, String commentBody, String parentId, String submissionId) {
-        if (Objects.equals(parentId, submissionId) || parentId == null) {
-            // this is a top level reply, so it's an aggregate table
-            return;
+        if (Objects.equals(parentId, submissionId)) {
+            deprecatedAggregateTableMap.add(new BotComment(commentId, commentBody));
+        } else {
+            aggregateTableMap.put(stage, new BotComment(commentId, commentBody));
         }
 
+        return true;
+    }
+
+    private void cacheBotReply(String commentId, String commentBody, String parentId) {
         botReplyMap.put(parentId, new BotComment(commentId, commentBody));
     }
 
-    private void writeAggregateTables(RedditClient redditClient, String submissionId, String submissionUrl) {
-        for (Map.Entry<Stage, List<UserRunDetails>> entry : stageMap.entrySet()) {
-            Stage stage = entry.getKey();
-            List<UserRunDetails> runs = entry.getValue();
-            try {
-                writeAggregateTable(redditClient, submissionId, submissionUrl, stage, runs);
-            } catch (Exception e) {
-                LOG.error("failed to write table for stage " + stage + " at " + submissionUrl);
+    private BotComment createSummaryTable(RedditClient redditClient, String submissionId) {
+        Comment comment = redditClient.submission(submissionId).reply(Formatter.SUMMARY_HEADER);
+        return new BotComment(comment.getId(), comment.getBody());
+    }
+
+    private void updateSummaryTable(RedditClient redditClient, String submissionUrl) {
+        Map<Stage, BotComment> nonEmptyTableMap = aggregateTableMap.keySet()
+                .stream()
+                .filter(key -> stageMap.containsKey(key))
+                .collect(Collectors.toMap(Function.identity(), key -> aggregateTableMap.get(key)));
+
+        String summaryTable = formatter.formatSummary(submissionUrl, nonEmptyTableMap);
+        if (!Objects.equals(summaryComment.getContent(), summaryTable)) {
+            if (LOG.isDebugEnabled()) {
+                String url = RedditUtils.getCommentPermalink(submissionUrl, summaryComment.getCommentId());
+                LOG.debug("updating summary comment at " + url);
+            }
+            redditClient.comment(summaryComment.getCommentId()).edit(summaryTable);
+        } else {
+            if (LOG.isDebugEnabled()) {
+                String url = RedditUtils.getCommentPermalink(submissionUrl, summaryComment.getCommentId());
+                LOG.debug("summary comment already up-to-date at " + url);
             }
         }
     }
 
+    private void writeAggregateTables(RedditClient redditClient, String submissionId, String submissionUrl) {
+        if (!stageMap.isEmpty() && summaryComment == null) {
+            summaryComment = createSummaryTable(redditClient, submissionId);
+        }
+
+        for (Map.Entry<Stage, List<UserRunDetails>> entry : stageMap.entrySet()) {
+            Stage stage = entry.getKey();
+            List<UserRunDetails> runs = entry.getValue();
+            try {
+                writeAggregateTable(redditClient, submissionUrl, stage, runs);
+            } catch (Exception e) {
+                LOG.error("failed to write table for stage " + stage + " at " + submissionUrl);
+            }
+        }
+
+        if (summaryComment != null) {
+            // if all the runs got deleted from a submission, we still need to update the summary table
+            updateSummaryTable(redditClient, submissionUrl);
+        }
+    }
+
     private void writeAggregateTable(RedditClient redditClient,
-                                     String submissionId,
                                      String submissionUrl,
                                      Stage stage,
                                      List<UserRunDetails> runs) {
-        Formatter f = new Formatter();
         final String commentBody;
         if (stage.getStageType() == StageType.COMPETITION) {
-            commentBody = f.formatCompetitionRun(runs, submissionUrl);
+            commentBody = formatter.formatCompetitionRun(runs, submissionUrl);
         } else {
-            commentBody = f.formatStage(runs, stage, submissionUrl);
+            commentBody = formatter.formatStage(runs, stage, submissionUrl);
         }
 
         LOG.debug("generated comment:\n" + commentBody);
@@ -292,7 +362,7 @@ public class SubmissionHandler {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("no comment for " + stage + " yet in " + submissionUrl + ", creating new comment");
             }
-            redditClient.submission(submissionId).reply(commentBody);
+            redditClient.comment(summaryComment.getCommentId()).reply(commentBody);
         } else if (!Objects.equals(existing.getContent(), commentBody)) {
             // we've already written a comment for this stage but it's outdated
 
@@ -317,6 +387,18 @@ public class SubmissionHandler {
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("removing empty aggregate table with comment id " + commentId);
+            }
+
+            redditClient.comment(commentId).delete();
+        }
+    }
+
+    private void removeDeprecatedAggregateTables(RedditClient redditClient) {
+        for (BotComment comment : deprecatedAggregateTableMap) {
+            String commentId = comment.getCommentId();
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("removing deprecated aggregate table with comment id " + commentId);
             }
 
             redditClient.comment(commentId).delete();

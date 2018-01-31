@@ -139,4 +139,12 @@ public class CommentHandler {
 
         return null;
     }
+
+    public boolean isSummaryComment(String comment) {
+        // assumes the we've already checked that the configured bot user is the commenter
+        if (comment.startsWith(Formatter.SUMMARY_HEADER)) {
+            return true;
+        }
+        return false;
+    }
 }
