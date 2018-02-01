@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -50,9 +49,6 @@ public class BotCommentHandler {
 
     // stage -> bot comment data
     private Map<Stage, BotComment> aggregateTableMap = new TreeMap<>(STAGE_ID_COMPARATOR);
-
-    // temporary list for removing old tables
-    private List<BotComment> deprecatedAggregateTableMap = new ArrayList<>();
 
     // user comment id -> bot reply
     private Map<String, BotComment> botReplyMap = new TreeMap<>();
@@ -105,11 +101,7 @@ public class BotCommentHandler {
             LOG.debug("found stage " + stage + " from comment " + commentId);
         }
 
-        if (Objects.equals(parentId, submissionId)) {
-            deprecatedAggregateTableMap.add(new BotComment(commentId, commentBody));
-        } else {
-            aggregateTableMap.put(stage, new BotComment(commentId, commentBody));
-        }
+        aggregateTableMap.put(stage, new BotComment(commentId, commentBody));
 
         return true;
     }
@@ -124,8 +116,6 @@ public class BotCommentHandler {
         writeAggregateTables(stageMap);
 
         removeEmptyAggregateTables(stageMap);
-
-        removeDeprecatedAggregateTables();
 
         writeBotReplies(authorMap, invalidRunMap);
     }
@@ -224,18 +214,6 @@ public class BotCommentHandler {
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("removing empty aggregate table with comment id " + commentId);
-            }
-
-            redditClient.comment(commentId).delete();
-        }
-    }
-
-    private void removeDeprecatedAggregateTables() {
-        for (BotComment comment : deprecatedAggregateTableMap) {
-            String commentId = comment.getCommentId();
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("removing deprecated aggregate table with comment id " + commentId);
             }
 
             redditClient.comment(commentId).delete();
