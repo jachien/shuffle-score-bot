@@ -332,7 +332,7 @@ public class SubmissionHandler {
             try {
                 writeAggregateTable(redditClient, submissionUrl, stage, runs);
             } catch (Exception e) {
-                LOG.error("failed to write table for stage " + stage + " at " + submissionUrl);
+                LOG.error("failed to write table for stage " + stage + " at " + submissionUrl, e);
             }
         }
 
