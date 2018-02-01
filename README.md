@@ -86,3 +86,56 @@ All of the following are valid:
 M-Diancie (10/10)
 M-Diancie (10 / 10)
 ```
+
+### Items section
+Items consist of one or more items, separated by commas.
+```
+Items: M+5, MS, DD, APU, C-1, Jewel
+```
+
+#### Itemless runs
+You can specify that no items were used. 
+```
+Items: none
+```
+
+If you do not include an `items:` section will report "unknown items" for your entry and rank it below all runs that specified items used for non-competition stages.
+
+#### Jewels
+You can include multiple Jewels.
+```
+Items: M+5, MS, DD, APU, C-1, Jewel, Jewel
+```
+
+#### Items and Aliases
+The following are all supported within the `items:` section.
+
+* None
+* Itemless
+* No Items
+---
+* Moves +5
+* M+5
+* +5 Moves
+* +5
+---
+* Time +10
+* T+10
+* +10 Secs
+* +10 Seconds
+* +10
+---
+* MS
+* Mega Start
+---
+* DD
+* Disruption Delay
+---
+* APU
+* AP+
+* Attack Power Up
+* Attack Up
+---
+* C-1
+---
+* Jewel
