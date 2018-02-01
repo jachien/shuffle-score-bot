@@ -41,16 +41,28 @@ public class CanonicalizerTest {
             String s = "lv" + String.valueOf(lvl);
             assertEquals(lvl, c.getLevel(s));
 
+            s = "lvl" + String.valueOf(lvl);
+            assertEquals(lvl, c.getLevel(s));
+
             // space between is okay
             s = "lv " + String.valueOf(lvl);
+            assertEquals(lvl, c.getLevel(s));
+
+            s = "lvl " + String.valueOf(lvl);
             assertEquals(lvl, c.getLevel(s));
 
             // multiple spaces between is okay
             s = "lv  " + String.valueOf(lvl);
             assertEquals(lvl, c.getLevel(s));
 
+            s = "lvl  " + String.valueOf(lvl);
+            assertEquals(lvl, c.getLevel(s));
+
             // case insensitive
             s = "LV " + String.valueOf(lvl);
+            assertEquals(lvl, c.getLevel(s));
+
+            s = "LVL " + String.valueOf(lvl);
             assertEquals(lvl, c.getLevel(s));
         }
     }
@@ -59,7 +71,6 @@ public class CanonicalizerTest {
     public void testGetLevel_BadValues() {
         Canonicalizer c = new Canonicalizer();
         assertThrows(FormatException.class, () -> c.getLevel("-1"));
-        assertThrows(FormatException.class, () -> c.getLevel("lvl 1"));
         assertThrows(FormatException.class, () -> c.getLevel("one"));
         assertThrows(FormatException.class, () -> c.getLevel(""));
         assertThrows(FormatException.class, () -> c.getLevel("(1)"));

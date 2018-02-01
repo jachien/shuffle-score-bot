@@ -97,8 +97,7 @@ public class Canonicalizer {
         return raw;
     }
 
-
-    private static final Pattern LEVEL_PATTERN = Pattern.compile("(?:lv\\s*)?(\\d+)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern LEVEL_PATTERN = Pattern.compile("(?:lvl?\\s*)?(\\d+)", Pattern.CASE_INSENSITIVE);
 
     @VisibleForTesting
     Integer getLevel(String raw) throws FormatException {
