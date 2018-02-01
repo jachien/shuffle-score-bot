@@ -10,6 +10,7 @@ import net.dean.jraw.models.SubredditSort;
 import net.dean.jraw.oauth.Credentials;
 import net.dean.jraw.oauth.OAuthHelper;
 import net.dean.jraw.pagination.Paginator;
+import org.jchien.shuffle.handler.SubmissionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,8 +87,8 @@ public class ScoreBot {
                     continue;
                 }
 
-                SubmissionHandler submissionHandler = new SubmissionHandler();
-                submissionHandler.handleSubmission(redditClient, submission);
+                SubmissionHandler submissionHandler = new SubmissionHandler(redditClient, submission);
+                submissionHandler.handleSubmission();
 
                 totalThreads++;
                 totalComments += submission.getCommentCount();

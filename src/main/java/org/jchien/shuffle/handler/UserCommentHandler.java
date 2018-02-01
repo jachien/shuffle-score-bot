@@ -1,10 +1,14 @@
-package org.jchien.shuffle.bot;
+package org.jchien.shuffle.handler;
 
+import net.dean.jraw.models.PublicContribution;
+import org.jchien.shuffle.bot.Canonicalizer;
 import org.jchien.shuffle.model.FormatException;
+import org.jchien.shuffle.model.ParsedComment;
 import org.jchien.shuffle.model.Pokemon;
 import org.jchien.shuffle.model.RunDetails;
-import org.jchien.shuffle.model.Stage;
+import org.jchien.shuffle.model.RunDetailsBuilder;
 import org.jchien.shuffle.model.StageType;
+import org.jchien.shuffle.model.UserRunDetails;
 import org.jchien.shuffle.parser.ParseException;
 import org.jchien.shuffle.parser.ParseExceptionUtils;
 import org.jchien.shuffle.parser.RawRunDetails;
@@ -15,23 +19,88 @@ import org.slf4j.LoggerFactory;
 
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
+ * Parses runs from a single comment.
+ *
  * @author jchien
  */
-public class CommentHandler {
-    private static final Logger LOG = LoggerFactory.getLogger(CommentHandler.class);
+public class UserCommentHandler {
+    private static final Logger LOG = LoggerFactory.getLogger(UserCommentHandler.class);
 
     private Canonicalizer canonicalizer = new Canonicalizer();
 
+    private final PublicContribution<?> comment;
+
+    private final String commentBody;
+
+    public UserCommentHandler(PublicContribution<?> comment, String commentBody) {
+        this.comment = comment;
+        this.commentBody = commentBody;
+    }
+
     private interface BlockConsumer {
         void accept(String comment) throws FormatException, ParseException;
+    }
+
+    public ParsedComment parseRuns() {
+        Throwable rosterThrowable = null;
+        Map<String, Pokemon> roster;
+        try {
+            roster = getRoster(commentBody);
+        } catch (Throwable t) {
+            roster = new LinkedHashMap<>();
+            rosterThrowable = t;
+        }
+
+        List<RunDetails> runs = getRunDetails(commentBody, roster);
+
+        List<UserRunDetails> validRuns = getValidRuns(runs, comment.getAuthor(), comment.getId());
+
+        List<UserRunDetails> invalidRuns = getInvalidRuns(runs, comment.getAuthor(), comment.getId(), rosterThrowable);
+
+        return new ParsedComment(validRuns, invalidRuns);
+    }
+
+    private List<UserRunDetails> getValidRuns(List<RunDetails> runs,
+                                              String commentAuthor,
+                                              String commentId) {
+        return runs.stream()
+                .filter(run -> !run.hasThrowable())
+                .map(run -> new UserRunDetails(commentAuthor, commentId, run))
+                .collect(Collectors.toList());
+    }
+
+    private List<UserRunDetails> getInvalidRuns(List<RunDetails> runs,
+                                                String commentAuthor,
+                                                String commentId,
+                                                Throwable rosterThrowable) {
+
+        List<UserRunDetails> ret = new ArrayList<>();
+
+        if (rosterThrowable != null) {
+            RunDetails rosterDetails = new RunDetailsBuilder()
+                    .setStageType(StageType.ROSTER)
+                    .setThrowables(Arrays.asList(rosterThrowable))
+                    .build();
+            UserRunDetails rosterUrd = new UserRunDetails(commentAuthor, commentId, rosterDetails);
+            ret.add(rosterUrd);
+        }
+
+        runs.stream()
+                .filter(RunDetails::hasThrowable)
+                .map(run -> new UserRunDetails(commentAuthor, commentId, run))
+                .forEach(ret::add);
+
+        return ret;
     }
 
     public void processBlock(String comment,
@@ -116,35 +185,5 @@ public class CommentHandler {
         processBlock(comment, ROSTER_PATTERN, rosterConsumer, multiBlockExceptionSupplier);
 
         return roster;
-    }
-
-    private static final Pattern STAGE_PATTERN = Pattern.compile("^" + Formatter.STAGE_HEADER_PREFIX + "(.+)\n");
-    public Stage getAggregateStage(String comment) {
-        // assumes the we've already checked that the configured bot user is the commenter
-
-        if (comment.startsWith(Formatter.COMP_HEADER_PREFIX)) {
-            return new Stage(StageType.COMPETITION, null);
-        }
-
-        Matcher m = STAGE_PATTERN.matcher(comment);
-        if (m.find()) {
-            String stageId = Stage.normalizeStageId(m.group(1));
-            try {
-                Integer.parseInt(stageId);
-                return new Stage(StageType.ESCALATION_BATTLE, stageId);
-            } catch (NumberFormatException e) {
-                return new Stage(StageType.NORMAL, stageId);
-            }
-        }
-
-        return null;
-    }
-
-    public boolean isSummaryComment(String comment) {
-        // assumes the we've already checked that the configured bot user is the commenter
-        if (comment.startsWith(Formatter.SUMMARY_HEADER)) {
-            return true;
-        }
-        return false;
     }
 }
