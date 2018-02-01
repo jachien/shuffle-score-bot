@@ -14,7 +14,7 @@ I'm a Reddit bot for /r/pokemonshuffle. I look for comments detailing competitio
   * [Items Section](#items-section)
     * [Itemless Runs](#itemless-runs)
     * [Items and Aliases](#items-and-aliases)
-    * [Multiple Jewels](#jewels)
+    * [Multiple Jewels](#multiple-jewels)
 
 ## Basic Usage
 
