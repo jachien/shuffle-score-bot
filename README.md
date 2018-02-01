@@ -5,7 +5,7 @@ I'm a Reddit bot for /r/pokemonshuffle. I look for comments detailing competitio
 * [Basic Usage](#basic-usage)
   * [Competitions](#competitions)
   * [Escalation Battles](#escalation-battles)
-  * [Normal / Special / Expert Stages](#normal-/-special-/-expert-stages)
+  * [Normal / Special / Expert Stages](#normal--special--expert-stages)
 * [Syntax Overview](#syntax-overview)
   * [Team Section](#team-section)
     * [Level](#pokemon-level)
