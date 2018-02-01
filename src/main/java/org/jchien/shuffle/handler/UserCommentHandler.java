@@ -48,7 +48,7 @@ public class UserCommentHandler {
     }
 
     private interface BlockConsumer {
-        void accept(String comment) throws FormatException, ParseException;
+        void accept(String comment) throws FormatException;
     }
 
     public ParsedComment parseRuns() {
@@ -106,7 +106,7 @@ public class UserCommentHandler {
     public void processBlock(String comment,
                              Pattern pattern,
                              BlockConsumer consumer,
-                             Supplier<FormatException> multiBlockExceptionSupplier) throws FormatException, ParseException {
+                             Supplier<FormatException> multiBlockExceptionSupplier) throws FormatException {
         Matcher m = pattern.matcher(comment);
 
         boolean first = true;
@@ -157,7 +157,7 @@ public class UserCommentHandler {
 
         try {
             processBlock(comment, PATTERN, runConsumer, null);
-        } catch (FormatException | ParseException e) {
+        } catch (FormatException e) {
             // we handle exceptions rather than bubble them up
             throw new IllegalStateException("no exceptions should have been thrown");
         }
@@ -166,12 +166,16 @@ public class UserCommentHandler {
     }
 
     static final Pattern ROSTER_PATTERN = Pattern.compile("(?:^|\\s)(?:!roster)\\b.*?!end\\b", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    public Map<String, Pokemon> getRoster(String comment) throws FormatException, ParseException {
+    public Map<String, Pokemon> getRoster(String comment) throws FormatException {
         final Map<String, Pokemon> roster = new LinkedHashMap<>();
 
         BlockConsumer rosterConsumer = block -> {
             RunParser p = new RunParser(new StringReader(block));
-            p.roster();
+            try {
+                p.roster();
+            } catch (ParseException e) {
+                throw ParseExceptionUtils.getFormatException(e);
+            }
             // reuse RawRunDetails and canonicalizer to just get the team
             // not the cleanest but it's already written and should work
             RawRunDetails rawRoster = p.getDetails();
