@@ -16,6 +16,14 @@ public class ParseExceptionUtils {
                     if (s.startsWith("\"") && s.endsWith("\"")) {
                         return s.substring(1, s.length() - 1);
                     }
+
+                    // convert these token names to a more friendly string
+                    if ("<MOVES_LEFT_HEADER>".equals(s)) {
+                        return "MOVES LEFT:";
+                    } else if ("<TIME_LEFT_HEADER>".equals(s)) {
+                        return "TIME LEFT:";
+                    }
+
                     return s;
                 })
                 .toArray(String[]::new);
