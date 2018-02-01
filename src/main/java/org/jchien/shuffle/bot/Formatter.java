@@ -122,6 +122,9 @@ public class Formatter {
         Function<UserRunDetails, Integer> itemsCost = r -> r.getRunDetails().getItemsCost();
         Function<UserRunDetails, Integer> unitsLeft = urd -> {
             RunDetails r = urd.getRunDetails();
+            if (r.getMoveType() == null) {
+                return null;
+            }
             switch (r.getMoveType()) {
                 case MOVES: return r.getMovesLeft();
                 case TIME: return r.getTimeLeft();
