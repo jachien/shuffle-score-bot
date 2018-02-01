@@ -1,9 +1,24 @@
 # Shuffle Score Bot
 I'm a Reddit bot for /r/pokemonshuffle. I look for comments detailing competition, escalation battle, and other stage runs and generate tables with everyone's aggregate info. The syntax tries to be flexible, here are several examples.
 
+## Contents
+* [Basic Usage](#basic-usage)
+  * [Competitions](#competitions)
+  * [Escalation Battles](#escalation-battles)
+  * [Normal / Special / Expert Stages](#normal-/-special-/-expert-stages)
+* [Syntax Overview](#syntax-overview)
+  * [Team Section](#team-section)
+    * [Level](#pokemon-level)
+    * [Skill](#pokemon-skill)
+    * [MSUs](#msus)
+  * [Items Section](#items-section)
+    * [Itemless Runs](#itemless-runs)
+    * [Items and Aliases](#items-and-aliases)
+    * [Multiple Jewels](#jewels)
+
 ## Basic Usage
 
-### Competition Run
+### Competitions
 ```
 !comp
 Team: M-Ttar (Lv10), A-Ninetales (Lv12, SL4), Vanilluxe (Lv15, SL5 Shot Out), Silvally (Lv15, SL5)
@@ -12,7 +27,7 @@ Score: 124,018
 !end
 ```
 
-### Escalation Battle
+### Escalation Battles
 ```
 !roster M-Bee (Lv7, Swap++ SL5, 12/12), SMCX (SL1, 15/15), A-Greninja (Lv15, UP SL5), Flygon (Lv15, Shot Out SL5) !end
 
@@ -29,7 +44,7 @@ Moves left: 1
 !end  
 ```
 
-### Normal Stage
+### Normal / Special / Expert Stages
 ```
 !run Arcanine
 Team: SMCX (SL1, 15/15), Lando-T (SL5), Flygon (Lv15), Dugtrio (Block Shot)     
@@ -101,12 +116,6 @@ Items: none
 
 If you do not include an `items:` section will report "unknown items" for your entry and rank it below all runs that specified items used for non-competition stages.
 
-#### Jewels
-You can include multiple Jewels.
-```
-Items: M+5, MS, DD, APU, C-1, Jewel, Jewel
-```
-
 #### Items and Aliases
 The following are all supported within the `items:` section.
 
@@ -153,3 +162,9 @@ The following are all supported within the `items:` section.
 ---
 
 * Jewel
+
+#### Multiple Jewels
+You can include multiple Jewels.
+```
+Items: M+5, MS, DD, APU, C-1, Jewel, Jewel
+```
