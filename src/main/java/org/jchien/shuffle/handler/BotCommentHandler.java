@@ -24,10 +24,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.nullsFirst;
@@ -47,7 +45,7 @@ public class BotCommentHandler {
             comparing(Stage::getStageType)
             .thenComparing(Stage::getStageId, nullsFirst(String.CASE_INSENSITIVE_ORDER));
 
-    // stage -> bot comment data
+    // map of all aggregate tables as they are BEFORE any writes or updates from this run
     private Map<Stage, BotComment> aggregateTableMap = new TreeMap<>(STAGE_ID_COMPARATOR);
 
     // user comment id -> bot reply
@@ -125,14 +123,9 @@ public class BotCommentHandler {
         return new BotComment(comment.getId(), comment.getBody());
     }
 
-    private void updateSummaryTable(Map<Stage, List<UserRunDetails>> stageMap) {
-        Map<Stage, BotComment> nonEmptyTableMap = aggregateTableMap.keySet()
-                .stream()
-                .filter(key -> stageMap.containsKey(key))
-                .collect(Collectors.toMap(Function.identity(), key -> aggregateTableMap.get(key)));
-
+    private void updateSummaryTable(Map<Stage, BotComment> latestAggregateTableMap) {
         String submissionUrl = submission.getUrl();
-        String summaryTable = formatter.formatSummary(submissionUrl, nonEmptyTableMap);
+        String summaryTable = formatter.formatSummary(submissionUrl, latestAggregateTableMap);
         if (!Objects.equals(summaryComment.getContent(), summaryTable)) {
             if (LOG.isDebugEnabled()) {
                 String url = RedditUtils.getCommentPermalink(submissionUrl, summaryComment.getCommentId());
@@ -152,12 +145,16 @@ public class BotCommentHandler {
             summaryComment = createSummaryTable();
         }
 
+        // map of all aggregate tables after writes and updates
+        Map<Stage, BotComment> latestAggregateTableMap = new TreeMap<>(STAGE_ID_COMPARATOR);
+
         for (Map.Entry<Stage, List<UserRunDetails>> entry : stageMap.entrySet()) {
             Stage stage = entry.getKey();
             List<UserRunDetails> runs = entry.getValue();
 
             try {
-                writeAggregateTable(stage, runs);
+                BotComment latestComment = writeAggregateTable(stage, runs);
+                latestAggregateTableMap.put(stage, latestComment);
             } catch (Exception e) {
                 LOG.error("failed to write table for stage " + stage + " at " + submission.getUrl(), e);
             }
@@ -165,12 +162,12 @@ public class BotCommentHandler {
 
         if (summaryComment != null) {
             // if all the runs got deleted from a submission, we still need to update the summary table
-            updateSummaryTable(stageMap);
+            updateSummaryTable(latestAggregateTableMap);
         }
     }
 
-    private void writeAggregateTable(Stage stage,
-                                     List<UserRunDetails> runs) {
+    private BotComment writeAggregateTable(Stage stage,
+                                           List<UserRunDetails> runs) {
         String submissionUrl = submission.getUrl();
 
         final String commentBody;
@@ -189,7 +186,8 @@ public class BotCommentHandler {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("no comment for " + stage + " yet in " + submissionUrl + ", creating new comment");
             }
-            redditClient.comment(summaryComment.getCommentId()).reply(commentBody);
+            Comment reply = redditClient.comment(summaryComment.getCommentId()).reply(commentBody);
+            return new BotComment(reply.getId(), commentBody);
         } else if (!Objects.equals(existing.getContent(), commentBody)) {
             // we've already written a comment for this stage but it's outdated
 
@@ -198,11 +196,13 @@ public class BotCommentHandler {
                                   ", updating comment " + existing.getCommentId());
             }
             redditClient.comment(existing.getCommentId()).edit(commentBody);
+            return new BotComment(existing.getCommentId(), commentBody);
         } else {
             // no need to write anything, existing bot comment already has correct content
             if (LOG.isDebugEnabled()) {
                 LOG.debug("comment for " + stage + " already up to date in " + submissionUrl);
             }
+            return existing;
         }
     }
 
