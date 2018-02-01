@@ -21,7 +21,6 @@ public class InvalidRunFormatter {
             RunDetails run = urd.getRunDetails();
             appendStage(sb, run.getStageType(), run.getStage());
             for (Throwable t : run.getThrowables()) {
-                // todo less technical message for ParseExceptions since they're not very useful right now
                 sb.append(t.getMessage()).append("  \n");
             }
             sb.append("\n\n*****\n\n");
