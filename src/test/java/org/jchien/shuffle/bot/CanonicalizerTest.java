@@ -447,7 +447,7 @@ public class CanonicalizerTest {
             List<Item> expected = (List<Item>) test[1];
             // order does matter
             // MoveType argument not important for this test
-            assertEquals(expected, c.getItems(input, MoveType.MOVES));
+            assertEquals(expected, c.getItems(input));
         }
     }
 
@@ -464,8 +464,8 @@ public class CanonicalizerTest {
         final List<Item> noItems = new ArrayList<>();
 
         for (String alias : noneAliases) {
-            assertEquals(noItems, c.getItems(Arrays.asList(alias), MoveType.MOVES));
-            assertEquals(noItems, c.getItems(Arrays.asList(alias), MoveType.TIME));
+            assertEquals(noItems, c.getItems(Arrays.asList(alias)));
+            assertEquals(noItems, c.getItems(Arrays.asList(alias)));
         }
     }
 
@@ -518,27 +518,7 @@ public class CanonicalizerTest {
             List<Item> expected = (List<Item>) test[1];
             // order does matter
             // MoveType argument not important for this test
-            assertEquals(expected, c.getItems(input, MoveType.MOVES));
-        }
-    }
-
-    @Test
-    public void testGetItems_Full() throws FormatException {
-        Canonicalizer c = new Canonicalizer();
-
-        String[] fullAliases = {
-                "all",
-                "full",
-                "full items",
-                "full item run",
-        };
-
-        final List<Item> fullItemsMoves = new ArrayList<>(Item.getFullItems(MoveType.MOVES));
-        final List<Item> fullItemsTime = new ArrayList<>(Item.getFullItems(MoveType.TIME));
-
-        for (String alias : fullAliases) {
-            assertEquals(fullItemsMoves, c.getItems(Arrays.asList(alias), MoveType.MOVES));
-            assertEquals(fullItemsTime, c.getItems(Arrays.asList(alias), MoveType.TIME));
+            assertEquals(expected, c.getItems(input));
         }
     }
 
@@ -555,12 +535,11 @@ public class CanonicalizerTest {
                 { "m+5", "none" },
                 { "full", "m+5" },
                 { "none", "m+5" },
-                { "itemless", "all" },
-                { "full", "all" },
+                { "itemless", "m+5" },
         };
 
         for (String[] input : inputs) {
-            assertThrows(FormatException.class, () -> c.getItems(Arrays.asList(input), MoveType.MOVES));
+            assertThrows(FormatException.class, () -> c.getItems(Arrays.asList(input)));
         }
     }
 

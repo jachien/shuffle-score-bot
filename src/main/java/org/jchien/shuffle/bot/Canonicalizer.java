@@ -40,7 +40,7 @@ public class Canonicalizer {
 
         addDetail(throwables, () -> rdb.setTeam(getTeam(raw.getTeam(), roster)));
 
-        addDetail(throwables, () -> rdb.setItems(getItems(raw.getItems(), raw.getMoveType())));
+        addDetail(throwables, () -> rdb.setItems(getItems(raw.getItems())));
 
         addDetail(throwables, () -> rdb.setStage(getStage(raw.getStage())));
 
@@ -231,7 +231,7 @@ public class Canonicalizer {
     }
 
     @VisibleForTesting
-    List<Item> getItems(List<String> raw, MoveType moveType) throws FormatException {
+    List<Item> getItems(List<String> raw) throws FormatException {
         if (raw == null) {
             return null;
         }
@@ -244,14 +244,6 @@ public class Canonicalizer {
                     || "no items".equalsIgnoreCase(rawItem)) {
                 return new ArrayList<>(EnumSet.noneOf(Item.class));
             }
-
-            if ("all".equalsIgnoreCase(rawItem)
-                    || "full".equalsIgnoreCase(rawItem)
-                    || "full items".equalsIgnoreCase(rawItem)
-                    || "full item run".equalsIgnoreCase(rawItem)) {
-                // people don't generally include a jewel when they say full item run
-                return new ArrayList<>(Item.getFullItems(moveType));
-            }
         }
 
         List<Item> ret = new ArrayList<>();
@@ -259,7 +251,7 @@ public class Canonicalizer {
             try {
                 ret.add(Item.get(rawItem));
             } catch (NoSuchElementException e) {
-                // not going to worry about a nicer error message for silliness like "items: none, all"
+                // not going to worry about a nicer error message for silliness like "items: none, m+5"
                 throw new FormatException("No such item: \"" + rawItem + "\"");
             }
         }

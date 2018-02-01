@@ -77,20 +77,6 @@ public enum Item {
         return ret;
     }
 
-    public static Set<Item> getFullItems(MoveType moveType) {
-        if (moveType == null) {
-            // this isn't always right, but it'll be right most of the time
-            // happens if they didn't specify time left nor moves left and used full items
-            return FULL_ITEMS_MOVES;
-        }
-
-        switch (moveType) {
-            case MOVES: return FULL_ITEMS_MOVES;
-            case TIME: return FULL_ITEMS_TIMED;
-            default: throw new IllegalArgumentException("unsupported MoveType " + moveType);
-        }
-    }
-
     private static String removeSpaces(String s) {
         return s.replaceAll("\\s+", "");
     }
