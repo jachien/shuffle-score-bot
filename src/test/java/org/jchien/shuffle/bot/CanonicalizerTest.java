@@ -2,7 +2,6 @@ package org.jchien.shuffle.bot;
 
 import org.jchien.shuffle.model.FormatException;
 import org.jchien.shuffle.model.Item;
-import org.jchien.shuffle.model.MoveType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

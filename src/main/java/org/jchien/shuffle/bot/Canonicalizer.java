@@ -3,7 +3,6 @@ package org.jchien.shuffle.bot;
 import com.google.common.annotations.VisibleForTesting;
 import org.jchien.shuffle.model.FormatException;
 import org.jchien.shuffle.model.Item;
-import org.jchien.shuffle.model.MoveType;
 import org.jchien.shuffle.model.Pokemon;
 import org.jchien.shuffle.model.RunDetails;
 import org.jchien.shuffle.model.RunDetailsBuilder;
