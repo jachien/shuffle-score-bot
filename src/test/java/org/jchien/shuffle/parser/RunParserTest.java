@@ -157,6 +157,9 @@ public class RunParserTest {
                 "LV 15",
                 "LV  15",
                 "lV\t15",
+                "lvl15",
+                "lvl 15",
+                "lvl\t15",
         };
 
         for (String inputMiddle : inputs) {
@@ -257,16 +260,22 @@ public class RunParserTest {
             assertTrue(p.isLevel(Integer.toString(i)));
             assertTrue(p.isLevel("lv" + Integer.toString(i)));
             assertTrue(p.isLevel("Lv" + Integer.toString(i)));
+            assertTrue(p.isLevel("Lvl" + Integer.toString(i)));
             assertTrue(p.isLevel("lv " + Integer.toString(i)));
             assertTrue(p.isLevel("Lv " + Integer.toString(i)));
+            assertTrue(p.isLevel("Lvl " + Integer.toString(i)));
             // any additional whitespace should be truncated by the tokenization before isLevel is called
         }
         assertTrue(p.isLevel("01"));
         assertTrue(p.isLevel("lv01"));
+        assertTrue(p.isLevel("lvl01"));
         assertTrue(p.isLevel("lv 01"));
+        assertTrue(p.isLevel("lvl 01"));
         assertTrue(p.isLevel("123456"));
         assertTrue(p.isLevel("lv123456"));
+        assertTrue(p.isLevel("lvl123456"));
         assertTrue(p.isLevel("lv 123456"));
+        assertTrue(p.isLevel("lvl 123456"));
 
         String[] notLevels = new String[] {
             "sl1",

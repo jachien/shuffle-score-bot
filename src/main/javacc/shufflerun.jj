@@ -70,7 +70,9 @@ public class RunParser {
     boolean isLevel(String s) {
         return isDigits(s, 0)
             || isLevel(s, "lv")
-            || isLevel(s, "lv ");
+            || isLevel(s, "lv ")
+            || isLevel(s, "lvl")
+            || isLevel(s, "lvl ");
     }
 
     private boolean isLevel(String s, String prefix) {
