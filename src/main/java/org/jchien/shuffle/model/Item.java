@@ -66,13 +66,13 @@ public enum Item {
         return aliases[0];
     }
 
-    public static Item get(String alias) {
+    public static Item get(String alias) throws ItemException {
         if (alias == null) {
-            throw new NoSuchElementException("No null item");
+            throw new ItemException("No null item. If you're reading this then there is a bug in Shuffle Score Bot.");
         }
         Item ret = ALIAS_MAP.get(removeSpaces(alias.toLowerCase()));
         if (ret == null) {
-            throw new NoSuchElementException("No item matching \"" + alias + "\"");
+            throw new ItemException("No such item: \"" + alias + "\".");
         }
         return ret;
     }

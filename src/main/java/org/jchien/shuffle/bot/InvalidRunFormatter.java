@@ -1,5 +1,6 @@
 package org.jchien.shuffle.bot;
 
+import org.jchien.shuffle.model.ItemException;
 import org.jchien.shuffle.model.RunDetails;
 import org.jchien.shuffle.model.StageType;
 import org.jchien.shuffle.model.UserRunDetails;
@@ -21,7 +22,7 @@ public class InvalidRunFormatter {
             RunDetails run = urd.getRunDetails();
             appendStage(sb, run.getStageType(), run.getStage());
             for (Throwable t : run.getThrowables()) {
-                sb.append(t.getMessage()).append("  \n");
+                appendMessage(sb, t);
             }
             sb.append("\n\n*****\n\n");
         }
@@ -29,6 +30,16 @@ public class InvalidRunFormatter {
         sb.append("You can edit your comment to fix your run details.  \n" +
                 "The last time I saw it change was " + lastModTime);
         return sb.toString();
+    }
+
+    private static void appendMessage(StringBuilder sb, Throwable t) {
+        sb.append(t.getMessage());
+
+        if (t instanceof ItemException) {
+            sb.append(" Check out the [item section syntax](https://jachien.github.io/shuffle-score-bot/#items-section).");
+        }
+
+        sb.append("  \n");
     }
 
     private static void appendStage(StringBuilder sb, StageType stageType, String stageName) {

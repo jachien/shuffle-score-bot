@@ -3,6 +3,7 @@ package org.jchien.shuffle.bot;
 import com.google.common.annotations.VisibleForTesting;
 import org.jchien.shuffle.model.FormatException;
 import org.jchien.shuffle.model.Item;
+import org.jchien.shuffle.model.ItemException;
 import org.jchien.shuffle.model.Pokemon;
 import org.jchien.shuffle.model.RunDetails;
 import org.jchien.shuffle.model.RunDetailsBuilder;
@@ -229,7 +230,7 @@ public class Canonicalizer {
     }
 
     @VisibleForTesting
-    List<Item> getItems(List<String> raw) throws FormatException {
+    List<Item> getItems(List<String> raw) throws ItemException {
         if (raw == null) {
             return null;
         }
@@ -246,12 +247,7 @@ public class Canonicalizer {
 
         List<Item> ret = new ArrayList<>();
         for (String rawItem : raw) {
-            try {
-                ret.add(Item.get(rawItem));
-            } catch (NoSuchElementException e) {
-                // not going to worry about a nicer error message for silliness like "items: none, m+5"
-                throw new FormatException("No such item: \"" + rawItem + "\"");
-            }
+            ret.add(Item.get(rawItem));
         }
 
         Collections.sort(ret, Comparator.comparing(Item::ordinal));
