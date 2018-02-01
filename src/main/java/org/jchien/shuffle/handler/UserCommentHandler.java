@@ -145,7 +145,7 @@ public class UserCommentHandler {
             } catch (FormatException e) {
                 throwable = e;
             } catch (TokenMgrError e) {
-                // todo make this more friendly (also find out why it's not just a ParseException)
+                // grammar definition should prevent this from happening, but catch it just in case
                 throwable = e;
             }
 
