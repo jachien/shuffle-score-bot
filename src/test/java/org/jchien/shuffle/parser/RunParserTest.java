@@ -59,6 +59,7 @@ public class RunParserTest {
     @Test
     public void testBasic() throws ParseException, FormatException {
         String input = "!eb 100\n" +
+                "notes: basic notes about the run\n" +
                 "team: mmy (Lv10, sl5 power of 4, 14/14), unown! (sl1), necrozma (Lv1), silvally (perfect)\n" +
                 "items: m+5, dd\n" +
                 "moves left: 5\n" +
@@ -434,5 +435,48 @@ public class RunParserTest {
                 new ExpectedResult<>("2", RawRunDetails::getMovesLeft),
                 new ExpectedResult<>(Arrays.asList("none"), RawRunDetails::getItems)
         ));
+    }
+
+    @Test
+    public void testNotes() throws ParseException, FormatException {
+        String input = "!comp" +
+                " notes: This is [a] free / form (notes) #section." +
+                " You *should* be able to write **almost anything** here without causing trouble," +
+                " including numbers like 0123456789!" +
+                " !end";
+        testParse(input, Arrays.asList());
+    }
+
+    @Test
+    public void testNotes_WorksWithOtherSections() throws ParseException, FormatException {
+        String input = "!comp" +
+                " notes: This is [a] free / form (notes) #section." +
+                " team: a"+
+                " !end";
+        testParse(input, Arrays.asList(new RawPokemon("a", null, null, null, false)), RawRunDetails::getTeam);
+
+        input = "!comp" +
+                " notes: This is [a] free / form (notes) #section." +
+                " items: none"+
+                " !end";
+        testParse(input, Arrays.asList("none"), RawRunDetails::getItems);
+
+        input = "!comp" +
+                " notes: This is [a] free / form (notes) #section." +
+                " score: 100"+
+                " !end";
+        testParse(input, "100", RawRunDetails::getScore);
+
+        input = "!comp" +
+                " notes: This is [a] free / form (notes) #section." +
+                " moves left: 5"+
+                " !end";
+        testParse(input, "5", RawRunDetails::getMovesLeft);
+
+        input = "!comp" +
+                " notes: This is [a] free / form (notes) #section." +
+                " time left: 5"+
+                " !end";
+        testParse(input, "5", RawRunDetails::getTimeLeft);
     }
 }

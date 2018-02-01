@@ -121,7 +121,8 @@ SKIP: {
 }
 
 TOKEN: {
-    < COMP_HEADER: "!COMP" >
+    < END_HEADER: "!END" >
+    | < COMP_HEADER: "!COMP" >
     | < RUN_HEADER: "!RUN" >
     | < EB_HEADER: "!EB" >
     | < ROSTER_HEADER: "!ROSTER" >
@@ -135,7 +136,7 @@ TOKEN: {
                      | "\u3000" >
     | < MOVES_LEFT_HEADER: "MOVES" <WHITESPACE> "LEFT:" >
     | < TIME_LEFT_HEADER: "TIME" <WHITESPACE> "LEFT:" >
-    | < END_HEADER: "!END" >
+    | < NOTES_HEADER: "NOTES:" >
     | < PERFECT: "PERFECT" >
 }
 
@@ -218,7 +219,7 @@ void compHeader(): {
 }
 
 void section() throws FormatException: {} {
-    team() | score() | items() | movesLeft() | timeLeft()
+    team() | score() | items() | movesLeft() | timeLeft() | notes()
 }
 
 void team() throws DupeSectionException: {
@@ -345,4 +346,10 @@ void timeLeft() throws FormatException: {
         timeLeft = t.image;
         moveType = MoveType.TIME;
     }
+}
+
+void notes(): {
+} {
+    // there's gotta be a better way to do this
+    <NOTES_HEADER> (<WORD> | <SLASH> | <LPAREN> | <RPAREN> | <COMMA>)*
 }
