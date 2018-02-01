@@ -344,6 +344,15 @@ public class RunParserTest {
     }
 
     @Test
+    public void testMovesLeft_MultiLine() throws ParseException, FormatException {
+        String input = "!eb 100 moves\nleft: 1 !end";
+        testParse(input, Arrays.asList(
+                new ExpectedResult<>("1", RawRunDetails::getMovesLeft),
+                new ExpectedResult<>(MoveType.MOVES, RawRunDetails::getMoveType)
+        ));
+    }
+
+    @Test
     public void testTimeLeft() throws ParseException, FormatException {
         String input = "!eb 100 time left: 1 !end";
         testParse(input, Arrays.asList(
@@ -391,5 +400,30 @@ public class RunParserTest {
                 new RawPokemon("blank", null, null, null, false)
         );
         testParse(input, expected, RawRunDetails::getTeam);
+    }
+
+    @Test
+    public void testUnicodeSpaces() throws ParseException, FormatException {
+        String input =
+                "!eb\u00a065  \n" +
+                "team:\u00a0MDiance-S,\u00a0Hoopa-U,\u00a0Dusknoir,\u00a0Genesect-S  \n" +
+                "moves\u00a0left:\u00a02  \n" +
+                "items:\u00a0none  \n" +
+                "!end";
+
+        List<RawPokemon> expectedTeam = Arrays.asList(
+                new RawPokemon("MDiance-S", null, null, null, false),
+                new RawPokemon("Hoopa-U", null, null, null, false),
+                new RawPokemon("Dusknoir", null, null, null, false),
+                new RawPokemon("Genesect-S", null, null, null, false)
+        );
+
+        testParse(input, Arrays.asList(
+                new ExpectedResult<>(StageType.ESCALATION_BATTLE, RawRunDetails::getStageType),
+                new ExpectedResult<>("65", RawRunDetails::getStage),
+                new ExpectedResult<>(expectedTeam, RawRunDetails::getTeam),
+                new ExpectedResult<>("2", RawRunDetails::getMovesLeft),
+                new ExpectedResult<>(Arrays.asList("none"), RawRunDetails::getItems)
+        ));
     }
 }
