@@ -7,6 +7,7 @@ import org.jchien.shuffle.parser.exception.ItemException;
 import org.jchien.shuffle.model.Pokemon;
 import org.jchien.shuffle.model.RunDetails;
 import org.jchien.shuffle.model.RunDetailsBuilder;
+import org.jchien.shuffle.parser.exception.SkillException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -135,19 +136,19 @@ public class Canonicalizer {
 
         if (start != 0 && end != raw.length()) {
             String matchedText = m.group(0).trim();
-            throw new FormatException(
-                    String.format("Skill level \"%s\" must be at the start or end of the skill section \"%s\"",
+            throw new SkillException(
+                    String.format("Skill level \"%s\" must be at the start or end of the skill section \"%s\".",
                             matchedText,
                             raw));
         }
 
         if (m.find()) {
-            throw new FormatException("Multiple skill levels defined: \"" + raw + "\".");
+            throw new SkillException("Multiple skill levels defined: \"" + raw + "\".");
         }
 
         int skillLevel = Integer.parseInt(levelStr, 10);
         if (skillLevel < 1 || skillLevel > 5) {
-            throw new FormatException("Invalid skill level " + skillLevel + ": \n" + raw + "\"");
+            throw new SkillException("Invalid skill level " + skillLevel + ": \n" + raw + "\".");
         }
         return skillLevel;
     }

@@ -5,6 +5,7 @@ import org.jchien.shuffle.parser.exception.ItemException;
 import org.jchien.shuffle.model.RunDetails;
 import org.jchien.shuffle.model.StageType;
 import org.jchien.shuffle.model.UserRunDetails;
+import org.jchien.shuffle.parser.exception.SkillException;
 
 import java.time.Instant;
 import java.util.List;
@@ -38,6 +39,8 @@ public class InvalidRunFormatter {
 
         if (t instanceof ItemException) {
             sb.append(" Check out the [item section syntax](https://jachien.github.io/shuffle-score-bot/#items-section).");
+        } else if (t instanceof SkillException) {
+            sb.append(" Check out the [Pokemon skill syntax](https://jachien.github.io/shuffle-score-bot/#pokemon-skill).");
         }
 
         sb.append("  \n");
