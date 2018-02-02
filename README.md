@@ -83,6 +83,8 @@ All of the following are valid:
 ```
 M-Diancie (Lv15)
 M-Diancie (Lv 15)
+M-Diancie (Lvl15)
+M-Diancie (Lvl 15)
 M-Diancie (15)
 ```
 
