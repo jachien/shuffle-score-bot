@@ -1,6 +1,5 @@
 package org.jchien.shuffle.parser.exception;
 
-import org.jchien.shuffle.model.FormatException;
 import org.jchien.shuffle.parser.Section;
 
 /**

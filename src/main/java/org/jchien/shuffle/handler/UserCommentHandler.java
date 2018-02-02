@@ -1,7 +1,7 @@
 package org.jchien.shuffle.handler;
 
 import net.dean.jraw.models.PublicContribution;
-import org.jchien.shuffle.model.FormatException;
+import org.jchien.shuffle.parser.exception.FormatException;
 import org.jchien.shuffle.model.ParsedComment;
 import org.jchien.shuffle.model.Pokemon;
 import org.jchien.shuffle.model.RunDetails;

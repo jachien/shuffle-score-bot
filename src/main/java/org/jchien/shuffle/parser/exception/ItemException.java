@@ -1,4 +1,4 @@
-package org.jchien.shuffle.model;
+package org.jchien.shuffle.parser.exception;
 
 /**
  * @author jchien

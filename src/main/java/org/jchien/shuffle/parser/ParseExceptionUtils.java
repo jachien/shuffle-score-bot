@@ -1,6 +1,6 @@
 package org.jchien.shuffle.parser;
 
-import org.jchien.shuffle.model.FormatException;
+import org.jchien.shuffle.parser.exception.FormatException;
 
 import java.util.Arrays;
 

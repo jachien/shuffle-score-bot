@@ -1,7 +1,7 @@
 package org.jchien.shuffle.formatter;
 
 import org.jchien.shuffle.bot.RedditUtils;
-import org.jchien.shuffle.model.ItemException;
+import org.jchien.shuffle.parser.exception.ItemException;
 import org.jchien.shuffle.model.RunDetails;
 import org.jchien.shuffle.model.StageType;
 import org.jchien.shuffle.model.UserRunDetails;

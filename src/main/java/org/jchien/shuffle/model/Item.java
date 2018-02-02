@@ -1,10 +1,10 @@
 package org.jchien.shuffle.model;
 
+import org.jchien.shuffle.parser.exception.ItemException;
+
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 
 /**

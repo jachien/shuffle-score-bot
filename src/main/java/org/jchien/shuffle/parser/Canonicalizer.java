@@ -1,14 +1,12 @@
 package org.jchien.shuffle.parser;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.jchien.shuffle.model.FormatException;
+import org.jchien.shuffle.parser.exception.FormatException;
 import org.jchien.shuffle.model.Item;
-import org.jchien.shuffle.model.ItemException;
+import org.jchien.shuffle.parser.exception.ItemException;
 import org.jchien.shuffle.model.Pokemon;
 import org.jchien.shuffle.model.RunDetails;
 import org.jchien.shuffle.model.RunDetailsBuilder;
-import org.jchien.shuffle.parser.RawPokemon;
-import org.jchien.shuffle.parser.RawRunDetails;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,7 +14,6 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
