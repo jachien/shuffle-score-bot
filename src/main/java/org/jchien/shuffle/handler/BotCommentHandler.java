@@ -12,11 +12,14 @@ import org.jchien.shuffle.model.BotComment;
 import org.jchien.shuffle.model.InvalidRuns;
 import org.jchien.shuffle.model.Stage;
 import org.jchien.shuffle.model.StageType;
+import org.jchien.shuffle.model.TablePartId;
 import org.jchien.shuffle.model.UserRunDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.util.Comparator.comparing;
+import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsFirst;
 
 /**
@@ -41,12 +45,16 @@ public class BotCommentHandler {
 
     private BotComment summaryComment = null;
 
-    private static final Comparator<Stage> STAGE_ID_COMPARATOR =
+    private static final Comparator<Stage> STAGE_COMPARATOR =
             comparing(Stage::getStageType)
             .thenComparing(Stage::getStageId, nullsFirst(String.CASE_INSENSITIVE_ORDER));
 
+    private static final Comparator<TablePartId> TABLE_PART_ID_COMPARATOR =
+            comparing(TablePartId::getStage, STAGE_COMPARATOR)
+            .thenComparing(TablePartId::getPart, naturalOrder());
+
     // map of all aggregate tables as they are BEFORE any writes or updates from this run
-    private Map<Stage, BotComment> aggregateTableMap = new TreeMap<>(STAGE_ID_COMPARATOR);
+    private Map<TablePartId, BotComment> aggregateTableMap = new TreeMap<>(TABLE_PART_ID_COMPARATOR);
 
     // user comment id -> bot reply
     private Map<String, BotComment> botReplyMap = new TreeMap<>();
@@ -89,17 +97,17 @@ public class BotCommentHandler {
 
     // return true if this comment was an aggregate table
     private boolean cacheAggregateTable(String commentId, String commentBody, String parentId, String submissionId) {
-        Stage stage = getAggregateStage(commentBody);
+        TablePartId partId = getTablePartId(commentBody);
 
-        if (stage == null) {
+        if (partId == null) {
             return false;
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("found stage " + stage + " from comment " + commentId);
+            LOG.debug("found " + partId + " from comment " + commentId);
         }
 
-        aggregateTableMap.put(stage, new BotComment(commentId, commentBody));
+        aggregateTableMap.put(partId, new BotComment(commentId, commentBody));
 
         return true;
     }
@@ -111,9 +119,9 @@ public class BotCommentHandler {
     public void createOrUpdateBotComments(Map<Stage, List<UserRunDetails>> stageMap,
                                           Map<String, String> authorMap,
                                           Map<String, InvalidRuns> invalidRunMap) {
-        writeAggregateTables(stageMap);
+        Map<TablePartId, BotComment> latestTableMap = writeAggregateTables(stageMap);
 
-        removeEmptyAggregateTables(stageMap);
+        removeEmptyAggregateTables(latestTableMap);
 
         writeBotReplies(authorMap, invalidRunMap);
     }
@@ -123,7 +131,7 @@ public class BotCommentHandler {
         return new BotComment(comment.getId(), comment.getBody());
     }
 
-    private void updateSummaryTable(Map<Stage, BotComment> latestAggregateTableMap) {
+    private void updateSummaryTable(Map<TablePartId, BotComment> latestAggregateTableMap) {
         String submissionUrl = submission.getUrl();
         String summaryTable = formatter.formatSummary(submissionUrl, latestAggregateTableMap);
         if (!Objects.equals(summaryComment.getContent(), summaryTable)) {
@@ -140,21 +148,25 @@ public class BotCommentHandler {
         }
     }
 
-    private void writeAggregateTables(Map<Stage, List<UserRunDetails>> stageMap) {
+    private Map<TablePartId, BotComment> writeAggregateTables(Map<Stage, List<UserRunDetails>> stageMap) {
         if (!stageMap.isEmpty() && summaryComment == null) {
             summaryComment = createSummaryTable();
         }
 
         // map of all aggregate tables after writes and updates
-        Map<Stage, BotComment> latestAggregateTableMap = new TreeMap<>(STAGE_ID_COMPARATOR);
+        Map<TablePartId, BotComment> latestTableMap = new TreeMap<>(TABLE_PART_ID_COMPARATOR);
 
         for (Map.Entry<Stage, List<UserRunDetails>> entry : stageMap.entrySet()) {
             Stage stage = entry.getKey();
             List<UserRunDetails> runs = entry.getValue();
 
             try {
-                BotComment latestComment = writeAggregateTable(stage, runs);
-                latestAggregateTableMap.put(stage, latestComment);
+                List<BotComment> comments = writeAggregateTable(stage, runs);
+
+                for (int part=0; part < comments.size(); part++) {
+                    BotComment comment = comments.get(part);
+                    latestTableMap.put(new TablePartId(stage, part), comment);
+                }
             } catch (Exception e) {
                 LOG.error("failed to write table for stage " + stage + " at " + submission.getUrl(), e);
             }
@@ -162,37 +174,55 @@ public class BotCommentHandler {
 
         if (summaryComment != null) {
             // if all the runs got deleted from a submission, we still need to update the summary table
-            updateSummaryTable(latestAggregateTableMap);
+            updateSummaryTable(latestTableMap);
         }
+
+        return latestTableMap;
     }
 
-    private BotComment writeAggregateTable(Stage stage,
-                                           List<UserRunDetails> runs) {
+    private List<BotComment> writeAggregateTable(Stage stage,
+                                                 List<UserRunDetails> runs) {
         String submissionUrl = submission.getUrl();
 
-        final String commentBody;
+        final List<String> commentBodies;
         if (stage.getStageType() == StageType.COMPETITION) {
-            commentBody = formatter.formatCompetitionRun(runs, submissionUrl);
+            commentBodies = formatter.formatCompetitionRun(runs, submissionUrl);
         } else {
-            commentBody = formatter.formatStage(runs, stage, submissionUrl);
+            commentBodies = formatter.formatStage(runs, stage, submissionUrl);
         }
 
-        LOG.debug("generated comment:\n" + commentBody);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("generated comments:\n" + Arrays.asList(commentBodies));
+        }
 
-        BotComment existing = aggregateTableMap.get(stage);
+        List<BotComment> botComments = new ArrayList<>(commentBodies.size());
+        for (int partNum=0; partNum < commentBodies.size(); partNum++) {
+            TablePartId partId = new TablePartId(stage, partNum);
+            String commentBody = commentBodies.get(partNum);
+            BotComment comment = writeTablePart(partId, commentBody);
+            botComments.add(comment);
+        }
+
+        return botComments;
+    }
+
+    private BotComment writeTablePart(TablePartId partId, String commentBody) {
+        String submissionUrl = submission.getUrl();
+        BotComment existing = aggregateTableMap.get(partId);
+
         if (existing == null) {
             // no bot comment exists yet
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("no comment for " + stage + " yet in " + submissionUrl + ", creating new comment");
+                LOG.debug("no comment for " + partId + " yet in " + submissionUrl + ", creating new comment");
             }
             Comment reply = redditClient.comment(summaryComment.getCommentId()).reply(commentBody);
             return new BotComment(reply.getId(), commentBody);
         } else if (!Objects.equals(existing.getContent(), commentBody)) {
-            // we've already written a comment for this stage but it's outdated
+            // we've already written a comment for this part but it's outdated
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("comment for " + stage + " outdated in " + submissionUrl +
+                LOG.debug("comment for " + partId + " outdated in " + submissionUrl +
                                   ", updating comment " + existing.getCommentId());
             }
             redditClient.comment(existing.getCommentId()).edit(commentBody);
@@ -200,16 +230,16 @@ public class BotCommentHandler {
         } else {
             // no need to write anything, existing bot comment already has correct content
             if (LOG.isDebugEnabled()) {
-                LOG.debug("comment for " + stage + " already up to date in " + submissionUrl);
+                LOG.debug("comment for " + partId + " already up to date in " + submissionUrl);
             }
             return existing;
         }
     }
 
-    private void removeEmptyAggregateTables(Map<Stage, List<UserRunDetails>> stageMap) {
-        Set<Stage> emptyStages = Sets.difference(aggregateTableMap.keySet(), stageMap.keySet());
-        for (Stage stage : emptyStages) {
-            BotComment comment = aggregateTableMap.get(stage);
+    private void removeEmptyAggregateTables(Map<TablePartId, BotComment> latestTableMap) {
+        Set<TablePartId> emptyParts = Sets.difference(aggregateTableMap.keySet(), latestTableMap.keySet());
+        for (TablePartId part : emptyParts) {
+            BotComment comment = aggregateTableMap.get(part);
             String commentId = comment.getCommentId();
 
             if (LOG.isDebugEnabled()) {
@@ -275,25 +305,47 @@ public class BotCommentHandler {
     }
 
     private static final Pattern STAGE_PATTERN = Pattern.compile("^" + Formatter.STAGE_HEADER_PREFIX + "(.+)\n");
-    static Stage getAggregateStage(String comment) {
+    static TablePartId getTablePartId(String comment) {
         // assumes the we've already checked that the configured bot user is the commenter
 
         if (comment.startsWith(Formatter.COMP_HEADER_PREFIX)) {
-            return new Stage(StageType.COMPETITION, null);
+            int partNum = getPartNum(comment);
+            return new TablePartId(new Stage(StageType.COMPETITION, null), partNum);
         }
 
         Matcher m = STAGE_PATTERN.matcher(comment);
         if (m.find()) {
             String stageId = Stage.normalizeStageId(m.group(1));
+            int partNum = getPartNum(comment);
             try {
                 Integer.parseInt(stageId);
-                return new Stage(StageType.ESCALATION_BATTLE, stageId);
+                return new TablePartId(new Stage(StageType.ESCALATION_BATTLE, stageId), partNum);
             } catch (NumberFormatException e) {
-                return new Stage(StageType.NORMAL, stageId);
+                return new TablePartId(new Stage(StageType.NORMAL, stageId), partNum);
             }
         }
 
         return null;
+    }
+
+    private static final Pattern PART_NUM_PATTERN = Pattern.compile("^" + Formatter.PART_HEADER + "(\\d+)\n",
+                                                                    Pattern.MULTILINE);
+    private static int getPartNum(String comment) {
+        // assumes the we've already checked that the configured bot user is the commenter
+        // and that we identified the comment as a table
+
+        int start = comment.indexOf('\n');
+        if (start < 0) {
+            throw new IllegalStateException("This comment is messed up.");
+        }
+        start++;
+
+        Matcher m = PART_NUM_PATTERN.matcher(comment);
+        if (m.find(start) && m.start() == start) {
+            return Integer.parseInt(m.group(1)) - 1;
+        }
+
+        return 0;
     }
 
     private boolean isSummaryComment(String comment) {
