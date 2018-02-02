@@ -13,6 +13,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.jchien.shuffle.model.FormatException;
 import org.jchien.shuffle.model.MoveType;
 import org.jchien.shuffle.model.StageType;
+import org.jchien.shuffle.parser.exception.DupeSectionException;
 
 import java.util.ArrayList;
 import java.util.List;
