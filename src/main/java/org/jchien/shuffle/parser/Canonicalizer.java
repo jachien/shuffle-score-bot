@@ -1,4 +1,4 @@
-package org.jchien.shuffle.bot;
+package org.jchien.shuffle.parser;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jchien.shuffle.model.FormatException;

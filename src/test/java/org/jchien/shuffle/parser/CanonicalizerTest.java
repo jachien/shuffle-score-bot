@@ -1,7 +1,8 @@
-package org.jchien.shuffle.bot;
+package org.jchien.shuffle.parser;
 
 import org.jchien.shuffle.model.FormatException;
 import org.jchien.shuffle.model.Item;
+import org.jchien.shuffle.parser.Canonicalizer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

@@ -1,7 +1,6 @@
 package org.jchien.shuffle.handler;
 
 import net.dean.jraw.models.PublicContribution;
-import org.jchien.shuffle.bot.Canonicalizer;
 import org.jchien.shuffle.model.FormatException;
 import org.jchien.shuffle.model.ParsedComment;
 import org.jchien.shuffle.model.Pokemon;
@@ -9,6 +8,7 @@ import org.jchien.shuffle.model.RunDetails;
 import org.jchien.shuffle.model.RunDetailsBuilder;
 import org.jchien.shuffle.model.StageType;
 import org.jchien.shuffle.model.UserRunDetails;
+import org.jchien.shuffle.parser.Canonicalizer;
 import org.jchien.shuffle.parser.ParseException;
 import org.jchien.shuffle.parser.ParseExceptionUtils;
 import org.jchien.shuffle.parser.RawRunDetails;
