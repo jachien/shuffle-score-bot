@@ -1,5 +1,6 @@
-package org.jchien.shuffle.bot;
+package org.jchien.shuffle.formatter;
 
+import org.jchien.shuffle.bot.RedditUtils;
 import org.jchien.shuffle.model.BotComment;
 import org.jchien.shuffle.model.Item;
 import org.jchien.shuffle.model.MoveType;
