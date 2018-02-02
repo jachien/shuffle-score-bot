@@ -87,7 +87,7 @@ public class Formatter {
 
         // sort by score desc, username
         Comparator<UserRunDetails> comparator = comparing(score, nullsLast(reverseOrder()))
-                .thenComparing(UserRunDetails::getUser);
+                .thenComparing(UserRunDetails::getUser, String.CASE_INSENSITIVE_ORDER);
 
         Collections.sort(runs, comparator);
 
@@ -138,7 +138,7 @@ public class Formatter {
         // later on we'll implement excluding runs for comments below some reddit score threshold, probably 0 or 1.
         Comparator<UserRunDetails> comparator = comparing(itemsCost, nullsLast(naturalOrder()))
                 .thenComparing(unitsLeft, nullsLast(reverseOrder()))
-                .thenComparing(UserRunDetails::getUser);
+                .thenComparing(UserRunDetails::getUser, String.CASE_INSENSITIVE_ORDER);
 
         Collections.sort(runs, comparator);
 
