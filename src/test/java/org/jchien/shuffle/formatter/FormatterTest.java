@@ -1,18 +1,13 @@
 package org.jchien.shuffle.formatter;
 
-import org.jchien.shuffle.model.Pokemon;
-import org.jchien.shuffle.model.RunDetails;
-import org.jchien.shuffle.model.RunDetailsBuilder;
 import org.jchien.shuffle.model.Stage;
 import org.jchien.shuffle.model.StageType;
 import org.jchien.shuffle.model.UserRunDetails;
 import org.junit.jupiter.api.Test;
 
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
+import static org.jchien.shuffle.model.UserRunDetailsTestUtils.generateUserRunDetails;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -113,34 +108,5 @@ public class FormatterTest {
         // If all runs are skipped, then we return an empty table rather than no comments.
         // This is expected to be extremely unlikely to happen so we won't try to handle it nicely.
         assertTrue(comments.get(0).endsWith(Formatter.STAGE_TABLE_HEADER));
-    }
-    
-    private List<UserRunDetails> generateUserRunDetails(int numRuns, int minCharsPerRow) {
-        StringBuilder sb = new StringBuilder();
-        for (int i=0; i < minCharsPerRow; i++) {
-            sb.append("a");
-        }
-
-        Pokemon pokemon = new Pokemon(sb.toString(),
-                                      null,
-                                      null,
-                                      null,
-                                      null,
-                                      null,
-                                      false);
-
-        RunDetails run = new RunDetailsBuilder()
-                .setTeam(Arrays.asList(pokemon))
-                .build();
-
-        List<UserRunDetails> ret = new ArrayList<>(numRuns);
-
-        DecimalFormat df = new DecimalFormat("000000");
-        for (int i=0; i < numRuns; i++) {
-            String user = "run-" + df.format(i);
-            UserRunDetails urd = new UserRunDetails(user, "abc", run);
-            ret.add(urd);
-        }
-        return ret;
     }
 }
