@@ -117,7 +117,7 @@ public class SubmissionHandler {
         if (!botUser.equals(comment.getAuthor())) {
             processUserComment(comment, commentBody);
         } else {
-            botCommentHandler.processBotComment(comment.getId(), commentBody, parentId, submission.getId());
+            botCommentHandler.processBotComment(comment.getId(), commentBody, parentId);
         }
     }
 

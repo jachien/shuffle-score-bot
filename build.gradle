@@ -68,6 +68,8 @@ dependencies {
 
     // To avoid compiler warnings about @API annotations in JUnit code.
     compile('org.apiguardian:apiguardian-api:1.0.0')
+
+    testCompile 'org.mockito:mockito-core:2.13.0'
 }
 
 compileJavacc {

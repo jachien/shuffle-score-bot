@@ -1,10 +1,23 @@
 package org.jchien.shuffle.handler;
 
+import net.dean.jraw.RedditClient;
+import net.dean.jraw.models.Comment;
+import net.dean.jraw.models.Submission;
+import net.dean.jraw.references.CommentReference;
+import org.jchien.shuffle.formatter.Formatter;
+import org.jchien.shuffle.model.BotComment;
 import org.jchien.shuffle.model.Stage;
 import org.jchien.shuffle.model.StageType;
 import org.jchien.shuffle.model.TablePartId;
+import org.jchien.shuffle.model.UserRunDetails;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static org.mockito.Mockito.*;
+import static org.jchien.shuffle.model.UserRunDetailsTestUtils.generateUserRunDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -84,5 +97,96 @@ public class BotCommentHandlerTest {
         TablePartId expected = new TablePartId(new Stage(StageType.NORMAL, "meowth"), 1);
         TablePartId actual = BotCommentHandler.getTablePartId(comment);
         assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testWriteAggregateTable_OnePart() {
+        RedditClient redditClient = mock(RedditClient.class);
+        Submission submission = mock(Submission.class);
+        BotComment summaryContent = new BotComment("summaryId", "");
+        Map<TablePartId, BotComment> tableMap = mock(Map.class);
+        Map<String, BotComment> replyMap = mock(Map.class);
+        Formatter formatter = mock(Formatter.class);
+
+        BotCommentHandler bch = spy(new BotCommentHandler(
+                redditClient,
+                submission,
+                summaryContent,
+                tableMap,
+                replyMap,
+                formatter
+        ));
+
+        Stage stage = new Stage(StageType.COMPETITION, null);
+        List<UserRunDetails> runs = mock(List.class);
+
+        doReturn(Arrays.asList("0"))
+                .when(formatter)
+                .formatCompetitionRun(any(), isNull());
+
+        doReturn(new BotComment("commentId", "0"))
+                .when(bch)
+                .writeTablePart(new TablePartId(stage, 0),
+                                "summaryId",
+                                "0");
+
+        List<BotComment> botComments = bch.writeAggregateTable(stage, runs);
+
+        assertEquals(1, botComments.size());
+        assertEquals("commentId", botComments.get(0).getCommentId());
+    }
+
+    @Test
+    public void testWriteAggregateTable_MultiPart() {
+        RedditClient redditClient = mock(RedditClient.class);
+        Submission submission = mock(Submission.class);
+        BotComment summaryContent = new BotComment("summaryId", "");
+        Map<TablePartId, BotComment> tableMap = mock(Map.class);
+        Map<String, BotComment> replyMap = mock(Map.class);
+        Formatter formatter = mock(Formatter.class);
+
+        BotCommentHandler bch = spy(new BotCommentHandler(
+                redditClient,
+                submission,
+                summaryContent,
+                tableMap,
+                replyMap,
+                formatter
+        ));
+
+        Stage stage = new Stage(StageType.COMPETITION, null);
+        List<UserRunDetails> runs = mock(List.class);
+
+        doReturn(Arrays.asList("0", "1", "2"))
+                .when(formatter)
+                .formatCompetitionRun(any(), isNull());
+
+        doReturn(new BotComment("id0", "0"))
+                .when(bch)
+                .writeTablePart(new TablePartId(stage, 0),
+                                "summaryId",
+                                "0");
+
+        doReturn(new BotComment("id1", "1"))
+                .when(bch)
+                .writeTablePart(new TablePartId(stage, 1),
+                                "id0",
+                                "1");
+
+        doReturn(new BotComment("id2", "2"))
+                .when(bch)
+                .writeTablePart(new TablePartId(stage, 2),
+                                "id1",
+                                "2");
+
+
+        List<BotComment> botComments = bch.writeAggregateTable(stage, runs);
+
+        assertEquals(3, botComments.size());
+        for (int i=0; i < botComments.size(); i++) {
+            BotComment comment = botComments.get(i);
+            assertEquals("id" + i, comment.getCommentId());
+            assertEquals(Integer.toString(i), comment.getContent());
+        }
     }
 }

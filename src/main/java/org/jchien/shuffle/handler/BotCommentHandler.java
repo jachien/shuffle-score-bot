@@ -1,5 +1,6 @@
 package org.jchien.shuffle.handler;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import net.dean.jraw.RedditClient;
 import net.dean.jraw.models.Comment;
@@ -43,8 +44,6 @@ public class BotCommentHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(BotCommentHandler.class);
 
-    private BotComment summaryComment = null;
-
     private static final Comparator<Stage> STAGE_COMPARATOR =
             comparing(Stage::getStageType)
             .thenComparing(Stage::getStageId, nullsFirst(String.CASE_INSENSITIVE_ORDER));
@@ -52,6 +51,12 @@ public class BotCommentHandler {
     private static final Comparator<TablePartId> TABLE_PART_ID_COMPARATOR =
             comparing(TablePartId::getStage, STAGE_COMPARATOR)
             .thenComparing(TablePartId::getPart, naturalOrder());
+
+    private RedditClient redditClient;
+
+    private Submission submission;
+
+    private BotComment summaryComment = null;
 
     // map of all aggregate tables as they are BEFORE any writes or updates from this run
     private Map<TablePartId, BotComment> aggregateTableMap = new TreeMap<>(TABLE_PART_ID_COMPARATOR);
@@ -61,19 +66,29 @@ public class BotCommentHandler {
 
     private Formatter formatter = new Formatter();
 
-    private RedditClient redditClient;
-
-    private Submission submission;
-
     public BotCommentHandler(RedditClient redditClient, Submission submission) {
         this.redditClient = redditClient;
         this.submission = submission;
     }
 
-    public void processBotComment(String commentId, String commentBody, String parentId, String submissionId) {
+    @VisibleForTesting
+    BotCommentHandler(RedditClient redditClient,
+                      Submission submission,
+                      BotComment summaryComment,
+                      Map<TablePartId, BotComment> aggregateTableMap,
+                      Map<String, BotComment> botReplyMap, Formatter formatter) {
+        this.redditClient = redditClient;
+        this.submission = submission;
+        this.summaryComment = summaryComment;
+        this.aggregateTableMap = aggregateTableMap;
+        this.botReplyMap = botReplyMap;
+        this.formatter = formatter;
+    }
+
+    public void processBotComment(String commentId, String commentBody, String parentId) {
         boolean isSummaryTable = cacheSummaryTable(commentId, commentBody);
 
-        boolean isAggregateTable = cacheAggregateTable(commentId, commentBody, parentId, submissionId);
+        boolean isAggregateTable = cacheAggregateTable(commentId, commentBody);
 
         if (!isSummaryTable && !isAggregateTable) {
             cacheBotReply(commentId, commentBody, parentId);
@@ -96,7 +111,7 @@ public class BotCommentHandler {
     }
 
     // return true if this comment was an aggregate table
-    private boolean cacheAggregateTable(String commentId, String commentBody, String parentId, String submissionId) {
+    private boolean cacheAggregateTable(String commentId, String commentBody) {
         TablePartId partId = getTablePartId(commentBody);
 
         if (partId == null) {
@@ -180,8 +195,9 @@ public class BotCommentHandler {
         return latestTableMap;
     }
 
-    private List<BotComment> writeAggregateTable(Stage stage,
-                                                 List<UserRunDetails> runs) {
+    @VisibleForTesting
+    List<BotComment> writeAggregateTable(Stage stage,
+                                         List<UserRunDetails> runs) {
         String submissionUrl = submission.getUrl();
 
         final List<String> commentBodies;
@@ -196,17 +212,28 @@ public class BotCommentHandler {
         }
 
         List<BotComment> botComments = new ArrayList<>(commentBodies.size());
+
+        String parentId = summaryComment.getCommentId();
         for (int partNum=0; partNum < commentBodies.size(); partNum++) {
             TablePartId partId = new TablePartId(stage, partNum);
             String commentBody = commentBodies.get(partNum);
-            BotComment comment = writeTablePart(partId, commentBody);
+            BotComment comment = writeTablePart(partId, parentId, commentBody);
             botComments.add(comment);
+
+            parentId = comment.getCommentId();
         }
 
         return botComments;
     }
 
-    private BotComment writeTablePart(TablePartId partId, String commentBody) {
+    /**
+     * @param partId            table part id
+     * @param parentId          reply to parentId if no table for partId exists already
+     * @param commentBody       comment content body
+     * @return                  BotComment that was written, updated, or already existing for this partId
+     */
+    @VisibleForTesting
+    BotComment writeTablePart(TablePartId partId, String parentId, String commentBody) {
         String submissionUrl = submission.getUrl();
         BotComment existing = aggregateTableMap.get(partId);
 
@@ -216,7 +243,7 @@ public class BotCommentHandler {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("no comment for " + partId + " yet in " + submissionUrl + ", creating new comment");
             }
-            Comment reply = redditClient.comment(summaryComment.getCommentId()).reply(commentBody);
+            Comment reply = redditClient.comment(parentId).reply(commentBody);
             return new BotComment(reply.getId(), commentBody);
         } else if (!Objects.equals(existing.getContent(), commentBody)) {
             // we've already written a comment for this part but it's outdated
