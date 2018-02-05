@@ -1,10 +1,8 @@
 package org.jchien.shuffle.handler;
 
 import net.dean.jraw.RedditClient;
-import net.dean.jraw.models.Comment;
 import net.dean.jraw.models.Submission;
-import net.dean.jraw.references.CommentReference;
-import org.jchien.shuffle.formatter.Formatter;
+import org.jchien.shuffle.formatter.RunFormatter;
 import org.jchien.shuffle.model.BotComment;
 import org.jchien.shuffle.model.Stage;
 import org.jchien.shuffle.model.StageType;
@@ -17,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.*;
-import static org.jchien.shuffle.model.UserRunDetailsTestUtils.generateUserRunDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -106,7 +103,7 @@ public class BotCommentHandlerTest {
         BotComment summaryContent = new BotComment("summaryId", "");
         Map<TablePartId, BotComment> tableMap = mock(Map.class);
         Map<String, BotComment> replyMap = mock(Map.class);
-        Formatter formatter = mock(Formatter.class);
+        RunFormatter runFormatter = mock(RunFormatter.class);
 
         BotCommentHandler bch = spy(new BotCommentHandler(
                 redditClient,
@@ -114,14 +111,14 @@ public class BotCommentHandlerTest {
                 summaryContent,
                 tableMap,
                 replyMap,
-                formatter
+                runFormatter
         ));
 
         Stage stage = new Stage(StageType.COMPETITION, null);
         List<UserRunDetails> runs = mock(List.class);
 
         doReturn(Arrays.asList("0"))
-                .when(formatter)
+                .when(runFormatter)
                 .formatCompetitionRun(any(), isNull());
 
         doReturn(new BotComment("commentId", "0"))
@@ -143,7 +140,7 @@ public class BotCommentHandlerTest {
         BotComment summaryContent = new BotComment("summaryId", "");
         Map<TablePartId, BotComment> tableMap = mock(Map.class);
         Map<String, BotComment> replyMap = mock(Map.class);
-        Formatter formatter = mock(Formatter.class);
+        RunFormatter runFormatter = mock(RunFormatter.class);
 
         BotCommentHandler bch = spy(new BotCommentHandler(
                 redditClient,
@@ -151,14 +148,14 @@ public class BotCommentHandlerTest {
                 summaryContent,
                 tableMap,
                 replyMap,
-                formatter
+                runFormatter
         ));
 
         Stage stage = new Stage(StageType.COMPETITION, null);
         List<UserRunDetails> runs = mock(List.class);
 
         doReturn(Arrays.asList("0", "1", "2"))
-                .when(formatter)
+                .when(runFormatter)
                 .formatCompetitionRun(any(), isNull());
 
         doReturn(new BotComment("id0", "0"))

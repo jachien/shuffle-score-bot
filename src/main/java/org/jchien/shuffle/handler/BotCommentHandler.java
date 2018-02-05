@@ -6,7 +6,7 @@ import net.dean.jraw.RedditClient;
 import net.dean.jraw.models.Comment;
 import net.dean.jraw.models.Submission;
 import net.dean.jraw.references.InboxReference;
-import org.jchien.shuffle.formatter.Formatter;
+import org.jchien.shuffle.formatter.RunFormatter;
 import org.jchien.shuffle.formatter.InvalidRunFormatter;
 import org.jchien.shuffle.bot.RedditUtils;
 import org.jchien.shuffle.formatter.SummaryFormatter;
@@ -65,7 +65,7 @@ public class BotCommentHandler {
     // user comment id -> bot reply
     private Map<String, BotComment> botReplyMap = new TreeMap<>();
 
-    private Formatter formatter = new Formatter();
+    private RunFormatter runFormatter = new RunFormatter();
 
     private SummaryFormatter summaryFormatter = new SummaryFormatter();
 
@@ -79,13 +79,13 @@ public class BotCommentHandler {
                       Submission submission,
                       BotComment summaryComment,
                       Map<TablePartId, BotComment> aggregateTableMap,
-                      Map<String, BotComment> botReplyMap, Formatter formatter) {
+                      Map<String, BotComment> botReplyMap, RunFormatter runFormatter) {
         this.redditClient = redditClient;
         this.submission = submission;
         this.summaryComment = summaryComment;
         this.aggregateTableMap = aggregateTableMap;
         this.botReplyMap = botReplyMap;
-        this.formatter = formatter;
+        this.runFormatter = runFormatter;
     }
 
     public void processBotComment(String commentId, String commentBody, String parentId) {
@@ -205,9 +205,9 @@ public class BotCommentHandler {
 
         final List<String> commentBodies;
         if (stage.getStageType() == StageType.COMPETITION) {
-            commentBodies = formatter.formatCompetitionRun(runs, submissionUrl);
+            commentBodies = runFormatter.formatCompetitionRun(runs, submissionUrl);
         } else {
-            commentBodies = formatter.formatStage(runs, stage, submissionUrl);
+            commentBodies = runFormatter.formatStage(runs, stage, submissionUrl);
         }
 
         if (LOG.isDebugEnabled()) {
@@ -334,11 +334,11 @@ public class BotCommentHandler {
         }
     }
 
-    private static final Pattern STAGE_PATTERN = Pattern.compile("^" + Formatter.STAGE_HEADER_PREFIX + "(.+)\n");
+    private static final Pattern STAGE_PATTERN = Pattern.compile("^" + RunFormatter.STAGE_HEADER_PREFIX + "(.+)\n");
     static TablePartId getTablePartId(String comment) {
         // assumes the we've already checked that the configured bot user is the commenter
 
-        if (comment.startsWith(Formatter.COMP_HEADER_PREFIX)) {
+        if (comment.startsWith(RunFormatter.COMP_HEADER_PREFIX)) {
             int partNum = getPartNum(comment);
             return new TablePartId(new Stage(StageType.COMPETITION, null), partNum);
         }
@@ -358,7 +358,7 @@ public class BotCommentHandler {
         return null;
     }
 
-    private static final Pattern PART_NUM_PATTERN = Pattern.compile("^" + Formatter.PART_HEADER + "(\\d+)\n",
+    private static final Pattern PART_NUM_PATTERN = Pattern.compile("^" + RunFormatter.PART_HEADER + "(\\d+)\n",
                                                                     Pattern.MULTILINE);
     private static int getPartNum(String comment) {
         // assumes the we've already checked that the configured bot user is the commenter

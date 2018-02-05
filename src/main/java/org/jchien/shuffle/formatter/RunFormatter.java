@@ -22,7 +22,7 @@ import static org.jchien.shuffle.formatter.FormatterUtils.appendCapitalizedWords
 /**
  * @author jchien
  */
-public class Formatter {
+public class RunFormatter {
     // reddit max comment length is 10k chars, so we'll be a little conservative
     final static int MAX_COMMENT_LENGTH = 9900;
 
