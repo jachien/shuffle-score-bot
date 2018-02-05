@@ -5,7 +5,7 @@ I'm a Reddit bot for /r/pokemonshuffle. I look for comments detailing competitio
 * [Basic Usage](#basic-usage)
   * [Competitions](#competitions)
   * [Escalation Battles](#escalation-battles)
-  * [Normal / Special / Expert Stages](#normal--special--expert-stages)
+  * [Main / Special / Expert Stages](#main--special--expert-stages)
 * [Syntax Overview](#syntax-overview)
   * [Team Section](#team-section)
     * [Level](#pokemon-level)
@@ -44,7 +44,7 @@ Moves left: 1
 !end  
 ```
 
-### Normal / Special / Expert Stages
+### Main / Special / Expert Stages
 ```
 !run Arcanine
 Team: SMCX (SL1, 15/15), Lando-T (SL5), Flygon (Lv15), Dugtrio (Block Shot)     
