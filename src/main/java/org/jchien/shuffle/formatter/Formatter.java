@@ -1,14 +1,12 @@
 package org.jchien.shuffle.formatter;
 
 import org.jchien.shuffle.bot.RedditUtils;
-import org.jchien.shuffle.model.BotComment;
 import org.jchien.shuffle.model.Item;
 import org.jchien.shuffle.model.MoveType;
 import org.jchien.shuffle.model.Pokemon;
 import org.jchien.shuffle.model.RunDetails;
 import org.jchien.shuffle.model.Stage;
 import org.jchien.shuffle.model.StageType;
-import org.jchien.shuffle.model.TablePartId;
 import org.jchien.shuffle.model.UserRunDetails;
 
 import java.text.DecimalFormat;
@@ -16,12 +14,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static java.util.Comparator.*;
+import static org.jchien.shuffle.formatter.FormatterUtils.appendCapitalizedWords;
 
 /**
  * @author jchien
@@ -33,65 +29,6 @@ public class Formatter {
     // limit length of any single row to guard against abusrdly long input
     // looking at actual comp runs, a single row is around 240 chars long
     final static int MAX_ROW_LENGTH = 1024;
-
-    public final static String SUMMARY_HEADER = "###Run Round-up\n\n";
-
-    // todo move this into separate class
-    public String formatSummary(String submissionUrl, Map<TablePartId, BotComment> aggregateTableMap) {
-        Set<TablePartId> firstParts = aggregateTableMap.keySet()
-                .stream()
-                .filter(id -> id.getPart() == 0)
-                .collect(Collectors.toSet());
-
-        StringBuilder sb = new StringBuilder(SUMMARY_HEADER);
-
-        TablePartId compPart = firstParts.stream()
-                .filter(id -> StageType.COMPETITION == id.getStage().getStageType())
-                .findFirst()
-                .orElse(null);
-
-        List<TablePartId> ebParts = firstParts.stream()
-                .filter(id -> StageType.ESCALATION_BATTLE == id.getStage().getStageType())
-                .sorted(comparingInt(id -> Integer.parseInt(id.getStage().getStageId())))
-                .collect(Collectors.toList());
-
-        List<TablePartId> normalParts = firstParts.stream()
-                .filter(id -> StageType.NORMAL == id.getStage().getStageType())
-                .sorted(comparing(id -> id.getStage().getStageId()))
-                .collect(Collectors.toList());
-
-        if (compPart != null) {
-            String tableUrl = getTableUrl(submissionUrl, aggregateTableMap, compPart);
-            sb.append("* **[Competition](").append(tableUrl).append(")**\n");
-        }
-
-        if (!ebParts.isEmpty()) {
-            sb.append("* **Escalation Battles**\n");
-            for (TablePartId part : ebParts) {
-                String tableUrl = getTableUrl(submissionUrl, aggregateTableMap, part);
-                sb.append(" * [Stage ").append(part.getStage().getStageId()).append("](").append(tableUrl).append(")\n");
-            }
-        }
-
-        if (!normalParts.isEmpty()) {
-            sb.append("* **Normal / Special / Expert Stages**\n");
-            for (TablePartId part : normalParts) {
-                String tableUrl = getTableUrl(submissionUrl, aggregateTableMap, part);
-                sb.append(" * [");
-                appendCapitalizedWords(sb, part.getStage().getStageId());
-                sb.append("](").append(tableUrl).append(")\n");
-            }
-        }
-
-        return sb.toString();
-    }
-
-    private String getTableUrl(String submissionUrl,
-                               Map<TablePartId, BotComment> aggregateTableMap,
-                               TablePartId partId) {
-        BotComment comment = aggregateTableMap.get(partId);
-        return RedditUtils.getCommentPermalink(submissionUrl, comment.getCommentId());
-    }
 
     public final static String COMP_HEADER_PREFIX = "###Competition Runs";
     static final String COMP_TABLE_HEADER = "\n\n" +
@@ -290,31 +227,6 @@ public class Formatter {
     private void appendPokemon(StringBuilder sb, Pokemon pokemon) {
         appendCapitalizedWords(sb, pokemon.getName());
         sb.append(getPokemonStats(pokemon));
-    }
-
-    private final int DASH_CODEPOINT = (int)'-';
-
-    private void appendCapitalizedWords(StringBuilder sb, String str) {
-        boolean capitalize = true;
-
-        for (int i=0; i < str.length();) {
-            int codePoint = str.codePointAt(i);
-
-            if (capitalize) {
-                sb.appendCodePoint(Character.toUpperCase(codePoint));
-            } else {
-                // don't lowercase stuff so we still handle things like "MMY" nicely
-                sb.appendCodePoint(codePoint);
-            }
-
-            if (Character.isWhitespace(codePoint) || DASH_CODEPOINT == codePoint) {
-                capitalize = true;
-            } else {
-                capitalize = false;
-            }
-
-            i += Character.charCount(codePoint);
-        }
     }
 
     private String getPokemonStats(Pokemon pokemon) {

@@ -9,6 +9,7 @@ import net.dean.jraw.references.InboxReference;
 import org.jchien.shuffle.formatter.Formatter;
 import org.jchien.shuffle.formatter.InvalidRunFormatter;
 import org.jchien.shuffle.bot.RedditUtils;
+import org.jchien.shuffle.formatter.SummaryFormatter;
 import org.jchien.shuffle.model.BotComment;
 import org.jchien.shuffle.model.InvalidRuns;
 import org.jchien.shuffle.model.Stage;
@@ -65,6 +66,8 @@ public class BotCommentHandler {
     private Map<String, BotComment> botReplyMap = new TreeMap<>();
 
     private Formatter formatter = new Formatter();
+
+    private SummaryFormatter summaryFormatter = new SummaryFormatter();
 
     public BotCommentHandler(RedditClient redditClient, Submission submission) {
         this.redditClient = redditClient;
@@ -142,13 +145,13 @@ public class BotCommentHandler {
     }
 
     private BotComment createSummaryTable() {
-        Comment comment = redditClient.submission(submission.getId()).reply(Formatter.SUMMARY_HEADER);
+        Comment comment = redditClient.submission(submission.getId()).reply(SummaryFormatter.SUMMARY_HEADER);
         return new BotComment(comment.getId(), comment.getBody());
     }
 
     private void updateSummaryTable(Map<TablePartId, BotComment> latestAggregateTableMap) {
         String submissionUrl = submission.getUrl();
-        String summaryTable = formatter.formatSummary(submissionUrl, latestAggregateTableMap);
+        String summaryTable = summaryFormatter.formatSummary(submissionUrl, latestAggregateTableMap);
         if (!Objects.equals(summaryComment.getContent(), summaryTable)) {
             if (LOG.isDebugEnabled()) {
                 String url = RedditUtils.getCommentPermalink(submissionUrl, summaryComment.getCommentId());
@@ -377,7 +380,7 @@ public class BotCommentHandler {
 
     private boolean isSummaryComment(String comment) {
         // assumes the we've already checked that the configured bot user is the commenter
-        if (comment.startsWith(Formatter.SUMMARY_HEADER)) {
+        if (comment.startsWith(SummaryFormatter.SUMMARY_HEADER)) {
             return true;
         }
         return false;
