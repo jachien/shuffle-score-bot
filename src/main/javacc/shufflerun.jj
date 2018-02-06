@@ -39,11 +39,13 @@ public class RunParser {
 
     private RawPokemonBuilder pkmnBuilder = null;
 
+    private String notes = null;
+
     public RunParser() {
     }
 
     public RawRunDetails getDetails() {
-        return new RawRunDetails(team, items, score, stage, movesLeft, timeLeft, stageType, moveType);
+        return new RawRunDetails(team, items, score, stage, movesLeft, timeLeft, stageType, moveType, notes);
     }
 
     public static void main(String[] args) throws ParseException, TokenMgrError, FormatException {
@@ -111,14 +113,28 @@ public class RunParser {
         }
         return true;
     }
+
+    // from https://javacc.org/tutorials/tokenmanager
+    private void appendPriorSpecialTokens(StringBuilder sb, Token t) {
+        if (t.specialToken == null) {
+            return;
+        }
+
+        Token tmp = t.specialToken;
+        while (tmp.specialToken != null) {
+            tmp = tmp.specialToken;
+        }
+
+        while (tmp != null) {
+            sb.append(tmp.image);
+            tmp = tmp.next;
+        }
+    }
 }
 PARSER_END(RunParser)
 
-SKIP: {
-    " "
-    | "\t"
-    | "\n"
-    | "\r"
+SPECIAL_TOKEN: {
+    < BASIC_WHITESPACE: " " | "\t" | "\n" | "\r" >
 }
 
 TOKEN: {
@@ -151,8 +167,8 @@ TOKEN: {
     | < WORD: (<DIGIT> | <LETTER> | "+" | "-" | "?" | "!" | ".")+ >
 }
 
-SKIP: {
-    < UNSUPPORTED_TOKEN: ~[]>
+SPECIAL_TOKEN: {
+    < OTHER: ~[]>
 }
 
 // goal is to have simplest grammar, validate after parsing
@@ -350,7 +366,14 @@ void timeLeft() throws FormatException: {
 }
 
 void notes(): {
+    StringBuilder sb = new StringBuilder();
+    Token t;
 } {
     // there's gotta be a better way to do this
-    <NOTES_HEADER> (<WORD> | <SLASH> | <LPAREN> | <RPAREN> | <COMMA>)*
+    <NOTES_HEADER>
+    ((t=<WORD> | t=<SLASH> | t=<LPAREN> | t=<RPAREN> | t=<COMMA>) {
+        appendPriorSpecialTokens(sb, t);
+        sb.append(t.image);
+    })* // we'll allow an empty notes section
+    { notes = sb.toString(); }
 }

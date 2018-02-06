@@ -85,8 +85,10 @@ public class RunParserTest {
                 "5",
                 null,
                 StageType.ESCALATION_BATTLE,
-                MoveType.MOVES
-        );
+                MoveType.MOVES,
+                // leading space on notes because we get all special tokens before a regular token
+                // but once we see another section header or !end, we stop appending to the notes section
+                " basic notes about the run");
 
         testParse(input, expected);
     }
@@ -439,44 +441,41 @@ public class RunParserTest {
 
     @Test
     public void testNotes() throws ParseException, FormatException {
-        String input = "!comp" +
-                " notes: This is [a] free / form (notes) #section." +
+        String notes =  "This is [a] free / form (notes) #section." +
                 " You *should* be able to write **almost anything** here without causing trouble," +
-                " including numbers like 0123456789!" +
-                " !end";
-        testParse(input, Arrays.asList());
+                " including numbers like 0123456789!";
+        String input = "!comp notes:" + notes + " !end";
+        testParse(input, notes, RawRunDetails::getNotes);
     }
 
     @Test
     public void testNotes_WorksWithOtherSections() throws ParseException, FormatException {
-        String input = "!comp" +
-                " notes: This is [a] free / form (notes) #section." +
-                " team: a"+
-                " !end";
-        testParse(input, Arrays.asList(new RawPokemon("a", null, null, null, false)), RawRunDetails::getTeam);
+        // leading space on notes because we get all special tokens before a regular token
+        // but once we see another section header or !end, we stop appending to the notes section
+        String notes = " This is [a] free / form (notes) #section.";
+        String input = "!comp notes:" + notes + " team: a !end";
+        testParse(input, Arrays.asList(
+                new ExpectedResult<>(Arrays.asList(new RawPokemon("a", null, null, null, false)), RawRunDetails::getTeam),
+                new ExpectedResult<>(notes, RawRunDetails::getNotes)));
 
-        input = "!comp" +
-                " notes: This is [a] free / form (notes) #section." +
-                " items: none"+
-                " !end";
-        testParse(input, Arrays.asList("none"), RawRunDetails::getItems);
+        input = "!comp notes:" + notes + " items: none !end";
+        testParse(input, Arrays.asList(
+                new ExpectedResult<>(Arrays.asList("none"), RawRunDetails::getItems),
+                new ExpectedResult<>(notes, RawRunDetails::getNotes)));
 
-        input = "!comp" +
-                " notes: This is [a] free / form (notes) #section." +
-                " score: 100"+
-                " !end";
-        testParse(input, "100", RawRunDetails::getScore);
+        input = "!comp notes:" + notes + " score: 100 !end";
+        testParse(input, Arrays.asList(
+                new ExpectedResult<>("100", RawRunDetails::getScore),
+                new ExpectedResult<>(notes, RawRunDetails::getNotes)));
 
-        input = "!comp" +
-                " notes: This is [a] free / form (notes) #section." +
-                " moves left: 5"+
-                " !end";
-        testParse(input, "5", RawRunDetails::getMovesLeft);
+        input = "!comp notes:" + notes + " moves left: 5 !end";
+        testParse(input, Arrays.asList(
+                new ExpectedResult<>("5", RawRunDetails::getMovesLeft),
+                new ExpectedResult<>(notes, RawRunDetails::getNotes)));
 
-        input = "!comp" +
-                " notes: This is [a] free / form (notes) #section." +
-                " time left: 5"+
-                " !end";
-        testParse(input, "5", RawRunDetails::getTimeLeft);
+        input = "!comp notes:" + notes + " time left: 5 !end";
+        testParse(input, Arrays.asList(
+                new ExpectedResult<>("5", RawRunDetails::getTimeLeft),
+                new ExpectedResult<>(notes, RawRunDetails::getNotes)));
     }
 }
