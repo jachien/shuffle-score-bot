@@ -15,6 +15,7 @@ public class RunDetails {
     private final Integer timeLeft;
     private final StageType stageType;
     private final MoveType moveType;
+    private final String notes;
 
     private final List<Throwable> throwables;
 
@@ -26,6 +27,7 @@ public class RunDetails {
                Integer timeLeft,
                StageType stageType,
                MoveType moveType,
+               String notes,
                List<Throwable> throwables) {
         this.team = team;
         this.items = items;
@@ -35,6 +37,7 @@ public class RunDetails {
         this.timeLeft = timeLeft;
         this.stageType = stageType;
         this.moveType = moveType;
+        this.notes = notes;
         this.throwables = throwables;
     }
 
@@ -86,6 +89,10 @@ public class RunDetails {
         return moveType;
     }
 
+    public String getNotes() {
+        return notes;
+    }
+
     public List<Throwable> getThrowables() {
         return throwables;
     }
@@ -105,6 +112,7 @@ public class RunDetails {
                 ", timeLeft=" + timeLeft +
                 ", stageType=" + stageType +
                 ", moveType=" + moveType +
+                ", notes='" + notes + '\'' +
                 ", throwables=" + throwables +
                 '}';
     }
@@ -122,12 +130,13 @@ public class RunDetails {
                 Objects.equals(timeLeft, that.timeLeft) &&
                 stageType == that.stageType &&
                 moveType == that.moveType &&
+                Objects.equals(notes, that.notes) &&
                 Objects.equals(throwables, that.throwables);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(team, items, stage, score, movesLeft, timeLeft, stageType, moveType, throwables);
+        return Objects.hash(team, items, stage, score, movesLeft, timeLeft, stageType, moveType, notes, throwables);
     }
 }

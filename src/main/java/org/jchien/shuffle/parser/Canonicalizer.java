@@ -52,6 +52,8 @@ public class Canonicalizer {
 
         addDetail(throwables, () -> rdb.setMoveType(raw.getMoveType()));
 
+        addDetail(throwables, () -> rdb.setNotes(getNotes(raw.getNotes())));
+
         rdb.setThrowables(throwables);
 
         return rdb.build();
@@ -291,5 +293,12 @@ public class Canonicalizer {
         } catch (NumberFormatException e) {
             throw new FormatException("Unable to parse " + section + ": \"" + raw + "\"");
         }
+    }
+
+    private String getNotes(String raw) {
+        // todo replace these calls with something more efficient
+        return raw.replaceAll("[\\t\\n\\r]", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
     }
 }

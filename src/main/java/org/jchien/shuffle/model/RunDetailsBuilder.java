@@ -11,6 +11,7 @@ public class RunDetailsBuilder {
     private Integer timeLeft;
     private StageType stageType;
     private MoveType moveType;
+    private String notes;
     private List<Throwable> throwables;
 
     public RunDetailsBuilder setTeam(List<Pokemon> team) {
@@ -53,12 +54,17 @@ public class RunDetailsBuilder {
         return this;
     }
 
+    public RunDetailsBuilder setNotes(String notes) {
+        this.notes = notes;
+        return this;
+    }
+
     public RunDetailsBuilder setThrowables(List<Throwable> throwables) {
         this.throwables = throwables;
         return this;
     }
 
     public RunDetails build() {
-        return new RunDetails(team, items, stage, score, movesLeft, timeLeft, stageType, moveType, throwables);
+        return new RunDetails(team, items, stage, score, movesLeft, timeLeft, stageType, moveType, notes, throwables);
     }
 }
