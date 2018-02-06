@@ -5,7 +5,7 @@ import net.dean.jraw.models.PublicContribution;
 import net.dean.jraw.models.Submission;
 import net.dean.jraw.tree.CommentNode;
 import net.dean.jraw.tree.RootCommentNode;
-import org.jchien.shuffle.bot.RedditUtils;
+import org.jchien.shuffle.formatter.FormatterUtils;
 import org.jchien.shuffle.model.InvalidRuns;
 import org.jchien.shuffle.model.ParsedComment;
 import org.jchien.shuffle.model.RunDetails;
@@ -78,7 +78,7 @@ public class SubmissionHandler {
                 try {
                     processComment(node, botUser);
                 } catch (Throwable t) {
-                    String commentUrl = RedditUtils.getCommentPermalink(submission.getUrl(), node.getSubject().getId());
+                    String commentUrl = FormatterUtils.getCommentPermalink(submission.getUrl(), node.getSubject().getId());
                     LOG.error("unable to process comment " + commentUrl, t);
                 }
                 cnt++;
@@ -135,7 +135,7 @@ public class SubmissionHandler {
             String commentId = comment.getId();
             invalidRunMap.put(commentId, new InvalidRuns(commentId, lastModDate, invalidRuns));
 
-            String commentPermalink = RedditUtils.getCommentPermalink(submission.getUrl(), commentId);
+            String commentPermalink = FormatterUtils.getCommentPermalink(submission.getUrl(), commentId);
             for (UserRunDetails run : invalidRuns) {
                 for (Throwable t : run.getRunDetails().getThrowables()) {
                     LOG.warn("bad run for " + commentPermalink, t);

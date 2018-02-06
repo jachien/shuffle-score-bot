@@ -1,6 +1,5 @@
 package org.jchien.shuffle.formatter;
 
-import org.jchien.shuffle.bot.RedditUtils;
 import org.jchien.shuffle.model.Item;
 import org.jchien.shuffle.model.MoveType;
 import org.jchien.shuffle.model.Pokemon;
@@ -327,7 +326,7 @@ public class RunFormatter {
             sb.append(result);
         }
         sb.append("](");
-        sb.append(RedditUtils.getCommentPermalink(submissionUrl, commentId));
+        sb.append(FormatterUtils.getCommentPermalink(submissionUrl, commentId));
         sb.append(')');
     }
 }

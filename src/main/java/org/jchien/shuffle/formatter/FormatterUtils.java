@@ -29,4 +29,7 @@ public class FormatterUtils {
         }
     }
 
+    public static String getCommentPermalink(String submissionUrl, String commentId) {
+        return submissionUrl + commentId;
+    }
 }

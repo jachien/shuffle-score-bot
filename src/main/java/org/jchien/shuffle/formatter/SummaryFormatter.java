@@ -1,6 +1,5 @@
 package org.jchien.shuffle.formatter;
 
-import org.jchien.shuffle.bot.RedditUtils;
 import org.jchien.shuffle.model.BotComment;
 import org.jchien.shuffle.model.Stage;
 import org.jchien.shuffle.model.StageType;
@@ -174,6 +173,6 @@ public class SummaryFormatter {
                                Map<TablePartId, BotComment> aggregateTableMap,
                                TablePartId partId) {
         BotComment comment = aggregateTableMap.get(partId);
-        return RedditUtils.getCommentPermalink(submissionUrl, comment.getCommentId());
+        return FormatterUtils.getCommentPermalink(submissionUrl, comment.getCommentId());
     }
 }

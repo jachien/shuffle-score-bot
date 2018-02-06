@@ -1,6 +1,5 @@
 package org.jchien.shuffle.formatter;
 
-import org.jchien.shuffle.bot.RedditUtils;
 import org.jchien.shuffle.parser.exception.ItemException;
 import org.jchien.shuffle.model.RunDetails;
 import org.jchien.shuffle.model.StageType;
@@ -56,7 +55,7 @@ public class InvalidRunFormatter {
     }
 
     public static String getPrivateMessageContent(String submissionUrl, String userCommentId, String replyBody) {
-        String permalink = RedditUtils.getCommentPermalink(submissionUrl, userCommentId);
+        String permalink = FormatterUtils.getCommentPermalink(submissionUrl, userCommentId);
         return "I saw the update to [your comment](" + permalink + ") and processed it. Here are my latest findings." +
                 "\n\n*****\n\n" + replyBody;
     }

@@ -6,9 +6,9 @@ import net.dean.jraw.RedditClient;
 import net.dean.jraw.models.Comment;
 import net.dean.jraw.models.Submission;
 import net.dean.jraw.references.InboxReference;
+import org.jchien.shuffle.formatter.FormatterUtils;
 import org.jchien.shuffle.formatter.RunFormatter;
 import org.jchien.shuffle.formatter.InvalidRunFormatter;
-import org.jchien.shuffle.bot.RedditUtils;
 import org.jchien.shuffle.formatter.SummaryFormatter;
 import org.jchien.shuffle.model.BotComment;
 import org.jchien.shuffle.model.InvalidRuns;
@@ -154,13 +154,13 @@ public class BotCommentHandler {
         String summaryTable = summaryFormatter.formatSummary(submissionUrl, latestAggregateTableMap);
         if (!Objects.equals(summaryComment.getContent(), summaryTable)) {
             if (LOG.isDebugEnabled()) {
-                String url = RedditUtils.getCommentPermalink(submissionUrl, summaryComment.getCommentId());
+                String url = FormatterUtils.getCommentPermalink(submissionUrl, summaryComment.getCommentId());
                 LOG.debug("updating summary comment at " + url);
             }
             redditClient.comment(summaryComment.getCommentId()).edit(summaryTable);
         } else {
             if (LOG.isDebugEnabled()) {
-                String url = RedditUtils.getCommentPermalink(submissionUrl, summaryComment.getCommentId());
+                String url = FormatterUtils.getCommentPermalink(submissionUrl, summaryComment.getCommentId());
                 LOG.debug("summary comment already up-to-date at " + url);
             }
         }
