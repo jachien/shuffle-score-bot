@@ -593,6 +593,8 @@ public class CanonicalizerTest {
     public void testGetNotes() {
         Canonicalizer c = new Canonicalizer();
 
+        assertNull(c.getNotes(null));
+
         String s = "";
         assertEquals(s, c.getNotes(s));
 
