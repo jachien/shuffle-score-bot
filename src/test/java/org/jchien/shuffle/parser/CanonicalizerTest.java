@@ -588,4 +588,50 @@ public class CanonicalizerTest {
             assertThrows(FormatException.class, () -> c.getNonNegativeInteger(input, ""));
         }
     }
+
+    @Test
+    public void testGetNotes() {
+        Canonicalizer c = new Canonicalizer();
+
+        String s = "";
+        assertEquals(s, c.getNotes(s));
+
+        s = "This is general form of a score link [123,456](http://www.google.com)";
+        assertEquals(s, c.getNotes(s));
+
+        s = "This is [a] free / form (notes) #section." +
+                " You *should* be able to write **almost anything** here without causing trouble," +
+                " including numbers like 0123456789!";
+        assertEquals(s, c.getNotes(s));
+    }
+
+    @Test
+    public void testGetNotes_Trim() {
+        Canonicalizer c = new Canonicalizer();
+
+        String input = " No untrimmed whitespace please ";
+        String expected = "No untrimmed whitespace please";
+        assertEquals(expected, c.getNotes(input));
+
+        input = "  No untrimmed whitespace please  ";
+        expected = "No untrimmed whitespace please";
+        assertEquals(expected, c.getNotes(input));
+    }
+
+    @Test
+    public void testGetNotes_NormalizeWhitespace() {
+        Canonicalizer c = new Canonicalizer();
+
+        String input = "Multiple  spaces   get normalized";
+        String expected = "Multiple spaces get normalized";
+        assertEquals(expected, c.getNotes(input));
+
+        input = "Convert\tchars\nto\rspaces";
+        expected = "Convert chars to spaces";
+        assertEquals(expected, c.getNotes(input));
+
+        input = "Convert\t\t\nchars \n\nto \r\n spaces";
+        expected = "Convert chars to spaces";
+        assertEquals(expected, c.getNotes(input));
+    }
 }

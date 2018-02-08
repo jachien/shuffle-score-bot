@@ -295,7 +295,8 @@ public class Canonicalizer {
         }
     }
 
-    private String getNotes(String raw) {
+    @VisibleForTesting
+    String getNotes(String raw) {
         // todo replace these calls with something more efficient
         return raw.replaceAll("[\\t\\n\\r]", " ")
                 .replaceAll("\\s+", " ")
