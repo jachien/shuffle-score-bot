@@ -32,7 +32,7 @@ public class RunFormatter {
     public final static String COMP_HEADER_PREFIX = "###Competition Runs";
     static final String COMP_TABLE_HEADER = "\n\n" +
             "Username | Team | Items | Score\n" +
-            "|:----------: | :----------: | :-----------: | :-----------:\n";
+            "|:-:|:-:|:-:|:-:\n";
     public List<String> formatCompetitionRun(List<UserRunDetails> runs, String submissionUrl) {
         // inlining these lambdas into Comparator.comparing() makes intellij 2017.3.1 think it's a syntax error
         Function<UserRunDetails, Integer> score = (r) -> r.getRunDetails().getScore();
@@ -101,7 +101,7 @@ public class RunFormatter {
     public final static String STAGE_HEADER_PREFIX = "###Stage ";
     static final String STAGE_TABLE_HEADER = "\n\n" +
             "Username | Team | Items | Result\n" +
-            "|:----------: | :----------: | :-----------: | :-----------:\n";
+            "|:-:|:-:|:-:|:-:\n";
 
     public List<String> formatStage(List<UserRunDetails> runs, Stage stage, String submissionUrl) {
         // inlining these lambdas into Comparator.comparing() makes intellij 2017.3.1 think it's a syntax error
