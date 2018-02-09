@@ -31,8 +31,8 @@ public class RunFormatter {
 
     public final static String COMP_HEADER_PREFIX = "###Competition Runs";
     static final String COMP_TABLE_HEADER = "\n\n" +
-            "Username | Team | Items | Score\n" +
-            "|:-:|:-:|:-:|:-:\n";
+            "Username | Team | Items | Score | Notes\n" +
+            "|:-:|:-:|:-:|:-:|:-:\n";
     public List<String> formatCompetitionRun(List<UserRunDetails> runs, String submissionUrl) {
         // inlining these lambdas into Comparator.comparing() makes intellij 2017.3.1 think it's a syntax error
         Function<UserRunDetails, Integer> score = (r) -> r.getRunDetails().getScore();
@@ -95,13 +95,15 @@ public class RunFormatter {
         appendItems(sb, run.getItems());
         appendDelimiter(sb);
         appendScore(sb, submissionUrl, urd.getCommentId(), run.getScore());
+        appendDelimiter(sb);
+        appendNotes(sb, run.hasNotes());
         sb.append('\n');
     }
 
     public final static String STAGE_HEADER_PREFIX = "###Stage ";
     static final String STAGE_TABLE_HEADER = "\n\n" +
-            "Username | Team | Items | Result\n" +
-            "|:-:|:-:|:-:|:-:\n";
+            "Username | Team | Items | Result | Notes\n" +
+            "|:-:|:-:|:-:|:-:|:-:\n";
 
     public List<String> formatStage(List<UserRunDetails> runs, Stage stage, String submissionUrl) {
         // inlining these lambdas into Comparator.comparing() makes intellij 2017.3.1 think it's a syntax error
@@ -186,6 +188,8 @@ public class RunFormatter {
                      details.getMoveType(),
                      details.getMovesLeft(),
                      details.getTimeLeft());
+        appendDelimiter(sb);
+        appendNotes(sb, details.hasNotes());
         sb.append('\n');
     }
 
@@ -328,5 +332,11 @@ public class RunFormatter {
         sb.append("](");
         sb.append(FormatterUtils.getCommentPermalink(submissionUrl, commentId));
         sb.append(')');
+    }
+
+    private void appendNotes(StringBuilder sb, boolean hasNotes) {
+        if (hasNotes) {
+            sb.append("yes");
+        }
     }
 }

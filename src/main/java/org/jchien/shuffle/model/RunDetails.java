@@ -93,6 +93,10 @@ public class RunDetails {
         return notes;
     }
 
+    public boolean hasNotes() {
+        return notes != null && notes.length() > 0;
+    }
+
     public List<Throwable> getThrowables() {
         return throwables;
     }
