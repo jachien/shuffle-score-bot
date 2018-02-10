@@ -25,6 +25,10 @@ public class ScoreBotConfig {
 
     private int pollDays;
 
+    // process submissions and their comments only after max(time(now-pollDays), stopDate)
+    // this feature helps avoid massive resubmission of comments or PMs when formatting changes
+    private String stopDate = null;
+
     public String getUsername() {
         return username;
     }
@@ -79,5 +83,13 @@ public class ScoreBotConfig {
 
     public void setPollDays(int pollDays) {
         this.pollDays = pollDays;
+    }
+
+    public String getStopDate() {
+        return stopDate;
+    }
+
+    public void setStopDate(String stopDate) {
+        this.stopDate = stopDate;
     }
 }

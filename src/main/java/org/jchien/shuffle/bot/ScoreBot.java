@@ -36,9 +36,12 @@ public class ScoreBot {
 
     private ScoreBotConfig config;
 
+    private ConfigUtils configUtils;
+
     @Autowired
-    public ScoreBot(ScoreBotConfig config) {
+    public ScoreBot(ScoreBotConfig config, ConfigUtils configUtils) {
         this.config = config;
+        this.configUtils = configUtils;
     }
 
     @Scheduled(fixedDelayString = "${shufflescorebot.pollDelayMillis}")
@@ -58,7 +61,9 @@ public class ScoreBot {
         // and listings only return up to 1000 things. So we need to do something much slower
         // and inefficient in order to get all comments in the desired time window.
 
-        LocalDateTime pollEndTime = getEndTime();
+        LocalDateTime endTime = configUtils.getEndTime();
+        LOG.info("processing posts until " + endTime);
+
         RedditClient redditClient = getClient();
         Paginator<Submission> paginator = getPaginator(redditClient, subreddit);
 
@@ -78,7 +83,7 @@ public class ScoreBot {
                         submission.getCreated().toInstant(),
                         ZoneId.systemDefault());
 
-                if (postTime.isBefore(pollEndTime)) {
+                if (postTime.isBefore(endTime)) {
                     done = true;
                     break;
                 }
@@ -111,11 +116,6 @@ public class ScoreBot {
         RedditClient redditClient = OAuthHelper.automatic(adapter, credentials);
 
         return redditClient;
-    }
-
-    private LocalDateTime getEndTime() {
-        int pollDays = config.getPollDays();
-        return LocalDateTime.now().minusDays(pollDays);
     }
 
     private Paginator<Submission> getPaginator(RedditClient redditClient, String subreddit) {
