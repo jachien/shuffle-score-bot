@@ -193,7 +193,7 @@ public class RunFormatter {
         sb.append('\n');
     }
 
-    public static final String PART_HEADER = "####Part ";
+    public static final String PART_HEADER = "###Part ";
     private void appendPartNumber(StringBuilder sb, int partNum) {
         if (partNum == 0) {
             return;
