@@ -1,5 +1,6 @@
 package org.jchien.shuffle.formatter;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.jchien.shuffle.model.Item;
 import org.jchien.shuffle.model.MoveType;
 import org.jchien.shuffle.model.Pokemon;
@@ -29,11 +30,27 @@ public class RunFormatter {
     // looking at actual comp runs, a single row is around 240 chars long
     final static int MAX_ROW_LENGTH = 1024;
 
+    public List<String> formatRuns(List<UserRunDetails> runs, Stage stage, String submissionUrl) {
+        switch (stage.getStageType()) {
+            case COMPETITION:
+                return formatCompetitionRun(runs, submissionUrl);
+            case ESCALATION_BATTLE:
+                return formatEscalationBattleStage(runs, stage, submissionUrl);
+            case NORMAL:
+                return formatMainExSpecStage(runs, stage, submissionUrl);
+            default:
+                throw new IllegalArgumentException("unsupported stage type: " + stage.getStageType() +
+                                                           " for stage " + stage + " in " + submissionUrl);
+        }
+    }
+
     public final static String COMP_HEADER_PREFIX = "###Competition Runs";
     static final String COMP_TABLE_HEADER = "\n\n" +
             "Username | Team | Items | Score | Notes\n" +
             "|:-:|:-:|:-:|:-:|:-:\n";
-    public List<String> formatCompetitionRun(List<UserRunDetails> runs, String submissionUrl) {
+
+    @VisibleForTesting
+    List<String> formatCompetitionRun(List<UserRunDetails> runs, String submissionUrl) {
         // inlining these lambdas into Comparator.comparing() makes intellij 2017.3.1 think it's a syntax error
         Function<UserRunDetails, Integer> score = (r) -> r.getRunDetails().getScore();
 
@@ -100,12 +117,26 @@ public class RunFormatter {
         sb.append('\n');
     }
 
-    public final static String STAGE_HEADER_PREFIX = "###Stage ";
+    public final static String EB_STAGE_HEADER_PREFIX = "###EB Stage ";
+
+    public final static String MES_STAGE_HEADER_PREFIX = "###Stage ";
+
     static final String STAGE_TABLE_HEADER = "\n\n" +
             "Username | Team | Items | Result | Notes\n" +
             "|:-:|:-:|:-:|:-:|:-:\n";
 
-    public List<String> formatStage(List<UserRunDetails> runs, Stage stage, String submissionUrl) {
+    private List<String> formatEscalationBattleStage(List<UserRunDetails> runs, Stage stage, String submissionUrl) {
+        return formatNonCompetitionStage(runs, stage, submissionUrl, EB_STAGE_HEADER_PREFIX);
+    }
+
+    private List<String> formatMainExSpecStage(List<UserRunDetails> runs, Stage stage, String submissionUrl) {
+        return formatNonCompetitionStage(runs, stage, submissionUrl, MES_STAGE_HEADER_PREFIX);
+    }
+
+    private List<String> formatNonCompetitionStage(List<UserRunDetails> runs,
+                                                   Stage stage,
+                                                   String submissionUrl,
+                                                   String stageHeaderPrefix) {
         // inlining these lambdas into Comparator.comparing() makes intellij 2017.3.1 think it's a syntax error
         Function<UserRunDetails, Integer> itemsCost = r -> r.getRunDetails().getItemsCost();
         Function<UserRunDetails, Integer> unitsLeft = urd -> {
@@ -135,7 +166,7 @@ public class RunFormatter {
 
         // username (link to /u/user) | team | items | score (link to comment)
         StringBuilder sb = new StringBuilder();
-        appendStageHeader(sb, stage, partNum);
+        appendStageHeader(sb, stage, partNum, stageHeaderPrefix);
 
         StringBuilder rowBuilder = new StringBuilder();
         for (UserRunDetails urd : runs) {
@@ -154,7 +185,7 @@ public class RunFormatter {
 
                 sb.setLength(0);
                 partNum++;
-                appendStageHeader(sb, stage, partNum);
+                appendStageHeader(sb, stage, partNum, stageHeaderPrefix);
             }
 
             sb.append(rowBuilder);
@@ -164,8 +195,8 @@ public class RunFormatter {
         return ret;
     }
 
-    private void appendStageHeader(StringBuilder sb, Stage stage, int partNum) {
-        sb.append(STAGE_HEADER_PREFIX);
+    private void appendStageHeader(StringBuilder sb, Stage stage, int partNum, String stageHeaderPrefix) {
+        sb.append(stageHeaderPrefix);
         appendCapitalizedWords(sb, stage.getStageId());
         sb.append('\n');
 

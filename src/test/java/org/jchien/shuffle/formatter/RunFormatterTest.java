@@ -63,34 +63,34 @@ public class RunFormatterTest {
     }
 
     @Test
-    public void testFormatStage_OneComment() {
+    public void testFormatEBStage_OneComment() {
         RunFormatter f = new RunFormatter();
         List<UserRunDetails> runs = generateUserRunDetails(1, 200);
-        List<String> comments = f.formatStage(runs, new Stage(StageType.ESCALATION_BATTLE, "50"), "");
+        List<String> comments = f.formatRuns(runs, new Stage(StageType.ESCALATION_BATTLE, "50"), "");
         assertEquals(1, comments.size());
 
-        assertTrue(comments.get(0).startsWith(RunFormatter.STAGE_HEADER_PREFIX));
+        assertTrue(comments.get(0).startsWith(RunFormatter.EB_STAGE_HEADER_PREFIX));
     }
 
     @Test
-    public void testFormatStage_MultiComment() {
+    public void testFormatEBStage_MultiComment() {
         RunFormatter f = new RunFormatter();
         int numRuns = 20;
         int minCharsPerRow = (int)Math.ceil(RunFormatter.MAX_COMMENT_LENGTH / numRuns) + 1;
         List<UserRunDetails> runs = generateUserRunDetails(numRuns, minCharsPerRow);
-        List<String> comments = f.formatStage(runs, new Stage(StageType.ESCALATION_BATTLE, "50"), "");
+        List<String> comments = f.formatRuns(runs, new Stage(StageType.ESCALATION_BATTLE, "50"), "");
         assertTrue(comments.size() > 1);
 
         for (String comment : comments) {
-            assertTrue(comment.startsWith(RunFormatter.STAGE_HEADER_PREFIX));
+            assertTrue(comment.startsWith(RunFormatter.EB_STAGE_HEADER_PREFIX));
         }
     }
 
     @Test
-    public void testFormatStage_SkipLongComment() {
+    public void testFormatEBStage_SkipLongComment() {
         RunFormatter f = new RunFormatter();
         List<UserRunDetails> runs = generateUserRunDetails(1, RunFormatter.MAX_ROW_LENGTH);
-        List<String> comments = f.formatStage(runs, new Stage(StageType.ESCALATION_BATTLE, "50"), "");
+        List<String> comments = f.formatRuns(runs, new Stage(StageType.ESCALATION_BATTLE, "50"), "");
         assertEquals(1, comments.size());
 
         // If all runs are skipped, then we return an empty table rather than no comments.
@@ -99,10 +99,10 @@ public class RunFormatterTest {
     }
 
     @Test
-    public void testFormatStage_SkipManyLongComments() {
+    public void testFormatEBStage_SkipManyLongComments() {
         RunFormatter f = new RunFormatter();
         List<UserRunDetails> runs = generateUserRunDetails(100, RunFormatter.MAX_ROW_LENGTH);
-        List<String> comments = f.formatStage(runs, new Stage(StageType.ESCALATION_BATTLE, "50"), "");
+        List<String> comments = f.formatRuns(runs, new Stage(StageType.ESCALATION_BATTLE, "50"), "");
         assertEquals(1, comments.size());
 
         // If all runs are skipped, then we return an empty table rather than no comments.

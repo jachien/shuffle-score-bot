@@ -19,7 +19,7 @@ public enum StageType {
         if (normalizedStage == null) {
             normalizedStage = "";
         }
-        // seems like it doesn't matter if I give more arguments than format specifiers
+        // seems like it doesn't matter if I give more arguments than formatRuns specifiers
         return String.format(headerFormat, normalizedStage).trim();
     }
 }

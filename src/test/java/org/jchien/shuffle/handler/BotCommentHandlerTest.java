@@ -48,7 +48,7 @@ public class BotCommentHandlerTest {
 
     @Test
     public void testGetTablePartId_EBStage() {
-        String comment = "###Stage 50\n" +
+        String comment = "###EB Stage 50\n" +
                 "\n" +
                 "Username | Team | Items | Result\n" +
                 "|:----------: | :----------: | :-----------: | :-----------:\n" +
@@ -60,7 +60,7 @@ public class BotCommentHandlerTest {
 
     @Test
     public void testGetTablePartId_EBStagePart2() {
-        String comment = "###Stage 50\n" +
+        String comment = "###EB Stage 50\n" +
                 "###Part 2\n" +
                 "\n" +
                 "Username | Team | Items | Result\n" +
@@ -119,7 +119,7 @@ public class BotCommentHandlerTest {
 
         doReturn(Arrays.asList("0"))
                 .when(runFormatter)
-                .formatCompetitionRun(any(), isNull());
+                .formatRuns(any(), any(), isNull());
 
         doReturn(new BotComment("commentId", "0"))
                 .when(bch)
@@ -156,7 +156,7 @@ public class BotCommentHandlerTest {
 
         doReturn(Arrays.asList("0", "1", "2"))
                 .when(runFormatter)
-                .formatCompetitionRun(any(), isNull());
+                .formatRuns(any(), any(), isNull());
 
         doReturn(new BotComment("id0", "0"))
                 .when(bch)

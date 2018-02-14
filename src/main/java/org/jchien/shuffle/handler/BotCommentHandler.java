@@ -203,12 +203,7 @@ public class BotCommentHandler {
                                          List<UserRunDetails> runs) {
         String submissionUrl = submission.getUrl();
 
-        final List<String> commentBodies;
-        if (stage.getStageType() == StageType.COMPETITION) {
-            commentBodies = runFormatter.formatCompetitionRun(runs, submissionUrl);
-        } else {
-            commentBodies = runFormatter.formatStage(runs, stage, submissionUrl);
-        }
+        final List<String> commentBodies = runFormatter.formatRuns(runs, stage, submissionUrl);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("generated comments:\n" + Arrays.asList(commentBodies));
@@ -334,7 +329,11 @@ public class BotCommentHandler {
         }
     }
 
-    private static final Pattern STAGE_PATTERN = Pattern.compile("^" + RunFormatter.STAGE_HEADER_PREFIX + "(.+)\n");
+    private static final Pattern EB_STAGE_PATTERN = Pattern.compile("^" + RunFormatter.EB_STAGE_HEADER_PREFIX + "(\\d+)\n");
+
+    // main / expert / special stage pattern
+    private static final Pattern MES_STAGE_PATTERN = Pattern.compile("^" + RunFormatter.MES_STAGE_HEADER_PREFIX + "(.+)\n");
+
     static TablePartId getTablePartId(String comment) {
         // assumes the we've already checked that the configured bot user is the commenter
 
@@ -343,16 +342,18 @@ public class BotCommentHandler {
             return new TablePartId(new Stage(StageType.COMPETITION, null), partNum);
         }
 
-        Matcher m = STAGE_PATTERN.matcher(comment);
-        if (m.find()) {
-            String stageId = Stage.normalizeStageId(m.group(1));
+        Matcher ebMatcher = EB_STAGE_PATTERN.matcher(comment);
+        if (ebMatcher.find()) {
+            String stageId = Stage.normalizeStageId(ebMatcher.group(1));
             int partNum = getPartNum(comment);
-            try {
-                Integer.parseInt(stageId);
-                return new TablePartId(new Stage(StageType.ESCALATION_BATTLE, stageId), partNum);
-            } catch (NumberFormatException e) {
-                return new TablePartId(new Stage(StageType.NORMAL, stageId), partNum);
-            }
+            return new TablePartId(new Stage(StageType.ESCALATION_BATTLE, stageId), partNum);
+        }
+
+        Matcher mesMatcher = MES_STAGE_PATTERN.matcher(comment);
+        if (mesMatcher.find()) {
+            String stageId = Stage.normalizeStageId(mesMatcher.group(1));
+            int partNum = getPartNum(comment);
+            return new TablePartId(new Stage(StageType.NORMAL, stageId), partNum);
         }
 
         return null;
