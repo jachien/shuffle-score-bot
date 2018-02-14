@@ -443,7 +443,7 @@ public class RunParserTest {
     public void testNotes() throws ParseException, FormatException {
         String notes =  "This is [a] free / form (notes) #section." +
                 " You *should* be able to write **almost anything** here without causing trouble," +
-                " including numbers like 0123456789!";
+                " including numbers like 0123456789 and perfect so everything should be great!";
         String input = "!comp notes:" + notes + " !end";
         testParse(input, notes, RawRunDetails::getNotes);
     }

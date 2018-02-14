@@ -371,7 +371,7 @@ void notes(): {
 } {
     // there's gotta be a better way to do this
     <NOTES_HEADER>
-    ((t=<WORD> | t=<SLASH> | t=<LPAREN> | t=<RPAREN> | t=<COMMA>) {
+    ((t=<WORD> | t=<SLASH> | t=<LPAREN> | t=<RPAREN> | t=<COMMA> | t=<PERFECT>) {
         appendPriorSpecialTokens(sb, t);
         sb.append(t.image);
     })* // we'll allow an empty notes section
