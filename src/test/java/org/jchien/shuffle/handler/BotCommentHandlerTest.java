@@ -36,7 +36,7 @@ public class BotCommentHandlerTest {
     @Test
     public void testGetTablePartId_CompetitionStagePart2() {
         String comment = "###Competition Runs\n" +
-                "####Part 2\n" +
+                "###Part 2\n" +
                 "\n" +
                 "Username | Team | Items | Score\n" +
                 "|:----------: | :----------: | :-----------: | :-----------:\n" +
@@ -61,7 +61,7 @@ public class BotCommentHandlerTest {
     @Test
     public void testGetTablePartId_EBStagePart2() {
         String comment = "###Stage 50\n" +
-                "####Part 2\n" +
+                "###Part 2\n" +
                 "\n" +
                 "Username | Team | Items | Result\n" +
                 "|:----------: | :----------: | :-----------: | :-----------:\n" +
@@ -86,7 +86,7 @@ public class BotCommentHandlerTest {
     @Test
     public void testGetTablePartId_NormalStagePart2() {
         String comment = "###Stage Meowth\n" +
-                "####Part 2\n" +
+                "###Part 2\n" +
                 "\n" +
                 "Username | Team | Items | Result\n" +
                 "|:----------: | :----------: | :-----------: | :-----------:\n" +
