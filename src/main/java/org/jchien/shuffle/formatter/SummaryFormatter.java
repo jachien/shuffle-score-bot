@@ -148,6 +148,9 @@ public class SummaryFormatter {
                 TablePartId part = parts.get(0);
                 String tableUrl = getTableUrl(submissionUrl, tableMap, part);
                 sb.append(" * [");
+                if (stage.isNumericStageId()) {
+                    sb.append("Stage ");
+                }
                 appendCapitalizedWords(sb, stage.getStageId());
                 sb.append("](")
                         .append(tableUrl)

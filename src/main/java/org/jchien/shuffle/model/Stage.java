@@ -8,10 +8,25 @@ import java.util.Objects;
 public class Stage {
     private final StageType stageType;
     private final String stageId;
+    private boolean isNumericStageId;
 
     public Stage(StageType stageType, String stageId) {
         this.stageType = stageType;
         this.stageId = stageId;
+        this.isNumericStageId = initIsNumericStageId(stageId);
+    }
+
+    private static boolean initIsNumericStageId(String stageId) {
+        if (stageId == null) {
+            return false;
+        }
+
+        try {
+            Integer.parseInt(stageId);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     public StageType getStageType() {
@@ -27,6 +42,10 @@ public class Stage {
             return null;
         }
         return stage.replaceAll("\\s+", "").toLowerCase().trim();
+    }
+
+    public boolean isNumericStageId() {
+        return isNumericStageId;
     }
 
     @Override
