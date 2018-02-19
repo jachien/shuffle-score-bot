@@ -112,6 +112,7 @@ public class UserCommentHandler {
         boolean first = true;
         while (m.find()) {
             if (multiBlockExceptionSupplier != null && !first) {
+                // throw an exception if you've defined multiple rosters
                 throw multiBlockExceptionSupplier.get();
             } else {
                 first = false;
@@ -180,6 +181,15 @@ public class UserCommentHandler {
             // not the cleanest but it's already written and should work
             RawRunDetails rawRoster = p.getDetails();
             RunDetails details = canonicalizer.canonicalize(rawRoster, null, null);
+
+            if (!details.getThrowables().isEmpty()) {
+                Throwable firstThrowable = details.getThrowables().get(0);
+                if (firstThrowable instanceof FormatException) {
+                    throw (FormatException) firstThrowable;
+                }
+                throw new FormatException(firstThrowable.getMessage(), firstThrowable);
+            }
+
             details.getTeam().stream().forEach(pokemon -> roster.put(pokemon.getName().toLowerCase(), pokemon));
         };
 
