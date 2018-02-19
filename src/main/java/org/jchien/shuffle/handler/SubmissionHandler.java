@@ -97,8 +97,7 @@ public class SubmissionHandler {
             return;
         }
 
-        // unescaping html entities is a workaround until https://github.com/mattbdean/JRAW/issues/225 is fixed
-        String commentBody = unescapeHtmlEntities(comment.getBody());
+        String commentBody = comment.getBody();
         String parentId = getParentId(commentNode);
 
         if (LOG.isDebugEnabled()) {
@@ -171,11 +170,5 @@ public class SubmissionHandler {
             stageMap.put(stage, stageRuns);
         }
         stageRuns.add(urd);
-    }
-
-    private String unescapeHtmlEntities(String s) {
-        return s.replaceAll("&lt;", "<")
-                .replaceAll("&gt;", ">")
-                .replaceAll("&amp;", "&");
     }
 }
