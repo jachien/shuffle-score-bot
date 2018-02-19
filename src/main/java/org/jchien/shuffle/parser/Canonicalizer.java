@@ -150,7 +150,7 @@ public class Canonicalizer {
 
         int skillLevel = Integer.parseInt(levelStr, 10);
         if (skillLevel < 1 || skillLevel > 5) {
-            throw new SkillException("Invalid skill level " + skillLevel + ": \n" + raw + "\".");
+            throw new SkillException("Invalid skill level " + skillLevel + ": \"" + raw + "\".");
         }
         return skillLevel;
     }
