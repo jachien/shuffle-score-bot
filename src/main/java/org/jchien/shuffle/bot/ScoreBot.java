@@ -1,14 +1,9 @@
 package org.jchien.shuffle.bot;
 
 import net.dean.jraw.RedditClient;
-import net.dean.jraw.http.NetworkAdapter;
-import net.dean.jraw.http.OkHttpNetworkAdapter;
-import net.dean.jraw.http.UserAgent;
 import net.dean.jraw.models.Listing;
 import net.dean.jraw.models.Submission;
 import net.dean.jraw.models.SubredditSort;
-import net.dean.jraw.oauth.Credentials;
-import net.dean.jraw.oauth.OAuthHelper;
 import net.dean.jraw.pagination.Paginator;
 import org.jchien.shuffle.handler.SubmissionHandler;
 import org.slf4j.Logger;
@@ -28,20 +23,19 @@ import java.util.Iterator;
 public class ScoreBot {
     private static final Logger LOG = LoggerFactory.getLogger(ScoreBot.class);
 
-    private static final UserAgent USER_AGENT = new UserAgent(
-            "server",
-            "org.jchien.shuffle",
-            "0.1",
-            "jcrixus");
-
-    private ScoreBotConfig config;
+    private ScoreBotPropsConfig config;
 
     private ConfigUtils configUtils;
 
+    private RedditClient redditClient;
+
     @Autowired
-    public ScoreBot(ScoreBotConfig config, ConfigUtils configUtils) {
+    public ScoreBot(ScoreBotPropsConfig config,
+                    ConfigUtils configUtils,
+                    RedditClient redditClient) {
         this.config = config;
         this.configUtils = configUtils;
+        this.redditClient = redditClient;
     }
 
     @Scheduled(fixedDelayString = "${shufflescorebot.pollDelayMillis}")
@@ -56,7 +50,7 @@ public class ScoreBot {
     }
 
     private void poll(String subreddit) {
-        // We're not using CommentStream because there's sort by last edit option.
+        // We're not using CommentStream because there's no sort by last edit option.
         // We want to be able to see bot commands added to any comments in the last n days,
         // and listings only return up to 1000 things. So we need to do something much slower
         // and inefficient in order to get all comments in the desired time window.
@@ -64,7 +58,6 @@ public class ScoreBot {
         LocalDateTime endTime = configUtils.getEndTime();
         LOG.info("processing posts until " + endTime);
 
-        RedditClient redditClient = getClient();
         Paginator<Submission> paginator = getPaginator(redditClient, subreddit);
 
         int totalComments = 0;
@@ -102,20 +95,6 @@ public class ScoreBot {
 
         long elapsed = (System.currentTimeMillis() - start) / 1000;
         LOG.info(elapsed + " seconds, threads: " + totalThreads + ", comments: " + totalComments);
-    }
-
-    private RedditClient getClient() {
-        Credentials credentials = Credentials.script(
-                config.getUsername(),
-                config.getPassword(),
-                config.getClientId(),
-                config.getClientSecret());
-
-        NetworkAdapter adapter = new OkHttpNetworkAdapter(USER_AGENT);
-
-        RedditClient redditClient = OAuthHelper.automatic(adapter, credentials);
-
-        return redditClient;
     }
 
     private Paginator<Submission> getPaginator(RedditClient redditClient, String subreddit) {

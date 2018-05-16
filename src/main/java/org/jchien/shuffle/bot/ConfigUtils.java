@@ -14,15 +14,13 @@ import java.time.format.DateTimeParseException;
  */
 @Component
 public class ConfigUtils {
-    private static final Logger LOG = LoggerFactory.getLogger(ConfigUtils.class);
-
     private static final String DT_PATTERN = "yyyy-MM-dd HH:mm:ss";
     private final DateTimeFormatter dtFormat = DateTimeFormatter.ofPattern(DT_PATTERN);
 
-    private ScoreBotConfig config;
+    private ScoreBotPropsConfig config;
 
     @Autowired
-    public ConfigUtils(ScoreBotConfig config) throws ConfigException {
+    public ConfigUtils(ScoreBotPropsConfig config) throws ConfigException {
         this.config = config;
 
         validateConfiguration();

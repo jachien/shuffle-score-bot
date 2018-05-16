@@ -1,95 +1,45 @@
 package org.jchien.shuffle.bot;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
+import net.dean.jraw.RedditClient;
+import net.dean.jraw.http.NetworkAdapter;
+import net.dean.jraw.http.OkHttpNetworkAdapter;
+import net.dean.jraw.http.UserAgent;
+import net.dean.jraw.oauth.Credentials;
+import net.dean.jraw.oauth.OAuthHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 
 /**
  * @author jchien
  */
-@Configuration
-@ConfigurationProperties(prefix="shufflescorebot")
+@Component
 public class ScoreBotConfig {
-    private String username;
+    private static final UserAgent USER_AGENT = new UserAgent(
+            "server",
+            "org.jchien.shuffle",
+            "0.1",
+            "jcrixus");
 
-    private String password;
+    private ScoreBotPropsConfig props;
 
-    private String clientId;
-
-    private String clientSecret;
-
-    private long pollDelayMillis;
-
-    private List<String> subreddits;
-
-    private int pollDays;
-
-    // process submissions and their comments only after max(time(now-pollDays), stopDate)
-    // this feature helps avoid massive resubmission of comments or PMs when formatting changes
-    private String stopDate = null;
-
-    public String getUsername() {
-        return username;
+    @Autowired
+    public ScoreBotConfig(ScoreBotPropsConfig props) {
+        this.props = props;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    @Bean
+    public RedditClient getRedditClient() {
+        Credentials credentials = Credentials.script(
+                props.getUsername(),
+                props.getPassword(),
+                props.getClientId(),
+                props.getClientSecret());
 
-    public String getPassword() {
-        return password;
-    }
+        NetworkAdapter adapter = new OkHttpNetworkAdapter(USER_AGENT);
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+        RedditClient redditClient = OAuthHelper.automatic(adapter, credentials);
 
-    public String getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
-    }
-
-    public String getClientSecret() {
-        return clientSecret;
-    }
-
-    public void setClientSecret(String clientSecret) {
-        this.clientSecret = clientSecret;
-    }
-
-    public long getPollDelayMillis() {
-        return pollDelayMillis;
-    }
-
-    public void setPollDelayMillis(long pollDelayMillis) {
-        this.pollDelayMillis = pollDelayMillis;
-    }
-
-    public List<String> getSubreddits() {
-        return subreddits;
-    }
-
-    public void setSubreddits(List<String> subreddits) {
-        this.subreddits = subreddits;
-    }
-
-    public int getPollDays() {
-        return pollDays;
-    }
-
-    public void setPollDays(int pollDays) {
-        this.pollDays = pollDays;
-    }
-
-    public String getStopDate() {
-        return stopDate;
-    }
-
-    public void setStopDate(String stopDate) {
-        this.stopDate = stopDate;
+        return redditClient;
     }
 }
