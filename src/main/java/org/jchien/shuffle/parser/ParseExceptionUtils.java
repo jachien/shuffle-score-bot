@@ -94,7 +94,7 @@ public class ParseExceptionUtils {
         return new FormatException(message.toString(), e);
     }
 
-    private static final int MIN_SNIPPET_SIZE = 60;
+    private static final int MIN_SNIPPET_SIZE = 40;
     private static final String INDENT = "    ";
 
     /**
