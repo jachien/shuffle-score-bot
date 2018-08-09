@@ -1,6 +1,8 @@
 package org.jchien.shuffle.parser;
 
 import org.jchien.shuffle.parser.exception.FormatException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 
@@ -8,6 +10,8 @@ import java.util.Arrays;
  * @author jchien
  */
 public class ParseExceptionUtils {
+    private static final Logger LOG = LoggerFactory.getLogger(ParseExceptionUtils.class);
+
     private static final String[] TOKEN_IMAGE = initTokenImage();
 
     private static String[] initTokenImage() {
@@ -69,8 +73,12 @@ public class ParseExceptionUtils {
         message.append("` at line ").append(errorLine).append(", column ").append(errorColumn);
         message.append(".\n\n");
 
-        String context = getContextSnippet(comment, errorLine-1, errorColumn-1);
-        message.append(context).append("\n\n");
+        try {
+            String context = getContextSnippet(comment, errorLine - 1, errorColumn - 1);
+            message.append(context).append("\n\n");
+        } catch (Exception ctxException) {
+            LOG.error("error generating context snippet: ", ctxException);
+        }
 
         if (expectedTokenSequences.length == 0) {
             // Nothing to add here
