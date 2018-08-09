@@ -139,6 +139,10 @@ public class ParseExceptionUtils {
     }
 
     private static void appendPreErrorSnippet(StringBuilder sb, String[] lines, int lineNum, int remLen) {
+        if (remLen <= 0) {
+            return;
+        }
+
         int ctxLineNum = lineNum - 1;
         if (ctxLineNum < 0) {
             return;
@@ -151,12 +155,14 @@ public class ParseExceptionUtils {
             ctxLine = lines[ctxLineNum];
         }
 
-        int ctxStart = getSnippetStart(ctxLine, ctxLine.length(), remLen);
-        sb.append(INDENT);
-        if (ctxStart > 0) {
-            sb.append("... ");
+        if (remLen > 0) {
+            int ctxStart = getSnippetStart(ctxLine, ctxLine.length(), remLen);
+            sb.append(INDENT);
+            if (ctxStart > 0) {
+                sb.append("... ");
+            }
+            sb.append(ctxLine, ctxStart, ctxLine.length()).append("\n");
         }
-        sb.append(ctxLine, ctxStart, ctxLine.length()).append("\n");
         for (int i=ctxLineNum+1; i < lineNum; i++) {
             sb.append(INDENT).append(lines[i]).append("\n");
         }
@@ -221,5 +227,16 @@ public class ParseExceptionUtils {
                 "\n" +
                 "!end";
         System.out.println(getContextSnippet(comment, 4, 0));
+
+        System.out.println("--------");
+
+        comment = "!comp\n" +
+                "\n" +
+                "[shuffle score bot docs](https://jachien.github.io/shuffle-score-bot/)\n" +
+                "\n" +
+                "/r/PokemonShuffle\n" +
+                "\n" +
+                "!end";
+        System.out.println(getContextSnippet(comment, 2, 1));
     }
 }
