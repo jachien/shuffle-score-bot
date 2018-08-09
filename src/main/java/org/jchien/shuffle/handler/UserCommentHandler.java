@@ -104,6 +104,14 @@ public class UserCommentHandler {
         return ret;
     }
 
+    // todo If processBlock throws an exception, it will silently treat the run or roster as being valid.
+    // So a comment initially breaks this, the round up thread won't include the run and the user will not be notified.
+    // If a comment that was already replied to by shufflescorebot is updated in a way that breaks this,
+    // shufflescorebot will erroneously report that everything is good now.
+    // It's a mess to update because the BlockConsumer wants to catch any exceptions,
+    // but if code outside the BlockConsumer throws an exception (e.g. the regex matching or offset calculations)
+    // then it would need to propogate that an exception occurred to the BlockConsumer which it doesn't right now.
+    // Generally there aren't any logic errors that trigger this right now afaik, so I'm leaving it for later.
     public void processBlock(String comment,
                              Pattern pattern,
                              BlockConsumer consumer,
