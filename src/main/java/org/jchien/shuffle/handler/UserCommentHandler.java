@@ -142,7 +142,7 @@ public class UserCommentHandler {
             try {
                 p.start();
             } catch (ParseException e) {
-                throwable = ParseExceptionUtils.getFormatException(e);
+                throwable = ParseExceptionUtils.getFormatException(block, e);
             } catch (FormatException e) {
                 throwable = e;
             } catch (TokenMgrError e) {
@@ -175,7 +175,7 @@ public class UserCommentHandler {
             try {
                 p.roster();
             } catch (ParseException e) {
-                throw ParseExceptionUtils.getFormatException(e);
+                throw ParseExceptionUtils.getFormatException(block, e);
             }
             // reuse RawRunDetails and canonicalizer to just get the team
             // not the cleanest but it's already written and should work

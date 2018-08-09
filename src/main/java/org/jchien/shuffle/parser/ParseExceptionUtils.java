@@ -29,7 +29,7 @@ public class ParseExceptionUtils {
                 .toArray(String[]::new);
     }
 
-    public static FormatException getFormatException(ParseException e) {
+    public static FormatException getFormatException(String comment, ParseException e) {
         // modified from ParseException#initialise
 
         Token currentToken = e.currentToken;
@@ -51,7 +51,7 @@ public class ParseExceptionUtils {
             }
             expected.append("\n    ");
         }
-        message.append("Encountered \"");
+        message.append("Encountered `");
         Token tok = currentToken.next;
         for (int i = 0; i < maxSize; i++) {
             if (i != 0) message.append(" ");
@@ -59,12 +59,18 @@ public class ParseExceptionUtils {
                 message.append(TOKEN_IMAGE[0]);
                 break;
             }
+            // todo escape reddit syntax?
             message.append(ParseException.add_escapes(tok.image));
             tok = tok.next;
         }
-        message.append("\" at line ").append(currentToken.next.beginLine).append(", column ").append(currentToken.next.beginColumn);
-        message.append(".\n");
+        final int errorLine = currentToken.next.beginLine;
+        final int errorColumn = currentToken.next.beginColumn;
+        // todo adjust for position within entire comment
+        message.append("` at line ").append(errorLine).append(", column ").append(errorColumn);
+        message.append(".\n\n");
 
+        String context = getContextSnippet(comment, errorLine-1, errorColumn-1);
+        message.append(context).append("\n\n");
 
         if (expectedTokenSequences.length == 0) {
             // Nothing to add here
@@ -78,5 +84,89 @@ public class ParseExceptionUtils {
         }
 
         return new FormatException(message.toString(), e);
+    }
+
+    private static final int MIN_SNIPPET_SIZE = 60;
+    private static final String INDENT = "    ";
+
+    /**
+     * @param comment
+     * @param lineNum 0-indexed
+     * @param columnNum 0-indexed
+     * @return
+     */
+    private static String getContextSnippet(String comment, int lineNum, int columnNum) {
+        StringBuilder sb = new StringBuilder();
+
+        String[] lines = comment.split("\\n");
+        String errLine = lines[lineNum];
+
+        int halfSize = MIN_SNIPPET_SIZE / 2;
+        int start = getSnippetStart(errLine, columnNum, halfSize);
+        int end = getSnippetEnd(errLine, columnNum, halfSize);
+
+        appendMainErrorSnippet(sb, errLine, columnNum, start, end);
+
+        return sb.toString();
+    }
+
+    private static int getSnippetStart(String line, int columnNum, int minOffset) {
+        int start = Math.max(0, columnNum - minOffset);
+        while (start > 0 && !Character.isWhitespace(line.codePointAt(start))) {
+            start = line.offsetByCodePoints(start, -1);
+        }
+        return start;
+    }
+
+    private static int getSnippetEnd(String line, int columnNum, int minOffset) {
+        int end = Math.min(line.length(), columnNum + minOffset);
+        while (end < line.length() && !Character.isWhitespace(line.codePointAt(end))) {
+            end = line.offsetByCodePoints(end, 1);
+        }
+        return end;
+    }
+
+    private static void appendMainErrorSnippet(StringBuilder sb, String errLine, int columnNum, int start, int end) {
+        int errorOffset = 0;
+        sb.append(INDENT);
+        if (start > 0) {
+            String ellipses = "... ";
+            sb.append(ellipses);
+            errorOffset += ellipses.length();
+        }
+        sb.append(errLine, start, end);
+        if (end < errLine.length()) {
+            sb.append(" ...");
+        }
+
+        sb.append("\n").append(INDENT);
+        for (int i=0; i < errorOffset; i++) {
+            sb.append(' ');
+        }
+        for (int i=start; i < columnNum; i++) {
+            sb.append(' ');
+        }
+        sb.append('^');
+    }
+
+    public static void main(String[] args) {
+        String comment = "!roster\n" +
+                "SMCX (Lv15, SL2, 15/15),  Tapu-Koko (Lv16, TC SL5), Meganium (Lv26, BS SL5), Tapu-Bulu (Lv16, TC SL5), Diancie-S (Lv20, SL5, 5/5), Shiftry (Lv15, SC SL5), AngryChu (Lv20, SL5), Rowlet (lv15, UP SL5), Tyranitar (lv10, Ejec SL1), Shaymin-Land (Lv15, SL5). !end\n";
+        System.out.println(getContextSnippet(comment, 1, 252));
+
+        comment = "!roster W-Glalie (Lv10, SL1, 20/20), Salazzle (Lv25, Shot Out SL5) Rapidash (Lv15, Shot Out SL5), Noivern (Lv20, Shot Out SL5).\n" +
+                "!end\n";
+        System.out.println(getContextSnippet(comment, 0, 67));
+
+        comment = "!comp\n" +
+                "\n" +
+                "Team: Gengar (Lv15), Lunala (Lv17, SL1), Mimikyu (Lv15, SL5)\n" +
+                "\n" +
+                "Items: M+5, MS, APU, C-1\n" +
+                "\n" +
+                "Scored: 808,472\n" +
+                "\n" +
+                "!end";
+        System.out.println(getContextSnippet(comment, 6, 0));
     }
 }
