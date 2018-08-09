@@ -105,6 +105,10 @@ public class ParseExceptionUtils {
         int start = getSnippetStart(errLine, columnNum, halfSize);
         int end = getSnippetEnd(errLine, columnNum, halfSize);
 
+        int snippetLen = end - start;
+        int remLen = MIN_SNIPPET_SIZE - snippetLen;
+        appendPreErrorSnippet(sb, lines, lineNum, remLen);
+
         appendMainErrorSnippet(sb, errLine, columnNum, start, end);
 
         return sb.toString();
@@ -124,6 +128,30 @@ public class ParseExceptionUtils {
             end = line.offsetByCodePoints(end, 1);
         }
         return end;
+    }
+
+    private static void appendPreErrorSnippet(StringBuilder sb, String[] lines, int lineNum, int remLen) {
+        int ctxLineNum = lineNum - 1;
+        if (ctxLineNum < 0) {
+            return;
+        }
+
+        String ctxLine = lines[ctxLineNum];
+        while (remLen > 0 && ctxLineNum > 0 && ctxLine.length() < remLen) {
+            remLen -= ctxLine.length();
+            ctxLineNum--;
+            ctxLine = lines[ctxLineNum];
+        }
+
+        int ctxStart = getSnippetStart(ctxLine, ctxLine.length(), remLen);
+        sb.append(INDENT);
+        if (ctxStart > 0) {
+            sb.append("... ");
+        }
+        sb.append(ctxLine, ctxStart, ctxLine.length()).append("\n");
+        for (int i=ctxLineNum+1; i < lineNum; i++) {
+            sb.append(INDENT).append(lines[i]).append("\n");
+        }
     }
 
     private static void appendMainErrorSnippet(StringBuilder sb, String errLine, int columnNum, int start, int end) {
@@ -154,9 +182,13 @@ public class ParseExceptionUtils {
                 "SMCX (Lv15, SL2, 15/15),  Tapu-Koko (Lv16, TC SL5), Meganium (Lv26, BS SL5), Tapu-Bulu (Lv16, TC SL5), Diancie-S (Lv20, SL5, 5/5), Shiftry (Lv15, SC SL5), AngryChu (Lv20, SL5), Rowlet (lv15, UP SL5), Tyranitar (lv10, Ejec SL1), Shaymin-Land (Lv15, SL5). !end\n";
         System.out.println(getContextSnippet(comment, 1, 252));
 
+        System.out.println("--------");
+
         comment = "!roster W-Glalie (Lv10, SL1, 20/20), Salazzle (Lv25, Shot Out SL5) Rapidash (Lv15, Shot Out SL5), Noivern (Lv20, Shot Out SL5).\n" +
                 "!end\n";
         System.out.println(getContextSnippet(comment, 0, 67));
+
+        System.out.println("--------");
 
         comment = "!comp\n" +
                 "\n" +
@@ -168,5 +200,18 @@ public class ParseExceptionUtils {
                 "\n" +
                 "!end";
         System.out.println(getContextSnippet(comment, 6, 0));
+
+        System.out.println("--------");
+
+        comment = "!comp\n" +
+                "\n" +
+                "Team: Gengar (Lv15\n" +
+                "\n" +
+                "Items: M+5, MS, APU, C-1\n" +
+                "\n" +
+                "Score: 808,472\n" +
+                "\n" +
+                "!end";
+        System.out.println(getContextSnippet(comment, 4, 0));
     }
 }
