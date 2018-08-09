@@ -1,5 +1,6 @@
 package org.jchien.shuffle.parser;
 
+import org.jchien.shuffle.parser.exception.FallbackFormatException;
 import org.jchien.shuffle.parser.exception.FormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,14 @@ public class ParseExceptionUtils {
      * @return              exception with error message for end user consumption
      */
     public static FormatException getFormatException(String comment, int lineOffset, int colOffset, ParseException e) {
+        try {
+            return generateFormatException(comment, lineOffset, colOffset, e);
+        } catch (Throwable t) {
+            return new FallbackFormatException(t);
+        }
+    }
+
+    private static FormatException generateFormatException(String comment, int lineOffset, int colOffset, ParseException e) {
         // modified from ParseException#initialise
 
         Token currentToken = e.currentToken;
