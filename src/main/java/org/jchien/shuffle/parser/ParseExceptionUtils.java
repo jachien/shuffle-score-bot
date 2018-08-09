@@ -110,8 +110,9 @@ public class ParseExceptionUtils {
         String errLine = lines[lineNum];
 
         int halfSize = MIN_SNIPPET_SIZE / 2;
-        int start = getSnippetStart(errLine, columnNum, halfSize);
         int end = getSnippetEnd(errLine, columnNum, halfSize);
+        int addlLen = Math.max(0, halfSize - (end - columnNum));
+        int start = getSnippetStart(errLine, columnNum, halfSize + addlLen);
 
         int snippetLen = end - start;
         int remLen = MIN_SNIPPET_SIZE - snippetLen;
