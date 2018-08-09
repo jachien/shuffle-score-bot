@@ -1,8 +1,5 @@
 package org.jchien.shuffle.handler;
 
-import org.jchien.shuffle.handler.UserCommentHandler;
-import org.jchien.shuffle.model.Stage;
-import org.jchien.shuffle.model.StageType;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -105,5 +102,86 @@ public class UserCommentHandlerTest {
                     assertTrue(m.find());
                 }
         );
+    }
+
+    @Test
+    public void testGetLineOffset_zeroOffset() {
+        String comment = "!roster\n" +
+                "SMCX (Lv15, SL2, 15/15) !end\n" +
+                "\n" +
+                "!eb 75  \n" +
+                "team: m-bee, buzzwole, s-diancie, hitmonlee ()  \n" +
+                "moves left: 9  \n" +
+                "items: none  \n" +
+                "!end  \n" +
+                "\n";
+
+        assertEquals(0, UserCommentHandler.getLineOffset(comment, 0));
+    }
+
+    @Test
+    public void testGetLineOffset_nonZeroOffset() {
+        String comment = "!roster\n" +
+                "SMCX (Lv15, SL2, 15/15) !end\n" +
+                "\n" +
+                "!eb 75  \n" +
+                "team: m-bee, buzzwole, s-diancie, hitmonlee ()  \n" +
+                "moves left: 9  \n" +
+                "items: none  \n" +
+                "!end  \n" +
+                "\n";
+        int start = comment.indexOf("!eb 75");
+
+        assertEquals(3, UserCommentHandler.getLineOffset(comment, start));
+    }
+
+    @Test
+    public void testGetColumnOffset_zeroOffset() {
+        String comment = "!roster\n" +
+                "SMCX (Lv15, SL2, 15/15) !end\n" +
+                "\n" +
+                "!eb 75  \n" +
+                "team: m-bee, buzzwole, s-diancie, hitmonlee ()  \n" +
+                "moves left: 9  \n" +
+                "items: none  \n" +
+                "!end  \n" +
+                "\n";
+
+        assertEquals(0, UserCommentHandler.getColumnOffset(comment, 0));
+
+        int start = comment.indexOf("!eb 75");
+        assertEquals(0, UserCommentHandler.getColumnOffset(comment, start));
+    }
+
+    @Test
+    public void testGetColumnOffset_nonZeroOffset_noPreceedingNewLine() {
+        String comment = "  !roster\n" +
+                "SMCX (Lv15, SL2, 15/15) !end\n" +
+                "\n" +
+                "zz  !eb 75  \n" +
+                "team: m-bee, buzzwole, s-diancie, hitmonlee ()  \n" +
+                "moves left: 9  \n" +
+                "items: none  \n" +
+                "!end  \n" +
+                "\n";
+
+        int start = comment.indexOf("!roster");
+        assertEquals(2, UserCommentHandler.getColumnOffset(comment, start));
+    }
+
+    @Test
+    public void testGetColumnOffset_nonZeroOffset() {
+        String comment = "  !roster\n" +
+                "SMCX (Lv15, SL2, 15/15) !end\n" +
+                "\n" +
+                "zz  !eb 75  \n" +
+                "team: m-bee, buzzwole, s-diancie, hitmonlee ()  \n" +
+                "moves left: 9  \n" +
+                "items: none  \n" +
+                "!end  \n" +
+                "\n";
+
+        int start = comment.indexOf("!eb 75");
+        assertEquals(4, UserCommentHandler.getColumnOffset(comment, start));
     }
 }

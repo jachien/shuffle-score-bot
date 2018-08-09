@@ -33,7 +33,14 @@ public class ParseExceptionUtils {
                 .toArray(String[]::new);
     }
 
-    public static FormatException getFormatException(String comment, ParseException e) {
+    /**
+     * @param comment       string containing exactly the run details (and nothing more, i.e. possibly not the full post)
+     * @param lineOffset    0-indexed line offset of run details in full comment
+     * @param colOffset     0-indexed column offset of run details in full comment
+     * @param e             parse exception from javacc
+     * @return              exception with error message for end user consumption
+     */
+    public static FormatException getFormatException(String comment, int lineOffset, int colOffset, ParseException e) {
         // modified from ParseException#initialise
 
         Token currentToken = e.currentToken;
@@ -67,10 +74,13 @@ public class ParseExceptionUtils {
             message.append(ParseException.add_escapes(tok.image));
             tok = tok.next;
         }
-        final int errorLine = currentToken.next.beginLine;
-        final int errorColumn = currentToken.next.beginColumn;
-        // todo adjust for position within entire comment
-        message.append("` at line ").append(errorLine).append(", column ").append(errorColumn);
+        final int errorLine = currentToken.next.beginLine; // this is 1-indexed
+        final int errorColumn = currentToken.next.beginColumn; // this is 1-indexed
+
+        final int adjustedErrorLine = errorLine + lineOffset;
+        final int adjustedErrorColumn = errorColumn + colOffset;
+
+        message.append("` at line ").append(adjustedErrorLine).append(", column ").append(adjustedErrorColumn);
         message.append(".\n\n");
 
         try {

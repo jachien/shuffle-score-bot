@@ -1,5 +1,6 @@
 package org.jchien.shuffle.handler;
 
+import com.google.common.annotations.VisibleForTesting;
 import net.dean.jraw.models.PublicContribution;
 import org.jchien.shuffle.parser.exception.FormatException;
 import org.jchien.shuffle.model.ParsedComment;
@@ -48,7 +49,7 @@ public class UserCommentHandler {
     }
 
     private interface BlockConsumer {
-        void accept(String comment) throws FormatException;
+        void accept(String block, int lineOffset, int colOffset) throws FormatException;
     }
 
     public ParsedComment parseRuns() {
@@ -124,9 +125,68 @@ public class UserCommentHandler {
                 LOG.debug("found match at (" + start + ", " + end + ") for pattern " + pattern);
             }
 
+            // hack to remove matched new lines from block to make getLineOffset work correctly
+            // I don't remember the reasoning, but I think I needed to include whitespace in regex patterns
+            start = getAdjustedStart(comment, start);
+
             String block = comment.substring(start, end).trim();
-            consumer.accept(block);
+            int lineOffset = getLineOffset(comment, start);
+            int colOffset = getColumnOffset(comment, start);
+
+            consumer.accept(block, lineOffset, colOffset);
         }
+    }
+
+    private static int getAdjustedStart(String comment, int start) {
+        int codePoint = comment.codePointAt(start);
+
+        while (Character.isWhitespace(codePoint)) {
+            start += Character.charCount(codePoint);
+
+            if (start > comment.length()) {
+                throw new IllegalStateException("regex matched only whitespace");
+            }
+
+            codePoint = comment.codePointAt(start);
+        }
+        return start;
+    }
+
+    /**
+     * @param comment   full comment
+     * @param start     start of run details block
+     * @return          number of new lines before start
+     */
+    @VisibleForTesting
+    static int getLineOffset(String comment, int start) {
+        if (start == 0) {
+            return 0;
+        }
+
+        int cnt = 0;
+        int pos = comment.lastIndexOf('\n', start - 1);
+        while (pos >= 0) {
+            cnt++;
+            pos = comment.lastIndexOf('\n', pos - 1);
+        }
+        return cnt;
+    }
+
+    /**
+     * @param comment   full comment
+     * @param start     start of run details block
+     * @return          number of characters between start and the preceding new line
+     */
+    @VisibleForTesting
+    static int getColumnOffset(String comment, int start) {
+        if (start == 0) {
+            return 0;
+        }
+
+        int newLinePos = comment.lastIndexOf('\n', start - 1);
+        // lastIndexOf will return -1 if no new line is found, which is actually what we want,
+        // that is to treat beginning of the string as having followed a new line
+        return start - newLinePos - 1;
     }
 
     // word boundary matcher doesn't seem to trigger in front of an exclamation mark
@@ -136,13 +196,13 @@ public class UserCommentHandler {
     public List<RunDetails> getRunDetails(String comment, Map<String, Pokemon> roster) {
         final List<RunDetails> runs = new ArrayList<>();
 
-        BlockConsumer runConsumer = block -> {
+        BlockConsumer runConsumer = (block, lineOffset, colOffset) -> {
             RunParser p = new RunParser(new StringReader(block));
             Throwable throwable = null;
             try {
                 p.start();
             } catch (ParseException e) {
-                throwable = ParseExceptionUtils.getFormatException(block, e);
+                throwable = ParseExceptionUtils.getFormatException(block, lineOffset, colOffset, e);
             } catch (FormatException e) {
                 throwable = e;
             } catch (TokenMgrError e) {
@@ -170,12 +230,12 @@ public class UserCommentHandler {
     public Map<String, Pokemon> getRoster(String comment) throws FormatException {
         final Map<String, Pokemon> roster = new LinkedHashMap<>();
 
-        BlockConsumer rosterConsumer = block -> {
+        BlockConsumer rosterConsumer = (block, lineOffset, colOffset) -> {
             RunParser p = new RunParser(new StringReader(block));
             try {
                 p.roster();
             } catch (ParseException e) {
-                throw ParseExceptionUtils.getFormatException(block, e);
+                throw ParseExceptionUtils.getFormatException(block, lineOffset, colOffset, e);
             }
             // reuse RawRunDetails and canonicalizer to just get the team
             // not the cleanest but it's already written and should work
