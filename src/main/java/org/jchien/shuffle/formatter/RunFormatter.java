@@ -46,8 +46,8 @@ public class RunFormatter {
 
     public final static String COMP_HEADER_PREFIX = "###Competition Runs";
     static final String COMP_TABLE_HEADER = "\n\n" +
-            "Username | Team | Items | Score | Notes\n" +
-            "|:-:|:-:|:-:|:-:|:-:\n";
+            "Username | Mega Slot | Slot 2 | Slot 3 | Slot 4 | Items | Score | Notes\n" +
+            "|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n";
 
     @VisibleForTesting
     List<String> formatCompetitionRun(List<UserRunDetails> runs, String submissionUrl) {
@@ -122,8 +122,8 @@ public class RunFormatter {
     public final static String MES_STAGE_HEADER_PREFIX = "###Stage ";
 
     static final String STAGE_TABLE_HEADER = "\n\n" +
-            "Username | Team | Items | Result | Notes\n" +
-            "|:-:|:-:|:-:|:-:|:-:\n";
+            "Username | Mega Slot | Slot 2 | Slot 3 | Slot 4 | Items | Result | Notes\n" +
+            "|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n";
 
     private List<String> formatEscalationBattleStage(List<UserRunDetails> runs, Stage stage, String submissionUrl) {
         return formatNonCompetitionStage(runs, stage, submissionUrl, EB_STAGE_HEADER_PREFIX);
@@ -251,15 +251,23 @@ public class RunFormatter {
 
     private void appendTeam(StringBuilder sb, List<Pokemon> team) {
         String delim = "";
-        for (Pokemon pokemon : team) {
+        for (int i=0; i < 4; i++) {
             sb.append(delim);
-            appendPokemon(sb, pokemon);
-            delim = ", ";
+            if (team.size() > i) {
+                Pokemon pokemon = team.get(i);
+                appendPokemon(sb, pokemon);
+            } else {
+                sb.append("*blank*");
+            }
+            delim = " | ";
         }
     }
 
     private void appendPokemon(StringBuilder sb, Pokemon pokemon) {
+        sb.append("**");
         appendCapitalizedWords(sb, pokemon.getName());
+        sb.append("**");
+
         sb.append(getPokemonStats(pokemon));
     }
 
