@@ -1,5 +1,5 @@
 # Shuffle Score Bot
-I'm a Reddit bot for /r/pokemonshuffle. I look for comments detailing competition, escalation battle, and other stage runs and generate tables with everyone's aggregate info. The syntax tries to be flexible, here are several examples.
+I'm /u/shufflescorebot, a Reddit bot for /r/pokemonshuffle. I look for comments detailing competition, escalation battle, and other stage runs and generate tables with everyone's aggregate info. It might be easiest to understand what I do if you look at [my comment history](https://www.reddit.com/user/shufflescorebot/comments/). The syntax tries to be flexible, here are several examples.
 
 ## Contents
 * [Basic Usage](#basic-usage)
