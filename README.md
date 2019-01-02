@@ -20,11 +20,11 @@ I'm /u/shufflescorebot, a Reddit bot for /r/pokemonshuffle. I look for comments 
 
 ### Competitions
 ```
-!comp
-Team: M-Ttar (Lv10), A-Ninetales (Lv12, SL4), Vanilluxe (Lv15, SL5 Shot Out), Silvally (Lv15, SL5)
-Items: +5 Moves, MS, APU
-Score: 124,018 
-!end
+!comp  
+Team: M-Ttar (Lv10), A-Ninetales (Lv12, SL4), Vanilluxe (Lv15, SL5 Shot Out), Silvally (Lv15, SL5)  
+Items: +5 Moves, MS, APU  
+Score: 124,018  
+!end  
 ```
 
 ### Escalation Battles
@@ -33,7 +33,7 @@ Score: 124,018
 
 !eb 50  
 Team: SMCX, A-Greninja, Flygon, blank  
-Items: none
+Items: none  
 Moves left: 5  
 !end  
 
@@ -46,11 +46,11 @@ Moves left: 1
 
 ### Main / Special / Expert Stages
 ```
-!run Arcanine
-Team: SMCX (SL1, 15/15), Lando-T (SL5), Flygon (Lv15), Dugtrio (Block Shot)     
-Items: none
-Time left: 40
-!end
+!run Arcanine  
+Team: SMCX (SL1, 15/15), Lando-T (SL5), Flygon (Lv15), Dugtrio (Block Shot)  
+Items: none  
+Time left: 40  
+!end  
 ```
 
 ## Syntax Overview
@@ -111,7 +111,7 @@ Items: M+5, MS, DD, APU, C-1, Jewel
 ```
 
 #### Itemless runs
-You can specify that no items were used. 
+You can specify that no items were used.
 ```
 Items: none
 ```
