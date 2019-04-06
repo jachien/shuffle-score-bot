@@ -379,9 +379,11 @@ public class BotCommentHandler {
         return 0;
     }
 
-    private boolean isSummaryComment(String comment) {
+    @VisibleForTesting
+    static boolean isSummaryComment(String comment) {
         // assumes the we've already checked that the configured bot user is the commenter
-        if (comment.startsWith(SummaryFormatter.SUMMARY_HEADER)) {
+        // need to remove trailing whitespace from header because either reddit or jraw is trimming the comment
+        if (comment.startsWith(SummaryFormatter.SUMMARY_HEADER.trim())) {
             return true;
         }
         return false;

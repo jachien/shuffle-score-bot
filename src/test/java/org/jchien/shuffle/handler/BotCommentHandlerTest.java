@@ -2,7 +2,9 @@ package org.jchien.shuffle.handler;
 
 import net.dean.jraw.RedditClient;
 import net.dean.jraw.models.Submission;
+import org.jchien.shuffle.formatter.InvalidRunFormatter;
 import org.jchien.shuffle.formatter.RunFormatter;
+import org.jchien.shuffle.formatter.SummaryFormatter;
 import org.jchien.shuffle.model.BotComment;
 import org.jchien.shuffle.model.Stage;
 import org.jchien.shuffle.model.StageType;
@@ -16,6 +18,8 @@ import java.util.Map;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author jchien
@@ -185,5 +189,18 @@ public class BotCommentHandlerTest {
             assertEquals("id" + i, comment.getCommentId());
             assertEquals(Integer.toString(i), comment.getContent());
         }
+    }
+
+    @Test
+    public void testIsSummaryComment() {
+        assertTrue(BotCommentHandler.isSummaryComment(SummaryFormatter.SUMMARY_HEADER));
+        // reddit or jraw appears to be removing trailing whitespace
+        assertTrue(BotCommentHandler.isSummaryComment(SummaryFormatter.SUMMARY_HEADER.trim()));
+        assertTrue(BotCommentHandler.isSummaryComment(SummaryFormatter.SUMMARY_HEADER + "stuff"));
+        assertFalse(BotCommentHandler.isSummaryComment(""));
+        assertFalse(BotCommentHandler.isSummaryComment(RunFormatter.COMP_HEADER_PREFIX));
+        assertFalse(BotCommentHandler.isSummaryComment(RunFormatter.EB_STAGE_HEADER_PREFIX));
+        assertFalse(BotCommentHandler.isSummaryComment(RunFormatter.MES_STAGE_HEADER_PREFIX));
+        assertFalse(BotCommentHandler.isSummaryComment(InvalidRunFormatter.getAllGoodMessage()));
     }
 }
