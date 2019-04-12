@@ -256,7 +256,7 @@ public class BotCommentHandler {
         } else {
             // no need to write anything, existing bot comment already has correct content
             if (LOG.isDebugEnabled()) {
-                LOG.debug("comment for " + partId + " already up to date in " + submissionUrl);
+                LOG.debug("comment " + existing.getCommentId() + ", " + partId + " already up to date in " + submissionUrl);
             }
             return existing;
         }
