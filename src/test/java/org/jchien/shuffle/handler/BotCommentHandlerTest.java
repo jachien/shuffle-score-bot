@@ -203,4 +203,23 @@ public class BotCommentHandlerTest {
         assertFalse(BotCommentHandler.isSummaryComment(RunFormatter.MES_STAGE_HEADER_PREFIX));
         assertFalse(BotCommentHandler.isSummaryComment(InvalidRunFormatter.getAllGoodMessage()));
     }
+
+    @Test
+    public void testContentEquals() {
+        assertTrue(BotCommentHandler.contentEquals(null, null));
+        assertTrue(BotCommentHandler.contentEquals("abc", "abc"));
+        assertTrue(BotCommentHandler.contentEquals("abc", "abc "));
+        assertTrue(BotCommentHandler.contentEquals("abc ", "abc"));
+        assertTrue(BotCommentHandler.contentEquals("abc\n\n", "abc\n\n"));
+        assertTrue(BotCommentHandler.contentEquals("abc", "abc\n\n"));
+        assertTrue(BotCommentHandler.contentEquals("abc\n", "abc\n\n "));
+        assertTrue(BotCommentHandler.contentEquals("\nabc\n", "abc\n\n "));
+        assertTrue(BotCommentHandler.contentEquals("    abc\n", "abc\n\n "));
+        assertTrue(BotCommentHandler.contentEquals("ab\nc", "ab\nc "));
+
+        assertFalse(BotCommentHandler.contentEquals("abc", "xyz"));
+        assertFalse(BotCommentHandler.contentEquals("ab\nc", "abc"));
+        assertFalse(BotCommentHandler.contentEquals("abc", null));
+        assertFalse(BotCommentHandler.contentEquals(null, "abc"));
+    }
 }

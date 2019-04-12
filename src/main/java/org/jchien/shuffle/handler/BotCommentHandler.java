@@ -19,6 +19,7 @@ import org.jchien.shuffle.model.UserRunDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -152,7 +153,7 @@ public class BotCommentHandler {
     private void updateSummaryTable(Map<TablePartId, BotComment> latestAggregateTableMap) {
         String submissionUrl = submission.getUrl();
         String summaryTable = summaryFormatter.formatSummary(submissionUrl, latestAggregateTableMap);
-        if (!Objects.equals(summaryComment.getContent(), summaryTable)) {
+        if (!contentEquals(summaryComment.getContent(), summaryTable)) {
             if (LOG.isDebugEnabled()) {
                 String url = FormatterUtils.getCommentPermalink(submissionUrl, summaryComment.getCommentId());
                 LOG.debug("updating summary comment at " + url);
@@ -243,7 +244,7 @@ public class BotCommentHandler {
             }
             Comment reply = redditClient.comment(parentId).reply(commentBody);
             return new BotComment(reply.getId(), commentBody);
-        } else if (!Objects.equals(existing.getContent(), commentBody)) {
+        } else if (!contentEquals(existing.getContent(), commentBody)) {
             // we've already written a comment for this part but it's outdated
 
             if (LOG.isDebugEnabled()) {
@@ -308,7 +309,7 @@ public class BotCommentHandler {
                 LOG.debug("no reply for " + userCommentId + " yet in " + submissionUrl + ", creating new reply");
             }
             redditClient.comment(userCommentId).reply(botReplyBody);
-        } else if (!Objects.equals(existing.getContent(), botReplyBody)) {
+        } else if (!contentEquals(existing.getContent(), botReplyBody)) {
             // we've already written a reply for these runs but it's outdated
 
             if (LOG.isDebugEnabled()) {
@@ -387,5 +388,21 @@ public class BotCommentHandler {
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param a string 1
+     * @param b string 2
+     * @return true if both args are null or their trimmed values are equal, false otherwise
+     */
+    @VisibleForTesting
+    static boolean contentEquals(@Nullable String a, @Nullable String b) {
+        if (a != null && b != null) {
+            // make sure we don't NPE when trimming
+            return Objects.equals(a.trim(), b.trim());
+        }
+
+        // at least one argument is null, so don't bother trimming for comparison
+        return Objects.equals(a, b);
     }
 }
