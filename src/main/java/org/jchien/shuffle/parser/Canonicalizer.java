@@ -1,6 +1,7 @@
 package org.jchien.shuffle.parser;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.jchien.shuffle.model.StageType;
 import org.jchien.shuffle.parser.exception.FormatException;
 import org.jchien.shuffle.model.Item;
 import org.jchien.shuffle.parser.exception.ItemException;
@@ -40,15 +41,17 @@ public class Canonicalizer {
 
         addDetail(throwables, () -> rdb.setItems(getItems(raw.getItems())));
 
-        addDetail(throwables, () -> rdb.setStage(getStage(raw.getStage())));
+        addDetail(throwables, () -> rdb.setStageType(raw.getStageType()));
+
+        // set the stage with the raw value so if we raise an exception the error message still contains the stage name
+        rdb.setStage(raw.getStage());
+        addDetail(throwables, () -> rdb.setStage(getStage(raw.getStage(), raw.getStageType())));
 
         addDetail(throwables, () -> rdb.setScore(getScore(raw.getScore())));
 
         addDetail(throwables, () -> rdb.setMovesLeft(getMovesLeft(raw.getMovesLeft())));
 
         addDetail(throwables, () -> rdb.setTimeLeft(getTimeLeft(raw.getTimeLeft())));
-
-        addDetail(throwables, () -> rdb.setStageType(raw.getStageType()));
 
         addDetail(throwables, () -> rdb.setMoveType(raw.getMoveType()));
 
@@ -260,8 +263,18 @@ public class Canonicalizer {
         return getNonNegativeInteger(raw, "score");
     }
 
-    private String getStage(String raw) {
-        // todo validate that this is an EB stage or pokemon name
+    @VisibleForTesting
+    String getStage(String raw, StageType stageType) throws FormatException {
+        if (StageType.ESCALATION_BATTLE == stageType) {
+            try {
+                int value = Integer.parseInt(raw, 10);
+                if (value < 1) {
+                    throw new NumberFormatException("EB stage is not positive");
+                }
+            } catch (NumberFormatException e) {
+                throw new FormatException("Unable to parse stage: \"" + raw + "\", EB stages should be a positive integer", e);
+            }
+        }
         return raw;
     }
 

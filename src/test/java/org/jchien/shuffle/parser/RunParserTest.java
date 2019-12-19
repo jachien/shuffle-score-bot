@@ -439,6 +439,78 @@ public class RunParserTest {
         ));
     }
 
+    /*
+    This test throws org.jchien.shuffle.parser.ParseException: Encountered " <WORD> "x200B "" at line 6, column 3.
+    But it did not throw an exception in production for the same input. I'm puzzled.
+
+    @Test
+    public void testHtmlEntityNoWidthSpace() throws ParseException, FormatException {
+        String input =
+                "!eb 25\n" +
+                "\n" +
+                "&#x200B;\n" +
+                "\n" +
+                "\\*\\*Team:\\*\\* M-Beedrill, Muk, Gulpin, Croagunk" +
+                "\\*\\*Items:\\*\\* None " +
+                "\\*\\*Moves left:\\*\\* 4 " +
+                "\n" +
+                "&#x200B;\n" +
+                "\n" +
+                "!end";
+
+        List<RawPokemon> expectedTeam = Arrays.asList(
+                new RawPokemon("M-Beedrill", null, null, null, false),
+                new RawPokemon("Muk", null, null, null, false),
+                new RawPokemon("Gulpin", null, null, null, false),
+                new RawPokemon("Croagunk", null, null, null, false)
+        );
+
+        testParse(input, Arrays.asList(
+                new ExpectedResult<>(StageType.ESCALATION_BATTLE, RawRunDetails::getStageType),
+                // this should be captured in the RawRunDetails, but flagged as an invalid run by Canonicalizer later
+                new ExpectedResult<>("25 x200B", RawRunDetails::getStage),
+                new ExpectedResult<>(expectedTeam, RawRunDetails::getTeam),
+                new ExpectedResult<>("4", RawRunDetails::getMovesLeft),
+                new ExpectedResult<>(Arrays.asList("None"), RawRunDetails::getItems)
+        ));
+    }
+    */
+
+    @Test
+    public void testEscalationBattleStageParsing() throws ParseException, FormatException {
+        String input =
+                "!eb 100\n" +
+                "\n" +
+                "**Eb 100**\n" +
+                "\n" +
+                "**Team:** M-Pinsir, Ninetales, Typhlosion, Delphox\n" +
+                "\n" +
+                "**Items:** None \n" +
+                "\n" +
+                "**Moves left:** 3\n" +
+                "\n" +
+                "**Notes:** Many many rocks, maybe Pkyo is good here.\n" +
+                "\n" +
+                "!end\n";
+
+        List<RawPokemon> expectedTeam = Arrays.asList(
+                new RawPokemon("M-Pinsir", null, null, null, false),
+                new RawPokemon("Ninetales", null, null, null, false),
+                new RawPokemon("Typhlosion", null, null, null, false),
+                new RawPokemon("Delphox", null, null, null, false)
+        );
+
+        testParse(input, Arrays.asList(
+                new ExpectedResult<>(StageType.ESCALATION_BATTLE, RawRunDetails::getStageType),
+                // this should be captured in the RawRunDetails, but flagged as an invalid run by Canonicalizer later
+                new ExpectedResult<>("100 Eb 100", RawRunDetails::getStage),
+                new ExpectedResult<>(expectedTeam, RawRunDetails::getTeam),
+                new ExpectedResult<>("3", RawRunDetails::getMovesLeft),
+                new ExpectedResult<>(Arrays.asList("None"), RawRunDetails::getItems)
+        ));
+    }
+
+
     @Test
     public void testNotes() throws ParseException, FormatException {
         String notes =  "This is [a] free / form (notes) #section." +

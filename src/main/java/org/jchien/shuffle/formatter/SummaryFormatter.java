@@ -1,5 +1,6 @@
 package org.jchien.shuffle.formatter;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.jchien.shuffle.model.BotComment;
 import org.jchien.shuffle.model.Stage;
 import org.jchien.shuffle.model.StageType;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.comparingInt;
+import static java.util.Comparator.nullsFirst;
 import static org.jchien.shuffle.formatter.FormatterUtils.appendCapitalizedWords;
 
 /**
@@ -47,9 +49,20 @@ public class SummaryFormatter {
         return compParts;
     }
 
-    private Map<Stage, List<TablePartId>> getEscalationBattleParts(Map<TablePartId, BotComment> tableMap) {
+    @VisibleForTesting
+    static int parseEscalationBattleStage(String stageId) {
+        try {
+            return Integer.parseInt(stageId);
+        } catch (NumberFormatException e) {
+            return Integer.MAX_VALUE;
+        }
+    }
+
+    @VisibleForTesting
+    Map<Stage, List<TablePartId>> getEscalationBattleParts(Map<TablePartId, BotComment> tableMap) {
         Comparator<Stage> ebComparator =
-                comparingInt(stage -> Integer.parseInt(stage.getStageId()));
+                comparingInt((Stage s) -> parseEscalationBattleStage(s.getStageId()))
+                .thenComparing(Stage::getStageId, nullsFirst(String.CASE_INSENSITIVE_ORDER));
 
         Map<Stage, List<TablePartId>> ebParts = tableMap.keySet()
                 .stream()

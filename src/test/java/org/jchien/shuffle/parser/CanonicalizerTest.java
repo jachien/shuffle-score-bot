@@ -1,5 +1,6 @@
 package org.jchien.shuffle.parser;
 
+import org.jchien.shuffle.model.StageType;
 import org.jchien.shuffle.parser.exception.FormatException;
 import org.jchien.shuffle.model.Item;
 import org.junit.jupiter.api.Assertions;
@@ -635,5 +636,22 @@ public class CanonicalizerTest {
         input = "Convert\t\t\nchars \n\nto \r\n spaces";
         expected = "Convert chars to spaces";
         assertEquals(expected, c.getNotes(input));
+    }
+
+    @Test
+    public void testGetStage_ValidEB() throws FormatException {
+        Canonicalizer c = new Canonicalizer();
+        String input = "25";
+        String expected = "25";
+        assertEquals(expected, c.getStage(input, StageType.ESCALATION_BATTLE));
+    }
+
+    @Test
+    public void testGetStage_NonPositiveEB() {
+        Canonicalizer c = new Canonicalizer();
+        String[] badInputs = new String[] {"0", "25x200b", "100eb100"};
+        for (String input : badInputs) {
+            assertThrows(FormatException.class, () -> c.getStage(input, StageType.ESCALATION_BATTLE));
+        }
     }
 }

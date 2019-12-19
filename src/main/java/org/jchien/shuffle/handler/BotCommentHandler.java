@@ -63,6 +63,8 @@ public class BotCommentHandler {
     // map of all aggregate tables as they are BEFORE any writes or updates from this run
     private Map<TablePartId, BotComment> aggregateTableMap = new TreeMap<>(TABLE_PART_ID_COMPARATOR);
 
+    private List<String> dupeAggregateCommentIds = new ArrayList<>();
+
     // user comment id -> bot reply
     private Map<String, BotComment> botReplyMap = new TreeMap<>();
 
@@ -126,7 +128,13 @@ public class BotCommentHandler {
             LOG.debug("found " + partId + " from comment " + commentId);
         }
 
-        aggregateTableMap.put(partId, new BotComment(commentId, commentBody));
+        if (aggregateTableMap.containsKey(partId)) {
+            dupeAggregateCommentIds.add(commentId);
+            BotComment existingComment = aggregateTableMap.get(partId);
+            LOG.warn("duplicate partId found: " + partId + " in commentId " + commentId + ", duplicate of " + existingComment.getCommentId());
+        } else {
+            aggregateTableMap.put(partId, new BotComment(commentId, commentBody));
+        }
 
         return true;
     }
@@ -141,6 +149,8 @@ public class BotCommentHandler {
         Map<TablePartId, BotComment> latestTableMap = writeAggregateTables(stageMap);
 
         removeEmptyAggregateTables(latestTableMap);
+
+        removeDupeAggregateTables();
 
         writeBotReplies(authorMap, invalidRunMap);
     }
@@ -276,6 +286,17 @@ public class BotCommentHandler {
         }
     }
 
+    private void removeDupeAggregateTables() {
+        if (dupeAggregateCommentIds.size() == 0) {
+            return;
+        }
+
+        LOG.debug("removing duplicate aggregate comment ids: " + dupeAggregateCommentIds);
+        for (String commentId : dupeAggregateCommentIds) {
+            redditClient.comment(commentId).delete();
+        }
+    }
+
     private void writeBotReplies(Map<String, String> authorMap, Map<String, InvalidRuns> invalidRunMap) {
         Set<String> badCommentIds = new TreeSet<>();
 
@@ -330,7 +351,7 @@ public class BotCommentHandler {
         }
     }
 
-    private static final Pattern EB_STAGE_PATTERN = Pattern.compile("^" + RunFormatter.EB_STAGE_HEADER_PREFIX + "(\\d+)\n");
+    private static final Pattern EB_STAGE_PATTERN = Pattern.compile("^" + RunFormatter.EB_STAGE_HEADER_PREFIX + "(.+)\n");
 
     // main / expert / special stage pattern
     private static final Pattern MES_STAGE_PATTERN = Pattern.compile("^" + RunFormatter.MES_STAGE_HEADER_PREFIX + "(.+)\n");
